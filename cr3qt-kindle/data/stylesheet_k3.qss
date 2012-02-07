@@ -1,0 +1,35 @@
+* {
+	font-size: 8pt;
+	background: white;
+	background-color: white;
+	color: black;
+}
+
+QMenu { 
+	border: 1px solid gray;
+	padding: 0px 0px 0px 10px;
+}
+
+
+QMenu::item {
+	padding: 5px 0px 5px 5px;
+	border-bottom: 2px solid white;
+}
+
+QMenu::item:selected {
+	padding: 5px 0px 5px 5px;
+	border-bottom: 2px solid black;
+}
+
+QListView {
+	font-size: 10pt;
+}
+
+QTreeView {
+	font-size: 10pt;
+}
+
+QTableWidget {
+	font-size: 10pt;
+}
+

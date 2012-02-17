@@ -210,6 +210,7 @@ public:
             insideCipherData = true;
         else if (!lStr_cmp(tagname, L"CipherReference"))
             insideCipherReference = true;
+		return NULL;
     }
     /// called on tag close
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname ) {
@@ -239,7 +240,7 @@ public:
 
     }
     /// add named BLOB data to document
-    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) { }
+    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) { return false; }
 
     virtual void OnStop() { }
     /// called after > of opening tag (when entering tag body)
@@ -317,7 +318,7 @@ public:
     }
 
     bool isEncryptedItem(const lChar16 * name) {
-        return findEncryptedItem(name);
+        return findEncryptedItem(name) != NULL;
     }
 
     LVArray<lUInt8> _fontManglingKey;
@@ -513,6 +514,8 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     lString16 ncxHref;
     lString16 coverId;
 
+    LVEmbeddedFontList fontList;
+
     // reading content stream
     {
         ldomDocument * doc = LVParseXMLStream( content_stream );
@@ -583,7 +586,8 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 if (mediaType == L"application/vnd.ms-opentype"
                         || mediaType == L"application/x-font-otf"
                         || mediaType == L"application/x-font-ttf") { // TODO: more media types?
-                    fontMan->RegisterDocumentFont(m_doc->getDocIndex(), m_arc, codeBase + href);
+                    // TODO:
+                    fontList.add(codeBase + href);
                 }
             }
 //            if ( mediaType==L"text/css" ) {
@@ -675,6 +679,14 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 }
             }
         }
+    }
+
+    // TODO: fill font properties from CSS @font
+
+    if (!fontList.empty()) {
+        // set document font list, and register fonts
+        m_doc->getEmbeddedFontList().set(fontList);
+        m_doc->registerEmbeddedFonts();
     }
 
     ldomDocument * ncxdoc = NULL;

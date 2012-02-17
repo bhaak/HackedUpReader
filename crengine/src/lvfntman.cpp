@@ -129,6 +129,102 @@ void LVFontManager::SetGamma( double gamma ) {
 }
 
 
+////////////////////////////////////////////////////////////////////
+
+static const char * EMBEDDED_FONT_LIST_MAGIC = "FNTL";
+static const char * EMBEDDED_FONT_DEF_MAGIC = "FNTD";
+
+////////////////////////////////////////////////////////////////////
+// LVEmbeddedFontDef
+////////////////////////////////////////////////////////////////////
+bool LVEmbeddedFontDef::serialize(SerialBuf & buf) {
+    buf.putMagic(EMBEDDED_FONT_DEF_MAGIC);
+    buf << _url << _face << _bold << _italic;
+    return !buf.error();
+}
+
+bool LVEmbeddedFontDef::deserialize(SerialBuf & buf) {
+    if (!buf.checkMagic(EMBEDDED_FONT_DEF_MAGIC))
+        return false;
+    buf >> _url >> _face >> _bold >> _italic;
+    return !buf.error();
+}
+
+////////////////////////////////////////////////////////////////////
+// LVEmbeddedFontList
+////////////////////////////////////////////////////////////////////
+LVEmbeddedFontDef * LVEmbeddedFontList::findByUrl(lString16 url) {
+    for (int i=0; i<length(); i++) {
+        if (get(i)->getUrl() == url)
+            return get(i);
+    }
+    return NULL;
+}
+
+bool LVEmbeddedFontList::addAll(LVEmbeddedFontList & list) {
+    bool changed = false;
+    for (int i=0; i<list.length(); i++) {
+        LVEmbeddedFontDef * def = list.get(i);
+        changed = add(def->getUrl(), def->getFace(), def->getBold(), def->getItalic()) || changed;
+    }
+    return changed;
+}
+
+bool LVEmbeddedFontList::add(lString16 url, lString8 face, bool bold, bool italic) {
+    LVEmbeddedFontDef * def = findByUrl(url);
+    if (def) {
+        bool changed = false;
+        if (def->getFace() != face) {
+            def->setFace(face);
+            changed = true;
+        }
+        if (def->getBold() != bold) {
+            def->setBold(bold);
+            changed = true;
+        }
+        if (def->getItalic() != italic) {
+            def->setItalic(italic);
+            changed = true;
+        }
+        return changed;
+    }
+    def = new LVEmbeddedFontDef(url, face, bold, italic);
+    add(def);
+}
+
+bool LVEmbeddedFontList::serialize(SerialBuf & buf) {
+    buf.putMagic(EMBEDDED_FONT_LIST_MAGIC);
+    lUInt32 count = length();
+    buf << count;
+    for (lUInt32 i = 0; i < count; i++) {
+        get(i)->serialize(buf);
+        if (buf.error())
+            return false;
+    }
+    return !buf.error();
+}
+
+bool LVEmbeddedFontList::deserialize(SerialBuf & buf) {
+    if (!buf.checkMagic(EMBEDDED_FONT_LIST_MAGIC))
+        return false;
+    lUInt32 count = 0;
+    buf >> count;
+    if (buf.error())
+        return false;
+    for (lUInt32 i = 0; i < count; i++) {
+        LVEmbeddedFontDef * item = new LVEmbeddedFontDef();
+        if (!item->deserialize(buf)) {
+            delete item;
+            return false;
+        }
+        add(item);
+    }
+    return !buf.error();
+}
+
+////////////////////////////////////////////////////////////////////
+
+
 /**
  * Max width of -/./,/!/? to use for visial alignment by width
  */
@@ -2228,7 +2324,7 @@ public:
     */
 
     /// registers document font
-    virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString16 name) {
+    virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString16 name, lString8 faceName, bool bold, bool italic) {
         lString8 name8 = UnicodeToUtf8(name);
         CRLog::debug("RegisterDocumentFont(documentId=%d, path=%s)", documentId, name8.c_str());
         if (_cache.findDocumentFontDuplicate(documentId, name8)) {
@@ -2281,15 +2377,18 @@ public:
             css_font_family_t fontFamily = css_ff_sans_serif;
             if ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH )
                 fontFamily = css_ff_monospace;
-            lString8 familyName( ::familyName(face) );
+            lString8 familyName(!faceName.empty() ? faceName : ::familyName(face));
             if ( familyName=="Times" || familyName=="Times New Roman" )
                 fontFamily = css_ff_serif;
+
+            bool boldFlag = !faceName.empty() ? bold : (face->style_flags & FT_STYLE_FLAG_BOLD);
+            bool italicFlag = !faceName.empty() ? italic : (face->style_flags & FT_STYLE_FLAG_ITALIC);
 
             LVFontDef def(
                 name8,
                 -1, // height==-1 for scalable fonts
-                ( face->style_flags & FT_STYLE_FLAG_BOLD ) ? 700 : 400,
-                ( face->style_flags & FT_STYLE_FLAG_ITALIC ) ? true : false,
+                boldFlag ? 700 : 400,
+                italicFlag,
                 fontFamily,
                 familyName,
                 index,

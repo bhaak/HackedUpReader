@@ -40,6 +40,7 @@ import org.coolreader.donations.Consts.PurchaseState;
 import org.coolreader.donations.Consts.ResponseCode;
 import org.coolreader.donations.PurchaseObserver;
 import org.coolreader.donations.ResponseHandler;
+import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -238,29 +239,6 @@ public class CoolReader extends Activity
 		}
 	}
 	
-	private int sdkInt = 0;
-	public int getSDKLevel() {
-		if (sdkInt > 0)
-			return sdkInt;
-		// hack for Android 1.5
-		sdkInt = 3;
-		Field fld;
-		try {
-			Class<?> cl = android.os.Build.VERSION.class;
-			fld = cl.getField("SDK_INT");
-			sdkInt = fld.getInt(cl);
-			log.i("API LEVEL " + sdkInt + " detected");
-		} catch (SecurityException e) {
-			// ignore
-		} catch (NoSuchFieldException e) {
-			// ignore
-		} catch (IllegalArgumentException e) {
-			// ignore
-		} catch (IllegalAccessException e) {
-			// ignore
-		}
-		return sdkInt;
-	}
 	
 	public boolean isWakeLockEnabled() {
 		return screenBacklightDuration > 0;
@@ -327,7 +305,7 @@ public class CoolReader extends Activity
 	public void setScreenOrientation( int angle )
 	{
 		int newOrientation = screenOrientation;
-		boolean level9 = getSDKLevel() >= 9;
+		boolean level9 = DeviceInfo.getSDKLevel() >= 9;
 		switch (angle) {
 		case 0:
 			newOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT; // level9 ? ActivityInfo_SCREEN_ORIENTATION_SENSOR_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
@@ -1039,6 +1017,18 @@ public class CoolReader extends Activity
 		
 		if (DeviceInfo.EINK_SCREEN) {
 			setScreenUpdateMode(props.getInt(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, 0), mReaderView);
+            if (DeviceInfo.EINK_SONY) {
+                SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
+                String res = pref.getString(PREF_LAST_BOOK, null);
+                if( res != null && res.length() > 0 ) {
+                    SonyBookSelector selector = new SonyBookSelector(this);
+                    long l = selector.getContentId(res);
+                    if(l != 0) {
+                       selector.setReadingTime(l);
+                       selector.requestBookSelection(l);
+                    }
+                }
+            }
 		}
 		
 		backlightControl.onUserActivity();
@@ -1683,7 +1673,7 @@ public class CoolReader extends Activity
             vmargin = "8";
         } else {
         	fontSize = 32;
-            hmargin = "40";
+            hmargin = "25";
             vmargin = "15";
         }
         props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
@@ -1855,7 +1845,7 @@ public class CoolReader extends Activity
 		case 0:
 			Intent intent0 = new Intent(currentDict.action).setComponent(new ComponentName(
 				currentDict.packageName, currentDict.className
-				)).addFlags(getSDKLevel() >= 11 ? FLAG_ACTIVITY_CLEAR_TASK : Intent.FLAG_ACTIVITY_NEW_TASK);
+				)).addFlags(DeviceInfo.getSDKLevel() >= 11 ? FLAG_ACTIVITY_CLEAR_TASK : Intent.FLAG_ACTIVITY_NEW_TASK);
 			if (s!=null)
 				intent0.putExtra(SearchManager.QUERY, s);
 			try {

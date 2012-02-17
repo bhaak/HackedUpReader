@@ -1,5 +1,7 @@
 package org.coolreader.crengine;
 
+import java.lang.reflect.Field;
+
 import android.os.Build;
 import android.util.Log;
 
@@ -26,13 +28,47 @@ public class DeviceInfo {
 
 	// minimal screen backlight level percent for different devices
 	private static final String[] MIN_SCREEN_BRIGHTNESS_DB = {
-		"LGE;LG-P500", "6", // LG Optimus One
-		"samsung;GT-I9003", "6", // Samsung i9003
-		"HTC;HTC EVO 3D*", "1", // HTC EVO
-		"Archos;A70S", "1", // Archos
-		"HTC;HTC Desire", "6", // HTC Desire
+		"LGE;LG-P500",       "6", // LG Optimus One
+		"samsung;GT-I9003",  "6", // Samsung i9003
+		"HTC;HTC EVO 3D*",   "1", // HTC EVO
+		"Archos;A70S",       "1", // Archos
+		"HTC;HTC Desire",    "6", // HTC Desire
+		"HTC;HTC Desire S",  "6",
+		"HTC;HTC Incredible*","6",// HTC Incredible, HTC Incredible S
+		"HTC;Legend",        "6",
+		"LGE;LG-E510",       "6",
+		"*;Kindle Fire",     "6",
+		"Samsung;GT-S5830",  "6",
+		"HUAWEI;U8800",      "6",
+		"Motorola;Milestone XT720", "6",
 		// TODO: more devices here
 	};
+
+	public final static int ICE_CREAM_SANDWICH = 14;
+
+	private static int sdkInt = 0;
+	public static int getSDKLevel() {
+		if (sdkInt > 0)
+			return sdkInt;
+		// hack for Android 1.5
+		sdkInt = 3;
+		Field fld;
+		try {
+			Class<?> cl = android.os.Build.VERSION.class;
+			fld = cl.getField("SDK_INT");
+			sdkInt = fld.getInt(cl);
+			Log.i("cr3", "API LEVEL " + sdkInt + " detected");
+		} catch (SecurityException e) {
+			// ignore
+		} catch (NoSuchFieldException e) {
+			// ignore
+		} catch (IllegalArgumentException e) {
+			// ignore
+		} catch (IllegalAccessException e) {
+			// ignore
+		}
+		return sdkInt;
+	}
 	
 	static {
 		MANUFACTURER = getBuildField("MANUFACTURER");

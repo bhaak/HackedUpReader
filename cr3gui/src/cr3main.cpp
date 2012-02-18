@@ -256,12 +256,12 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     #ifndef LBOOK
         fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
         fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
-        fontDirs.add( lString16(L"/usr/share/crengine/fonts") );
-        fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
+        fontDirs.add( lString16(L"/mnt/us/cr3xcb/share/cr3/fonts") );
+        fontDirs.add( lString16(L"/mnt/us/cr3xcb/share/fonts/truetype/freefont") );
         fontDirs.add( lString16(L"/root/fonts/truetype") );
-        //fontDirs.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts") );
+        //fontDirs.add( lString16(L"/mnt/us/cr3xcb/share/fonts/truetype/msttcorefonts") );
         for ( int fi=0; msfonts[fi]; fi++ )
-            fonts.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
+            fonts.add( lString16(L"/mnt/us/cr3xcb/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
     #endif
     #endif
         getDirectoryFonts( fontDirs, fontExt, fonts, true );
@@ -294,7 +294,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     //sprintf(hyphfn, "Russian_EnUS_hyphen_(Alan).pdb" );
     //if ( !initHyph( (UnicodeToLocal(appPath) + hyphfn).c_str() ) ) {
 #ifdef _LINUX
-    //    initHyph( "/usr/share/crengine/hyph/Russian_EnUS_hyphen_(Alan).pdb" );
+    //    initHyph( "/mnt/us/cr3xcb/share/crengine/hyph/Russian_EnUS_hyphen_(Alan).pdb" );
 #endif
     //}
 

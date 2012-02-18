@@ -14,7 +14,7 @@
 
 
 #ifndef CRSKIN
-#define CRSKIN "/usr/share/crengine"
+#define CRSKIN "/mnt/us/cr3xcb/share/cr3"
 #endif
 
 bool initHyph(const char * fname);

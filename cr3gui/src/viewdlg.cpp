@@ -39,7 +39,7 @@
 #define DICTD_CONF_ALT "/root/crengine/dict"
 #else
 #define DICTD_CONF "/media/sd/dict"
-#define DICTD_CONF_ALT "/usr/share/cr3/dict"
+#define DICTD_CONF_ALT "/mnt/us/cr3xcb/share/cr3/dict"
 #endif
 #endif
 

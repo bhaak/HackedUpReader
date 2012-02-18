@@ -794,7 +794,7 @@ public:
                 XCB_PROP_MODE_REPLACE, \
                 window, \
                 atoms[(__i__)].atom, \
-                INTEGER, \
+                XCB_ATOM_INTEGER, \
                 32, \
                 1, \
                 (unsigned char*)&i); \
@@ -835,7 +835,7 @@ public:
                 XCB_PROP_MODE_REPLACE,
                 screen->root,
                 atoms[12].atom,
-                WINDOW,
+                XCB_ATOM_WINDOW,
                 sizeof(xcb_window_t) * 8,
                 1,
                 (unsigned char*)&window);
@@ -843,7 +843,7 @@ public:
         xcb_change_property(connection,
                 XCB_PROP_MODE_REPLACE,
                 window,
-                WM_NAME,
+                XCB_ATOM_WM_NAME,
                 atoms[0].atom,
                 8,
                 strlen("CoolReader3"),
@@ -852,8 +852,8 @@ public:
         xcb_change_property(connection,
                 XCB_PROP_MODE_REPLACE,
                 window,
-                WM_CLASS,
-                STRING,
+                XCB_ATOM_WM_CLASS,
+                XCB_ATOM_STRING,
                 8,
                 strlen("cr3") * 2 + 2,
                 "cr3\0cr3");
@@ -862,7 +862,7 @@ public:
                 XCB_PROP_MODE_REPLACE,
                 window,
                 atoms[13].atom,
-                STRING,
+                XCB_ATOM_STRING,
                 8,
                 cover_image_file.length(),
                 cover_image_file.get());
@@ -1304,7 +1304,7 @@ int main(int argc, char **argv)
     // gettext initialization
     setlocale (LC_ALL, "");
     #undef LOCALEDIR
-    #define LOCALEDIR "/usr/share/locale"
+    #define LOCALEDIR "/mnt/us/cr3xcb/share/locale"
     #ifndef PACKAGE
     #define PACKAGE "cr3"
     #endif
@@ -1350,9 +1350,9 @@ int main(int argc, char **argv)
     //fontDirs.add( lString16(L"/usr/local/share/cr3/fonts") );
     //fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
     //fontDirs.add( lString16(L"/mnt/fonts") );
-    //fontDirs.add( lString16(L"/usr/share/fonts/truetype") );
-    //fontDirs.add( lString16(L"/usr/share/fonts/truetype/liberation") );
-    //fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
+    //fontDirs.add( lString16(L"/mnt/us/cr3xcb/share/fonts/truetype") );
+    //fontDirs.add( lString16(L"/mnt/us/cr3xcb/share/fonts/truetype/liberation") );
+    //fontDirs.add( lString16(L"/mnt/us/cr3xcb/share/fonts/truetype/freefont") );
     //fontDirs.add( lString16(L"/root/fonts/truetype") );
     if ( !InitCREngine( argv[0], fontDirs ) ) {
         printf("Cannot init CREngine - exiting\n");
@@ -1396,7 +1396,7 @@ int main(int argc, char **argv)
         lString8 home8 = UnicodeToUtf8( homecrengine );
         const char * keymap_locations [] = {
             "/etc/cr3",
-            "/usr/share/cr3",
+            "/mnt/us/cr3xcb/share/cr3/keymaps",
             home8.c_str(),
             "/media/sd/crengine/",
             NULL,
@@ -1405,7 +1405,7 @@ int main(int argc, char **argv)
 
         if ( !winman.loadSkin(  homecrengine + L"skin" ) )
             if ( !winman.loadSkin(  lString16( L"/media/sd/crengine/skin" ) ) )
-            	winman.loadSkin( lString16( L"/usr/share/cr3/skins/default" ) );
+            	winman.loadSkin( lString16( L"/mnt/us/cr3xcb/share/cr3/skins/default" ) );
         {
             const lChar16 * imgname =
                 ( winman.getScreenOrientation()&1 ) ? L"cr3_logo_screen_landscape.png" : L"cr3_logo_screen.png";
@@ -1414,19 +1414,19 @@ int main(int argc, char **argv)
                 winman.getScreen()->getCanvas()->Draw(img, 0, 0, winman.getScreen()->getWidth(), winman.getScreen()->getHeight(),  false );
             }
         }
-        HyphMan::initDictionaries( lString16("/usr/share/cr3/hyph/") );
+        HyphMan::initDictionaries( lString16("/mnt/us/cr3xcb/share/cr3/hyph/") );
         //LVExtractPath(LocalToUnicode(lString8(fname)))
         main_win = new XCBDocViewWin( &winman, lString16(CRSKIN) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
         if ( !main_win->loadDefaultCover( lString16( L"/media/sd/crengine/cr3_def_cover.png" ) ) )
-            main_win->loadDefaultCover( lString16( L"/usr/share/cr3/cr3_def_cover.png" ) );
+            main_win->loadDefaultCover( lString16( L"/mnt/us/cr3xcb/share/cr3/cr3_def_cover.png" ) );
         if ( !main_win->loadCSS(  lString16( L"/media/sd/crengine/fb2.css" ) ) )
-            main_win->loadCSS( lString16( L"/usr/share/cr3/fb2.css" ) );
+            main_win->loadCSS( lString16( L"/mnt/us/cr3xcb/share/cr3/fb2.css" ) );
 
         if ( !main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) ) )
-            main_win->loadDictConfig( lString16( L"/usr/share/cr3/dict/dictd.conf" ) );
+            main_win->loadDictConfig( lString16( L"/mnt/us/cr3xcb/share/cr3/dict/dictd.conf" ) );
         if ( bmkdir!=NULL )
             main_win->setBookmarkDir( lString16(bmkdir) );
 

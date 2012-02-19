@@ -622,6 +622,14 @@ class CRXCBScreen : public CRGUIScreenBase
                 printf("sucks, can't creae pixmap\n");
             }
 
+            /* Set title before mapping otherwise the window manager 
+             * lua scripts on the kindle will crash with a nil pointer
+             * exception. */
+            const char *title = "L:D_N:application_ID:coolreader";
+            xcb_change_property (connection, XCB_PROP_MODE_REPLACE, window,
+                     XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8,
+                     strlen(title), title);
+
             xcb_map_window(connection, window);
 
             xcb_colormap_t    colormap;
@@ -839,15 +847,6 @@ public:
                 sizeof(xcb_window_t) * 8,
                 1,
                 (unsigned char*)&window);
-
-        xcb_change_property(connection,
-                XCB_PROP_MODE_REPLACE,
-                window,
-                XCB_ATOM_WM_NAME,
-                atoms[0].atom,
-                8,
-                strlen("CoolReader3"),
-                "CoolReader3");
 
         xcb_change_property(connection,
                 XCB_PROP_MODE_REPLACE,

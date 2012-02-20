@@ -2080,6 +2080,14 @@ public:
                     CRLog::debug("is duplicate, skipping");
                     continue;
                 }
+                // these fonts screw up the font dialog on the Kindle Touch
+                if ( face.pos(lString8("MHeiGB18030C")) >= 0 ||
+                     face.pos(lString8("MHeiC-Medium")) >= 0 ||
+                     face.pos(lString8("HeiseiMaruGoth")) >= 0 ||
+                     face.pos(lString8("HangulGothicMTC")) >= 0 ) {
+                    CRLog::debug("hard coded ignored font, skipping");
+                    continue;
+                }
                 _cache.update( &def, LVFontRef(NULL) );
 
                 if ( scalable && !def.getItalic() ) {

@@ -953,60 +953,17 @@ class XCBDocViewWin : public V3DocViewWin
 
 bool CRXCBWindowManager::getBatteryStatus( int & percent, bool & charging )
 {
-
-    battery_info_t info;
-    eoi_get_battery_info(&info);
-    charging = false;
-    percent = 0;
-    if ( info.status==DISCHARGING || info.status==LOW_CHARGE ) {
-        charging = false;
-        percent = info.charge;
-        return true;
-    } else {
-#if 1
-        //debug
-        charging = false;
-        percent = 100;
-        return true;
+	/* hard coded battery info for the Kindle Touch */
+#ifndef __arm__
+	// debug
+	charging = false;
+	percent = 100;
 #else
-        // implementation
-        charging = true;
-        percent = 100;
-        return true;
+	charging = false; // TODO: how recognising charging?
+	percent = _read_int_file("/sys/devices/system/yoshi_battery/yoshi_battery0/battery_capacity");
 #endif
-    }
-#if 0
-//TODO: implement battery state conditional compilation for different devices
-#ifdef __arm__
-
-    int x, charge;
-    FILE *f_cf, *f_cn;
-
-    f_cn = fopen("/sys/class/power_supply/lbookv3_battery/charge_now", "r");
-    f_cf = fopen("/sys/class/power_supply/lbookv3_battery/charge_full_design", "r");
-
-    char b[11];
-    if((f_cn != NULL) && (f_cf != NULL)) {
-        fgets(b, 10, f_cn);
-        charge = atoi(b);
-        fgets(b, 10, f_cf);
-        x = atoi(b);
-        if(x > 0)
-            charge = charge * 100 / x;
-    } else
-        charge = 0;
-
-    if (f_cn != NULL)
-        fclose(f_cn);
-    if (f_cf != NULL)
-        fclose(f_cf);
-    percent = charge;
-    return true;
-#else
-    return false;
-#endif
-
-#endif
+	CRLog::trace("getBatteryStatus: percent %d; charging %d", percent, charging);
+	return true;
 }
 
 void sigint_handler(int)

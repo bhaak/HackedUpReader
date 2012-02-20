@@ -495,6 +495,7 @@ static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lCha
     FT_Bitmap*  bitmap = &slot->bitmap;
     lUInt8 w = (lUInt8)(bitmap->width);
     lUInt8 h = (lUInt8)(bitmap->rows);
+    lUInt8 p = (lUInt8)(bitmap->pitch);
     LVFontGlyphCacheItem * item = LVFontGlyphCacheItem::newItem(local_cache, ch, w, h );
     if ( bitmap->pixel_mode==FT_PIXEL_MODE_MONO ) { //drawMonochrome
         lUInt8 mask = 0x80;
@@ -513,6 +514,17 @@ static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lCha
                 }
             }
             ptr += bitmap->pitch;//rowsize;
+        }
+    } else if (w < p) {
+        /* width != pitch because of padding, expects a positive pitch */
+        memset( item->bmp, 0, w*h );
+        lUInt8 * srcrow = bitmap->buffer;
+        lUInt8 * dstrow = item->bmp;
+        for ( int y=0; y<h; y++ ) {
+            lUInt8 * src = srcrow;
+            memcpy( dstrow, srcrow, w );
+            srcrow += bitmap->pitch;
+            dstrow += w;
         }
     } else {
 #if 0

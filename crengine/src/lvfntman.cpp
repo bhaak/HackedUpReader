@@ -2109,6 +2109,7 @@ public:
                 "Arial Unicode MS",
                 "AR PL ShanHeiSun Uni",
                 "Liberation Sans",
+                "Caecilia Regular", // main Kindle font
                 NULL
             };
 

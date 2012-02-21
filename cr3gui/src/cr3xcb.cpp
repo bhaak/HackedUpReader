@@ -1107,7 +1107,7 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                 bool main_win_visible = (main_win==main_win->getWindowManager()->getTopVisibleWindow());
 
                 printf("XCB_BUTTON_PRESS detail %d; root %d; event %d; child %d; event_x %d; event_y %d\n", press->detail, press->root, press->event, press->child, press->event_x, press->event_y);
-                if (press->event_y < 50) {
+                if (press->event_y < 60) {
                     // send Return == Ok for the top part of the screen
                     postEvent( new CRGUIKeyDownEvent( XK_Return, 0 ) );
                 } else if (main_win_visible) {

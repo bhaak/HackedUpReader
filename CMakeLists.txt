@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.6)
 
 #INCLUDE(CPack)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
 if( ${CMAKE_SYSTEM} MATCHES "Darwin" )
   message("MAC OSX build")
   SET(MAC 1)

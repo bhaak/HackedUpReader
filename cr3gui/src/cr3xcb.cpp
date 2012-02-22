@@ -1375,6 +1375,7 @@ int main(int argc, char **argv)
         const char * keymap_locations [] = {
             "/etc/cr3",
             "/mnt/us/cr3xcb/share/cr3/keymaps",
+            "/mnt/us/cr3xcb/share/cr3/kindle_touch",
             home8.c_str(),
             "/media/sd/crengine/",
             NULL,
@@ -1383,7 +1384,7 @@ int main(int argc, char **argv)
 
         if ( !winman.loadSkin(  homecrengine + L"skin" ) )
             if ( !winman.loadSkin(  lString16( L"/media/sd/crengine/skin" ) ) )
-            	winman.loadSkin( lString16( L"/mnt/us/cr3xcb/share/cr3/skins/default" ) );
+            	winman.loadSkin( lString16( L"/mnt/us/cr3xcb/share/cr3/kindle_touch/skins/default" ) );
         {
             const lChar16 * imgname =
                 ( winman.getScreenOrientation()&1 ) ? L"cr3_logo_screen_landscape.png" : L"cr3_logo_screen.png";

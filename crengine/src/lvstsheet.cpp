@@ -650,7 +650,6 @@ bool LVCssDeclaration::parse( const char * &decl )
                     }
                 }
                 break;
-            case cssd_line_height:
             case cssd_letter_spacing:
             case cssd_font_size:
             case cssd_width:
@@ -815,9 +814,6 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             break;
         case cssd_text_indent:
             style->text_indent = read_length( p );
-            break;
-        case cssd_line_height:
-            style->line_height = read_length( p );
             break;
         case cssd_letter_spacing:
             style->letter_spacing = read_length( p );

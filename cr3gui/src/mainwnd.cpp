@@ -1070,6 +1070,11 @@ void V3DocViewWin::showAboutDialog()
     addPropLine( progInfo, _("CoolReader for PocketBook"), Utf8ToUnicode(lString8(CR_PB_VERSION)));
     addPropLine( progInfo, _("Build date"), Utf8ToUnicode(lString8(CR_PB_BUILD_DATE)));
     addInfoSection( txt, progInfo, _("About program") );
+#else
+    lString8 progInfo;
+    addPropLine( progInfo, _("Cool Reader"), Utf8ToUnicode(lString8(CR_ENGINE_VERSION)));
+    addPropLine( progInfo, _("Build date"), Utf8ToUnicode(lString8(CR_ENGINE_BUILD_DATE)));
+    addInfoSection( txt, progInfo, _("About program") );
 #endif
     txt << "</table>\n";
 

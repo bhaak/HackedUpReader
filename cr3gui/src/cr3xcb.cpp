@@ -959,7 +959,9 @@ bool CRXCBWindowManager::getBatteryStatus( int & percent, bool & charging )
 	charging = false;
 	percent = 100;
 #else
-	charging = false; // TODO: how recognising charging?
+	// File configured in /etc/kdb.src/yoshi/system/daemon/powerd/SYS_CHARGING_FILE
+	charging = _read_int_file("/sys/devices/platform/fsl-usb2-udc/charging");
+	// File configured in /etc/kdb.src/yoshi/system/daemon/powerd/sys_battery_capacity
 	percent = _read_int_file("/sys/devices/system/yoshi_battery/yoshi_battery0/battery_capacity");
 #endif
 	CRLog::trace("getBatteryStatus: percent %d; charging %d", percent, charging);

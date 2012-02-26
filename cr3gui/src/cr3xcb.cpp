@@ -1051,7 +1051,6 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
             // draw buffer
             {
                 if ( visibility != XCB_VISIBILITY_FULLY_OBSCURED ) {
-                    printf("EXPOSE\n");
                     postEvent( new CRGUIUpdateEvent(true) );
                 }
             }
@@ -1108,7 +1107,7 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                 // because main_win->isVisible() doesn't work as expected
                 bool main_win_visible = (main_win==main_win->getWindowManager()->getTopVisibleWindow());
 
-                printf("XCB_BUTTON_PRESS detail %d; root %d; event %d; child %d; event_x %d; event_y %d\n", press->detail, press->root, press->event, press->child, press->event_x, press->event_y);
+                CRLog::trace("XCB_BUTTON_PRESS detail %d; root %d; event %d; child %d; event_x %d; event_y %d\n", press->detail, press->root, press->event, press->child, press->event_x, press->event_y);
                 if (press->event_y < 60) {
                     // send Return == Ok for the top part of the screen
                     postEvent( new CRGUIKeyDownEvent( XK_Return, 0 ) );
@@ -1122,7 +1121,7 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                     postEvent( new CRGUIKeyDownEvent( (press->event_x < 300) ? '9' : '0', 0 ) );
                 } else if (press->event_y <= 750) {
                     int key = (press->event_y - 50)/(700/8);
-                    printf("Sending %d %c\n", key, '1'+1+key);
+                    //CRLog::trace("Sending %d %c\n", key, '1'+1+key);
                     postEvent( new CRGUIKeyDownEvent( '1'+key, 0 ) );
                 }
             }

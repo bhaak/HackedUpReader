@@ -59,13 +59,13 @@ CMAKE_FIND_ROOT_PATH.
 In the following command, "/kindle_development" should be the same
 directory as CMAKE_FIND_ROOT_PATH.
 
-$ mkdir build; cd build
-$ env PKG_CONFIG_LIBDIR=/kindle_development_dir/lib/pkgconfig \
-   cmake \
-    -DCMAKE_PREFIX_PATH=/kindle_development_dir \
-    -DCMAKE_INSTALL_PREFIX=/mnt/us/cr3xcb -DCMAKE_BUILD_TYPE=Release -DGUI=CRGUI_XCB \
-    -DCMAKE_TOOLCHAIN_FILE=`pwd`/../tools/toolchain-arm-linux-gnueabi.cmake ..
-$ make && make install
+    $ mkdir build; cd build
+    $ env PKG_CONFIG_LIBDIR=/kindle_development_dir/lib/pkgconfig \
+       cmake \
+        -DCMAKE_PREFIX_PATH=/kindle_development_dir \
+        -DCMAKE_INSTALL_PREFIX=/mnt/us/cr3xcb -DCMAKE_BUILD_TYPE=Release -DGUI=CRGUI_XCB \
+        -DCMAKE_TOOLCHAIN_FILE=`pwd`/../tools/toolchain-arm-linux-gnueabi.cmake ..
+    $ make && make install
 
 
 Who are you and why are you doing this?

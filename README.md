@@ -12,16 +12,16 @@ need to be familiar with accessing your Kindle Touch and starting
 programs from the command line to use it.
 
 What works:
-- reading e-books
-- setting options
-- battery display
+ - reading e-books
+ - setting options
+ - battery display
 
 What doesn't work:
-- a lot that needs keyboard input
-- selecting other ebooks
-- advanced features like bookmarking because of missing keyboard
-- some fonts lead to a crash (none of the default fonts on the Touch)
-- no automatic screen refresh for removing e-ink artifacts
+ - a lot that needs keyboard input
+ - selecting other ebooks
+ - advanced features like bookmarking because of missing keyboard
+ - some fonts lead to a crash (none of the default fonts on the Touch)
+ - no automatic screen refresh for removing e-ink artifacts
 
 Installation and running
 ------------------------
@@ -29,7 +29,7 @@ Extract the archive into your Kindle Touch user data directory.
 
 ssh into your Kindle Touch and start it with:
 
-/mnt/us/cr3xcb/bin/cr3 /mnt/us/path/to/your/ebook.epub &
+    /mnt/us/cr3xcb/bin/cr3 /mnt/us/path/to/your/ebook.epub &
 
 Because of some hard coded paths HackedUpReader must be in
 the /mnt/us/cr3xcb directory.

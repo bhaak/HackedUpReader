@@ -623,7 +623,7 @@ bool V3DocViewWin::loadSettings( lString16 filename )
         return false;
     }
     if ( _props->loadFromStream( stream.get() ) ) {
-        _props->setIntDef(PROP_FILE_PROPS_FONT_SIZE, 26);
+        _props->setIntDef(PROP_FILE_PROPS_FONT_SIZE, 32);
         _docview->propsUpdateDefaults( _props );
         _docview->propsApply( _props );
         _wm->getScreen()->setFullUpdateInterval(_props->getIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1));

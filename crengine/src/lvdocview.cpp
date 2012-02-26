@@ -5483,7 +5483,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
         p = 100;
     props->setInt(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, p);
 
-    props->setIntDef(PROP_FILE_PROPS_FONT_SIZE, 22);
+    props->setIntDef(PROP_FILE_PROPS_FONT_SIZE, 32);
 
     for (int i=0; def_style_macros[i*2]; i++)
         props->setStringDef(def_style_macros[i * 2], def_style_macros[i * 2 + 1]);

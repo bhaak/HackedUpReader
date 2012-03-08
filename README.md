@@ -18,7 +18,7 @@ What works:
 
 What doesn't work:
  - a lot that needs keyboard input
- - selecting other ebooks
+ - selecting other e-books
  - advanced features like bookmarking because of missing keyboard
  - some fonts lead to a crash (none of the default fonts on the Touch)
  - no automatic screen refresh for removing e-ink artifacts

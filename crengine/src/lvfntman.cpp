@@ -190,6 +190,7 @@ bool LVEmbeddedFontList::add(lString16 url, lString8 face, bool bold, bool itali
     }
     def = new LVEmbeddedFontDef(url, face, bold, italic);
     add(def);
+	return false;
 }
 
 bool LVEmbeddedFontList::serialize(SerialBuf & buf) {
@@ -412,10 +413,11 @@ public:
     LVFontCacheItem * findDuplicate( const LVFontDef * def );
     LVFontCacheItem * findDocumentFontDuplicate(int documentId, lString8 name);
     /// get hash of installed fonts and fallback font
-    virtual lUInt32 GetFontListHash() {
+    virtual lUInt32 GetFontListHash(int documentId) {
         lUInt32 hash = 0;
         for ( int i=0; i<_registered_list.length(); i++ ) {
-            if (_registered_list[i]->getDef()->getDocumentId() == -1) // skip document fonts
+            int doc = _registered_list[i]->getDef()->getDocumentId();
+            if (doc == -1 || doc == documentId) // skip document fonts
                 hash = hash + _registered_list[i]->getDef()->getHash();
         }
         return 0;
@@ -1787,7 +1789,7 @@ private:
 public:
 
     /// get hash of installed fonts and fallback font
-    virtual lUInt32 GetFontListHash() { return _cache.GetFontListHash() * 75 + _fallbackFontFace.getHash(); }
+    virtual lUInt32 GetFontListHash(int documentId) { return _cache.GetFontListHash(documentId) * 75 + _fallbackFontFace.getHash(); }
 
     /// set fallback font
     virtual bool SetFallbackFontFace( lString8 face ) {
@@ -1819,7 +1821,7 @@ public:
         LVFontCacheItem * item = _cache.findFallback( _fallbackFontFace, size );
         if ( !item->getFont().isNull() )
             return item->getFont();
-        return GetFont(size, 400, false, css_ff_sans_serif, _fallbackFontFace );
+        return GetFont(size, 400, false, css_ff_sans_serif, _fallbackFontFace, -1);
     }
 
     bool isBitmapModeForSize( int size )
@@ -2177,7 +2179,7 @@ public:
         _cache.getFaceList( list );
     }
 
-    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface )
+    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface, int documentId)
     {
     #if (DEBUG_FONT_MAN==1)
         if ( _log ) {
@@ -2193,7 +2195,8 @@ public:
             italic,
             family,
             typeface,
-            -1
+            -1,
+            documentId
         );
     #if (DEBUG_FONT_MAN==1)
         if ( _log )
@@ -2592,7 +2595,7 @@ public:
         filename << name;
         return filename;
     }
-    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface )
+    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface, int documentId)
     {
         LVFontDef * def = new LVFontDef( 
             lString8(),
@@ -2600,7 +2603,8 @@ public:
             weight,
             italic,
             family,
-            typeface
+            typeface,
+            documentId
         );
         //fprintf( _log, "GetFont: %s %d %s %s\n",
         //    typeface.c_str(),
@@ -2918,6 +2922,8 @@ int LVFontDef::CalcDuplicateMatch( const LVFontDef & def ) const
 
 int LVFontDef::CalcMatch( const LVFontDef & def ) const
 {
+    if (_documentId != -1 && _documentId != def._documentId)
+        return 0;
     int size_match = (_size==-1 || def._size==-1) ? 256 
         : (def._size>_size ? _size*256/def._size : def._size*256/_size );
     int weight_diff = def._weight - _weight;

@@ -69,7 +69,13 @@ if ( ${GUI} STREQUAL CRGUI_XCB )
 
     ADD_DEFINITIONS( -DUSE_FONTCONFIG=1 )
     SET(CR3_SOURCES ${CR3_SOURCES} src/cr3xcb.cpp)
-    SET (EXTRA_LIBS xcb xcb-aux xcb-atom xcb-image xcb-keysyms xcb-randr )
+
+    find_package(PkgConfig)
+    pkg_check_modules(XCB_PKG xcb xcb-aux xcb-atom xcb-image xcb-keysyms xcb-randr)
+    # hacky, should be a module that checks and resolves the library path
+    FOREACH(VAL ${XCB_PKG_LDFLAGS})
+        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${VAL}")
+    ENDFOREACH()
 
     FIND_PACKAGE(Fontconfig REQUIRED)
     INCLUDE_DIRECTORIES(${FONTCONFIG_INCLUDE_DIR})

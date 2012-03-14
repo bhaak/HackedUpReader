@@ -63,7 +63,7 @@ void CRBooksDialogMenu::walkDirRecursively(const char *dirname) {
 	static int totalFound = 0;
     DIR* dir = opendir(dirname);
     if (!dir) {
-		printf("unable to open %s using opendir\n", dirname);
+		CRLog::error("unable to open %s using opendir", dirname);
 	} else {
 			char fn[FILENAME_MAX];
 			int len = strlen(dirname);
@@ -78,7 +78,7 @@ void CRBooksDialogMenu::walkDirRecursively(const char *dirname) {
 				} 
 				
 				strncpy(fn + len, entry->d_name, FILENAME_MAX - len);
-				if ((entry->d_type) == DT_REG) { //Process regular file
+				if ((entry->d_type) == DT_REG) {
 					if (endsWith(fname, ".epub") 
 						|| endsWith(fname, ".fb2") 
 						|| endsWith(fname, ".txt") 
@@ -87,7 +87,7 @@ void CRBooksDialogMenu::walkDirRecursively(const char *dirname) {
 						|| endsWith(fname, ".htm")
 						|| endsWith(fname, ".pdb") 
 						|| endsWith(fname, ".mobi")) 	
-					{		printf("adding %s\n", fname);
+					{		CRLog::info("adding ebook file: %s", fname);
 							++totalFound;				
 							CRMenu * fNameItem = new CRMenu(_wm, this, BOOKS_DIALOG_MENU_COMMANDS_START + totalFound,
 														_(fname),
@@ -107,7 +107,7 @@ void CRBooksDialogMenu::walkDirRecursively(const char *dirname) {
 			}
 			
 			if (closedir(dir) == -1) {
-				printf("unable to close %s\n", dirname);
+				CRLog::error("unable to open %s using closedir", dirname);
 			}
 	}
 }

@@ -571,6 +571,7 @@ static const char * getCommandName( int command )
 	case PB_CMD_CONTENTS: return TR("@KA_cnts");
         case PB_CMD_MAIN_MENU: return _("PocketBook Main menu");
 #endif
+	case MCMD_OPEN_BOOK_THRU_DIALOG: return _("Open book!");
     default: return _("Unknown command");
 	}
 }

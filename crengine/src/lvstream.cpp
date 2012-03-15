@@ -767,10 +767,16 @@ public:
         m_fd = -1;
 
         int flags = (mode==LVOM_READ) ? O_RDONLY : O_RDWR | O_CREAT; // | O_SYNC
+        
         m_fd = open( fn8.c_str(), flags, (mode_t)0666);
         if (m_fd == -1) {
             CRLog::error( "Error opening file %s for %s, errno=%d, msg=%s", fn8.c_str(), (mode==LVOM_READ) ? "reading" : "read/write",  (int)errno, strerror(errno) );
-            return error();
+            CRLog::warn("Trying to create file %s", fn8.c_str());
+            m_fd = open (fn8.c_str(), O_RDWR | O_CREAT, (mode_t) 0666);
+			if (m_fd == -1) {
+				CRLog::error( "Error creating file %s for %s, errno=%d, msg=%s", fn8.c_str(), "read/write",  (int)errno, strerror(errno) );
+				return error();
+			}
         }
         struct stat stat;
         if ( fstat( m_fd, &stat ) ) {
@@ -1305,7 +1311,11 @@ public:
             CRLog::error( "Error opening file %s for %s", fn8.c_str(), (mode==LVOM_READ) ? "reading" : "read/write" );
             //CRLog::error( "Error opening file %s for %s, errno=%d, msg=%s", fn8.c_str(), (mode==LVOM_READ) ? "reading" : "read/write",  (int)errno, strerror(errno) );
 #endif
-            return LVERR_FAIL;
+			m_fd = open (fn8.c_str(), O_CREAT|O_RDWR, S_IREAD|S_IWRITE);
+			if (m_fd == -1) {
+				CRLog::error( "Error creating file %s for %s, errno=%d, msg=%s", fn8.c_str(), "read/write",  (int)errno, strerror(errno) );
+				 return LVERR_FAIL;
+			}
         }
         struct stat stat;
         if ( fstat( m_fd, &stat ) ) {

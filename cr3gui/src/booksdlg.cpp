@@ -60,7 +60,7 @@ void CRBooksDialogMenu::addEbookFiles() {
 }
 
 void CRBooksDialogMenu::walkDirRecursively(const char *dirname) {
-	static int totalFound = 0;
+	static size_t totalFound = 0;
     DIR* dir = opendir(dirname);
     if (!dir) {
 		CRLog::error("unable to open %s using opendir", dirname);
@@ -87,17 +87,18 @@ void CRBooksDialogMenu::walkDirRecursively(const char *dirname) {
 						|| endsWith(fname, ".htm")
 						|| endsWith(fname, ".pdb") 
 						|| endsWith(fname, ".mobi")) 	
-					{		CRLog::info("adding ebook file: %s", fname);
-							++totalFound;				
-							CRMenu * fNameItem = new CRMenu(_wm, this, BOOKS_DIALOG_MENU_COMMANDS_START + totalFound,
-														_(fname),
-														 LVImageSourceRef(), LVFontRef(), _valueFont, props, PROP_FONT_FACE );
-							fNameItem->setSkinName(lString16(L"#settings"));
-							fNameItem->setFullscreen( true );
-							fNameItem->setAccelerators( _menuAccelerators );
-							fNameItem->reconfigure( 0 );
-							
-							addItem(fNameItem);
+					{		
+						CRLog::info("adding ebook file: %s", fname);
+						++totalFound;				
+						CRMenu * fNameItem = new CRMenu(_wm, this, BOOKS_DIALOG_MENU_COMMANDS_START + totalFound,
+							_(fname),
+							 LVImageSourceRef(), LVFontRef(), _valueFont, props, PROP_FONT_FACE );
+						fNameItem->setSkinName(lString16(L"#settings"));
+						fNameItem->setFullscreen( true );
+						fNameItem->setAccelerators( _menuAccelerators );
+						fNameItem->reconfigure( 0 );
+						
+						addItem(fNameItem);
 					}
 				} else if((entry->d_type) == DT_DIR) {
 					if (strcmp(fname, "dictionary") != 0) {

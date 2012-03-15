@@ -98,21 +98,23 @@ int CRBookmarkMenu::getSelectedItemIndex()
 {
     CRFileHistRecord * bookmarks = _docview->getCurrentFileHistRecord();
     int curPage = _docview->getCurPage();
-    int n = bookmarks->getLastShortcutBookmark()+1;
-    for ( int i=1; i<=n; i++ ) {
-        CRBookmark * bm = bookmarks->getShortcutBookmark(i);
-        int page = 0;
-        if ( bm ) {
-            ldomXPointer p = _docview->getDocument()->createXPointer( bm->getStartPos() );
-            if ( !p.isNull() ) {
-                /// get page number by bookmark
-                page = _docview->getBookmarkPage( p );
-                /// get bookmark position text
-                if ( page>0 && page==curPage )
-                    return i-1;
-            }
-        }
-    }
+    if (bookmarks) {
+		int n = bookmarks->getLastShortcutBookmark()+1;
+		for ( int i=1; i<=n; i++ ) {
+			CRBookmark * bm = bookmarks->getShortcutBookmark(i);
+			int page = 0;
+			if ( bm ) {
+				ldomXPointer p = _docview->getDocument()->createXPointer( bm->getStartPos() );
+				if ( !p.isNull() ) {
+					/// get page number by bookmark
+					page = _docview->getBookmarkPage( p );
+					/// get bookmark position text
+					if ( page>0 && page==curPage )
+						return i-1;
+				}
+			}
+		}
+	}
     return -1;
 }
 
@@ -197,27 +199,30 @@ CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int
     int mc = getSkin()->getMinItemCount();
     if ( _pageItems < mc )
         _pageItems = mc;
-    int n = bookmarks->getLastShortcutBookmark()+1;
-    n = (n + _pageItems - 1) / _pageItems * _pageItems;
-    int minitems = (MIN_BOOKMARK_ITEMS + _pageItems - 1) / _pageItems * _pageItems;
-    if ( n<minitems )
-        n = minitems;
-    for ( int i=1; i<=n; i++ ) {
-        CRBookmark * bm = bookmarks->getShortcutBookmark(i);
-        int page = 0;
-        if ( bm ) {
-            ldomXPointer p = docview->getDocument()->createXPointer( bm->getStartPos() );
-            if ( !p.isNull() ) {
-                /// get page number by bookmark
-                page = docview->getBookmarkPage( p );
-                /// get bookmark position text
-                if ( page<0 )
-                    bm = NULL;
-            }
-        }
-        CRBookmarkMenuItem * item = new CRBookmarkMenuItem( this, i, bm, page );
-        addItem( item );
-    }
+    
+    if (bookmarks) {
+		int n = bookmarks->getLastShortcutBookmark()+1;
+		n = (n + _pageItems - 1) / _pageItems * _pageItems;
+		int minitems = (MIN_BOOKMARK_ITEMS + _pageItems - 1) / _pageItems * _pageItems;
+		if ( n<minitems )
+			n = minitems;
+		for ( int i=1; i<=n; i++ ) {
+			CRBookmark * bm = bookmarks->getShortcutBookmark(i);
+			int page = 0;
+			if ( bm ) {
+				ldomXPointer p = docview->getDocument()->createXPointer( bm->getStartPos() );
+				if ( !p.isNull() ) {
+					/// get page number by bookmark
+					page = docview->getBookmarkPage( p );
+					/// get bookmark position text
+					if ( page<0 )
+						bm = NULL;
+				}
+			}
+			CRBookmarkMenuItem * item = new CRBookmarkMenuItem( this, i, bm, page );
+			addItem( item );
+		}
+	}
     setMode( goToMode );
 #ifdef CR_POCKETBOOK
     bmkDialog = this;

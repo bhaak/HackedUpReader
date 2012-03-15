@@ -1281,7 +1281,7 @@ int main(int argc, char **argv)
 #ifndef KINDLE_TOUCH
     InitCREngineLog("/home/user/.crengine/crlog.ini");
 #else
-	InitCREngineLog("/mnt/usr/cr3xcb/crlog.ini");
+	InitCREngineLog("/mnt/us/cr3xcb/crlog.ini");
 #endif
 #endif
 

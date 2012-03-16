@@ -99,6 +99,11 @@ if ( ${GUI} STREQUAL CRGUI_XCB )
         INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/skins DESTINATION share/cr3/${DEVICE_NAME} )
         INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps DESTINATION share/cr3/${DEVICE_NAME} )
     ENDIF(${DEVICE_NAME} STREQUAL all)
+    
+    IF (${DEVICE_NAME} STREQUAL kindle_touch)
+		INSTALL( FILES data/devices/kindle_touch/crlog.ini DESTINATION ${CMAKE_INSTALL_PREFIX} )
+    ENDIF(${DEVICE_NAME} STREQUAL kindle_touch)
+    
     INSTALL( DIRECTORY data/manual/ DESTINATION share/cr3/manual )
     INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}${CMAKE_DATA_DIR}/i18n/ DESTINATION share/locale
       FILES_MATCHING PATTERN "*.mo" )

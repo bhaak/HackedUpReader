@@ -27,7 +27,8 @@ SET (CR3_SOURCES
   src/citedlg.cpp 
   src/fsmenu.cpp    
   src/mainwnd.cpp  
-  src/recentdlg.cpp 
+  src/recentdlg.cpp
+  src/booksdlg.cpp 
   src/selnavig.cpp 
   src/tocdlg.cpp 
   src/bmkdlg.cpp   

@@ -1490,6 +1490,7 @@ int main(int argc, char **argv)
             winman.runEventLoop();
         }
 #else
+		main_win->openRecentBook(1);
 		winman.runEventLoop();
 #endif        
     }

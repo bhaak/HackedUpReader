@@ -81,7 +81,7 @@ void CRBooksDialogMenu::walkDirRecursively(const char *dirname) {
 				if ((entry->d_type) == DT_REG) {
 					if (endsWith(fname, ".epub") 
 						|| endsWith(fname, ".fb2") 
-						|| endsWith(fname, ".txt") 
+						|| (endsWith(fname, ".txt") && !endsWith(fname, ".bmk.txt")) //skip bookmarks generated files 
 						|| endsWith(fname, ".rtf")
 						|| endsWith(fname, ".html")
 						|| endsWith(fname, ".htm")
@@ -108,7 +108,7 @@ void CRBooksDialogMenu::walkDirRecursively(const char *dirname) {
 			}
 			
 			if (closedir(dir) == -1) {
-				CRLog::error("unable to open %s using closedir", dirname);
+				CRLog::error("unable to close %s using closedir", dirname);
 			}
 	}
 }

@@ -1362,6 +1362,8 @@ int main(int argc, char **argv)
     CRLog::info("Filename to open=\"%s\"", LCSTR(fn16) );
     if ( fn8.startsWith( lString8("/media/sd/") ) )
         bmkdir = "/media/sd/bookmarks/";
+#else
+	const char * bmkdir = "/mnt/us/cr3xcb/bookmarks/";
 #endif
     //TODO: remove hardcoded
 #ifdef __i386__
@@ -1414,10 +1416,10 @@ int main(int argc, char **argv)
 
         if ( !main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) ) )
             main_win->loadDictConfig( lString16( L"/mnt/us/cr3xcb/share/cr3/dict/dictd.conf" ) );
-#ifndef KINDLE_TOUCH
+
         if ( bmkdir!=NULL )
             main_win->setBookmarkDir( lString16(bmkdir) );
-#endif
+
 
     #define SEPARATE_INI_FILES
 

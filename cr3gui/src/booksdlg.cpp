@@ -21,17 +21,21 @@
 #include <dirent.h>    /* struct DIR, struct dirent, opendir().. */ 
 
 #include "mainwnd.h"
+							
+lString16 CRBookMenuItem::getBookPath() const {
+	return _fBookPath;
+}
 
 bool CRBooksDialogMenu::onCommand( int command, int params )
 {
 	if ( command >= MCMD_SELECT_1 && command <= MCMD_SELECT_9 ) {
-        int index = command - MCMD_SELECT_1 + getTopItem();
-        CRMenuItem * item = getItems()[index];  
+        const int index = command - MCMD_SELECT_1 + getTopItem();
+        CRBookMenuItem *item = static_cast<CRBookMenuItem *>(getItems()[index]);  
         highlightCommandItem( item->getId() ); 
         _docview->close(); 
-        lString16 fname = lString16("/mnt/us/documents/") + item->getLabel();         
-        if ( !_docview->LoadDocument( fname.c_str() ) ) {
-			CRLog::error("CRBooksDialogMenu::onCommand( %s ) - failed!", fname.c_str());
+        const lString16 &fullBookPath = item->getBookPath();         
+        if ( !_docview->LoadDocument( fullBookPath.c_str() ) ) {
+			CRLog::error("CRBooksDialogMenu::onCommand( %s ) - failed!", fullBookPath.c_str());
 		}
 		_docview->restorePosition();
 		closeMenu(0, 0);
@@ -69,15 +73,15 @@ void CRBooksDialogMenu::walkDirRecursively(const char *dirname) {
 			int len = strlen(dirname);
 			strcpy(fn, dirname);
 			fn[len++] = '/';
-			
-			struct dirent* entry;
+	
+			struct dirent *entry;
 			while ((entry = readdir(dir)) != NULL) {
 				const char *fname = entry->d_name;
 				if (strcmp(fname, ".") == 0 || strcmp(fname, "..") == 0) {
 					continue;
 				} 
 				
-				strncpy(fn + len, entry->d_name, FILENAME_MAX - len);
+				strncpy(fn + len, fname, FILENAME_MAX - len);
 				if ((entry->d_type) == DT_REG) {
 					if (endsWith(fname, ".epub") 
 						|| endsWith(fname, ".fb2") 
@@ -87,12 +91,14 @@ void CRBooksDialogMenu::walkDirRecursively(const char *dirname) {
 						|| endsWith(fname, ".htm")
 						|| endsWith(fname, ".pdb") 
 						|| endsWith(fname, ".mobi")) 	
-					{		
-						CRLog::info("adding ebook file: %s", fname);
+					{	
+						fn[len + strlen(fname) + 1] = '\0';
+		
+						CRLog::info("adding ebook file: %s", fn);
 						++totalFound;				
-						CRMenu * fNameItem = new CRMenu(_wm, this, BOOKS_DIALOG_MENU_COMMANDS_START + totalFound,
-							_(fname),
-							 LVImageSourceRef(), LVFontRef(), _valueFont, props, PROP_FONT_FACE );
+						CRMenu *fNameItem = new CRBookMenuItem(_wm, this, BOOKS_DIALOG_MENU_COMMANDS_START + totalFound, 
+							_(fname), LVImageSourceRef(), LVFontRef(), _valueFont, lString16(fn), props, PROP_FONT_FACE); 
+						
 						fNameItem->setSkinName(lString16(L"#settings"));
 						fNameItem->setFullscreen( true );
 						fNameItem->setAccelerators( _menuAccelerators );
@@ -101,7 +107,7 @@ void CRBooksDialogMenu::walkDirRecursively(const char *dirname) {
 						addItem(fNameItem);
 					}
 				} else if((entry->d_type) == DT_DIR) {
-					if (strcmp(fname, "dictionary") != 0) {
+					if (strcmp(fname, "dictionary") != 0 && !endsWith(fname, ".sdr")) { //skip kindle generated dummy folders
 						walkDirRecursively(fn);
 					}
 				}

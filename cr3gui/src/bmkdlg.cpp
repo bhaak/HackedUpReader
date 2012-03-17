@@ -187,7 +187,7 @@ void CRBookmarkMenu::handleContextMenu(int index)
 
 #define MIN_BOOKMARK_ITEMS 32
 CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc, bool goToMode)
-    : CRFullScreenMenu( wm, MCMD_BOOKMARK_LIST, lString16(_("Bookmarks")), numItems, rc )
+    : CRFullScreenMenu( wm, MCMD_MAIN_MENU, lString16(_("Bookmarks")), numItems, rc )
     , _docview(docview)
 {
     CRFileHistRecord * bookmarks = docview->getCurrentFileHistRecord();

@@ -27,7 +27,8 @@ SET (CR3_SOURCES
   src/citedlg.cpp 
   src/fsmenu.cpp    
   src/mainwnd.cpp  
-  src/recentdlg.cpp 
+  src/recentdlg.cpp
+  src/booksdlg.cpp 
   src/selnavig.cpp 
   src/tocdlg.cpp 
   src/bmkdlg.cpp   
@@ -71,7 +72,7 @@ if ( ${GUI} STREQUAL CRGUI_XCB )
     SET(CR3_SOURCES ${CR3_SOURCES} src/cr3xcb.cpp)
 
     find_package(PkgConfig)
-    pkg_check_modules(XCB_PKG xcb xcb-aux xcb-atom xcb-image xcb-keysyms xcb-randr)
+    pkg_check_modules(XCB_PKG xcb xcb-aux xcb-atom xcb-image xcb-keysyms xcb-randr xcb-shm)
     # hacky, should be a module that checks and resolves the library path
     FOREACH(VAL ${XCB_PKG_LDFLAGS})
         SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${VAL}")
@@ -95,9 +96,14 @@ if ( ${GUI} STREQUAL CRGUI_XCB )
         INSTALL( DIRECTORY data/devices/kindle_touch/skins DESTINATION share/cr3/kindle_touch )
         INSTALL( DIRECTORY data/devices/kindle_touch/keymaps/ DESTINATION share/cr3/kindle_touch )
     ELSE()
-        INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/skins DESTINATION share/cr3 )
-        INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps DESTINATION share/cr3 )
+        INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/skins DESTINATION share/cr3/${DEVICE_NAME} )
+        INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps DESTINATION share/cr3/${DEVICE_NAME} )
     ENDIF(${DEVICE_NAME} STREQUAL all)
+    
+    IF (${DEVICE_NAME} STREQUAL kindle_touch)
+		INSTALL( FILES data/devices/kindle_touch/crlog.ini DESTINATION ${CMAKE_INSTALL_PREFIX} )
+    ENDIF(${DEVICE_NAME} STREQUAL kindle_touch)
+    
     INSTALL( DIRECTORY data/manual/ DESTINATION share/cr3/manual )
     INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}${CMAKE_DATA_DIR}/i18n/ DESTINATION share/locale
       FILES_MATCHING PATTERN "*.mo" )

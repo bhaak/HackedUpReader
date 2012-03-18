@@ -118,7 +118,7 @@ void CRRecentBooksMenu::handleContextMenu(int index)
 #endif
 
 CRRecentBooksMenu::CRRecentBooksMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc)
-    : CRFullScreenMenu( wm, MCMD_BOOKMARK_LIST, lString16(_("Open recent book")), numItems, rc )
+    : CRFullScreenMenu( wm, MCMD_MAIN_MENU, lString16(_("Open recent book")), numItems, rc )
 {
     docview->savePosition(); // to move current file to top
     LVPtrVector<CRFileHistRecord> & files = docview->getHistory()->getRecords();

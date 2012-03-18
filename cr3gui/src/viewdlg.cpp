@@ -538,7 +538,7 @@ static const char * getCommandName( int command )
 	case MCMD_SELECT: return ("Ok");
 	case MCMD_SCROLL_FORWARD: return _("Scroll forward");
 	case MCMD_SCROLL_BACK: return _("Scroll back");
-	case MCMD_QUIT: return _("Close book");
+	case MCMD_QUIT: return _("Close application");
 	case MCMD_MAIN_MENU: return _("Main menu");
 	case MCMD_GO_PAGE: return _("Go to page dialog");
 	case MCMD_SETTINGS: return _("Settings menu");
@@ -571,6 +571,7 @@ static const char * getCommandName( int command )
 	case PB_CMD_CONTENTS: return TR("@KA_cnts");
         case PB_CMD_MAIN_MENU: return _("PocketBook Main menu");
 #endif
+	case MCMD_OPEN_BOOK_THRU_DIALOG: return _("Open book!");
     default: return _("Unknown command");
 	}
 }

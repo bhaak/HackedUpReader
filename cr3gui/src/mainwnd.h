@@ -92,7 +92,8 @@ enum CRMainMenuCmd
 
     MCMD_GO_PERCENT,
     MCMD_GO_PERCENT_APPLY,
-    MCMD_CITES_LIST
+    MCMD_CITES_LIST,
+    MCMD_OPEN_BOOK_THRU_DIALOG
 };
 
 class V3DocViewWin : public CRViewDialog, public LVDocViewCallback
@@ -182,6 +183,7 @@ public:
 
     void showHelpDialog();
 
+	void showBooksDialog();
 
     virtual bool onCommand( int command, int params );
 

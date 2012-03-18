@@ -1305,7 +1305,7 @@ public:
             CRLog::error( "Error opening file %s for %s", fn8.c_str(), (mode==LVOM_READ) ? "reading" : "read/write" );
             //CRLog::error( "Error opening file %s for %s, errno=%d, msg=%s", fn8.c_str(), (mode==LVOM_READ) ? "reading" : "read/write",  (int)errno, strerror(errno) );
 #endif
-            return LVERR_FAIL;
+			return LVERR_FAIL;
         }
         struct stat stat;
         if ( fstat( m_fd, &stat ) ) {

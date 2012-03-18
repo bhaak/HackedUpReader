@@ -47,6 +47,8 @@
 #include "cr3pocketbook.h"
 #endif
 
+#include "booksdlg.h"
+
 
 #define SECONDS_BEFORE_PROGRESS_BAR 2
 
@@ -704,6 +706,16 @@ void V3DocViewWin::showSettingsMenu()
     _wm->activateWindow( mainMenu );
 }
 
+void V3DocViewWin::showBooksDialog() {
+	LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
+    //_props->set( _docview->propsGetCurrent() );
+    _props = _docview->propsGetCurrent() | _props;
+    _newProps = LVClonePropsContainer( _props );
+    lvRect rc = _wm->getScreen()->getRect();
+    CRMenu * mainMenu = new CRBooksDialogMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, getMenuAccelerators(), rc, _docview );
+    _wm->activateWindow( mainMenu );
+}
+
 void V3DocViewWin::showFontSizeMenu()
 {
     LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
@@ -1179,6 +1191,9 @@ bool V3DocViewWin::onCommand( int command, int params )
         if ( _props->getBoolDef( PROP_AUTOSAVE_BOOKMARKS, true ) )
             saveHistory( lString16() );
         return true;
+    case MCMD_OPEN_BOOK_THRU_DIALOG:
+		showBooksDialog();
+		return true;
     default:
         // do nothing
         ;

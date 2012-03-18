@@ -4766,8 +4766,9 @@ bool LVDocView::exportBookmarks(lString16 filename) {
 	LVPtrVector < CRBookmark > &bookmarks = rec->getBookmarks();
 	for (int i = 0; i < bookmarks.length(); i++) {
 		CRBookmark * bmk = bookmarks[i];
-		if (bmk->getType() != bmkt_comment && bmk->getType() != bmkt_correction)
-			continue;
+		//if (bmk->getType() != bmkt_comment && bmk->getType() != bmkt_correction) {
+		//	continue;
+		//}
 		if (newContent.empty()) {
 			newContent.append(1, (char) 0xef);
 			newContent.append(1, (char) 0xbb);

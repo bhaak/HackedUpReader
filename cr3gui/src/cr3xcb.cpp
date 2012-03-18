@@ -66,6 +66,8 @@ extern "C" {
 #define EINK_APOLLOFB_IOCTL_FORCE_REDRAW _IO('F', 0x22)
 #define EINK_APOLLOFB_IOCTL_SHOW_PREVIOUS _IO('F', 0x23)
 
+#define KINDLE_TOUCH true
+
 //=================================
 // START OF LIBEOI BATTERY SUPPORT
 // OpenInkpot: libeoi-battery
@@ -619,7 +621,7 @@ class CRXCBScreen : public CRGUIScreenBase
                     rect, window,
                     width, height);
             if (xcb_request_check(connection,cookie)){
-                printf("sucks, can't creae pixmap\n");
+                printf("sucks, can't create pixmap\n");
             }
 
             /* Set title before mapping otherwise the window manager 
@@ -1276,7 +1278,11 @@ int main(int argc, char **argv)
     CRLog::setLogLevel( CRLog::LL_TRACE );
 #else
     //CRLog::setLogLevel( CRLog::LL_ERROR );
+#ifndef KINDLE_TOUCH
     InitCREngineLog("/home/user/.crengine/crlog.ini");
+#else
+	InitCREngineLog("/mnt/us/cr3xcb/crlog.ini");
+#endif
 #endif
 
        
@@ -1337,7 +1343,7 @@ int main(int argc, char **argv)
         printf("Cannot init CREngine - exiting\n");
         return 2;
     }
-
+#ifndef KINDLE_TOUCH
     if ( argc<2 ) {
         printf("Usage: cr3 <filename_to_open>\n");
         return 3;
@@ -1356,6 +1362,9 @@ int main(int argc, char **argv)
     CRLog::info("Filename to open=\"%s\"", LCSTR(fn16) );
     if ( fn8.startsWith( lString8("/media/sd/") ) )
         bmkdir = "/media/sd/bookmarks/";
+#else
+	const char * bmkdir = "/mnt/us/cr3xcb/bookmarks/";
+#endif
     //TODO: remove hardcoded
 #ifdef __i386__
         CRXCBWindowManager winman( 600, 680 );
@@ -1374,11 +1383,11 @@ int main(int argc, char **argv)
 
         lString8 home8 = UnicodeToUtf8( homecrengine );
         const char * keymap_locations [] = {
-            "/etc/cr3",
-            "/mnt/us/cr3xcb/share/cr3/keymaps",
-            "/mnt/us/cr3xcb/share/cr3/kindle_touch",
-            home8.c_str(),
-            "/media/sd/crengine/",
+        //    "/etc/cr3",
+        //    "/mnt/us/cr3xcb/share/cr3/keymaps",
+            "/mnt/us/cr3xcb/share/cr3/kindle_touch/keymaps",
+        //    home8.c_str(),
+        //    "/media/sd/crengine/",
             NULL,
         };
         loadKeymaps( winman, keymap_locations );
@@ -1407,14 +1416,17 @@ int main(int argc, char **argv)
 
         if ( !main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) ) )
             main_win->loadDictConfig( lString16( L"/mnt/us/cr3xcb/share/cr3/dict/dictd.conf" ) );
+
         if ( bmkdir!=NULL )
             main_win->setBookmarkDir( lString16(bmkdir) );
+
 
     #define SEPARATE_INI_FILES
 
         CRLog::trace("choosing init file...");
         const lChar16 * ini_fname = L"cr3.ini";
     #ifdef SEPARATE_INI_FILES
+    #ifndef KINDLE_TOUCH
         if ( strstr(fname, ".txt")!=NULL || strstr(fname, ".tcr")!=NULL) {
             ini_fname = L"cr3-txt.ini";
         } else if ( strstr(fname, ".rtf")!=NULL ) {
@@ -1427,9 +1439,11 @@ int main(int argc, char **argv)
             ini_fname = L"cr3-fb2.ini";
         }
     #endif
+    #endif
         const lChar16 * dirs[] = {
             L"/media/sd/crengine/",
             homecrengine.c_str(),
+            L"/mnt/us/cr3xcb/share/cr3/",
             NULL
         };
         int i;
@@ -1470,13 +1484,18 @@ int main(int argc, char **argv)
         main_win->setAccelerators( CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( acc_table ) ) );
 #endif
         winman.activateWindow( main_win );
+#ifndef KINDLE_TOUCH
         if ( !main_win->loadDocument( LocalToUnicode((lString8(fname))) ) ) {
             printf("Cannot open book file %s\n", fname);
             res = 4;
         } else {
             winman.runEventLoop();
         }
-        }
+#else
+		main_win->openRecentBook(1);
+		winman.runEventLoop();
+#endif        
+    }
     }
     HyphMan::uninit();
     ldomDocCache::close();

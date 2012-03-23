@@ -768,7 +768,7 @@ void V3DocViewWin::openRecentBook( int index )
 {
     _docview->savePosition();
     LVPtrVector<CRFileHistRecord> & files = _docview->getHistory()->getRecords();
-    if ( index >= 1 && index < files.length() ) {
+    if ( index >= 0 && index < files.length() ) {
         CRFileHistRecord * file = files.get( index );
         lString16 fn = file->getFilePathName();
         // TODO: check error

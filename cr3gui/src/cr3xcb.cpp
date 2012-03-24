@@ -598,6 +598,7 @@ class CRXCBScreen : public CRGUIScreenBase
             params_cw.event_mask =
                 XCB_EVENT_MASK_KEY_RELEASE |
                 XCB_EVENT_MASK_BUTTON_PRESS |
+                XCB_EVENT_MASK_BUTTON_RELEASE |
                 XCB_EVENT_MASK_EXPOSURE |
                 XCB_EVENT_MASK_POINTER_MOTION |
                 XCB_EVENT_MASK_VISIBILITY_CHANGE |
@@ -1101,30 +1102,47 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                 //printf("page number = %d\n", main_win->getDocView()->getCurPage());
             }
             break;
-        case XCB_BUTTON_PRESS:
+        case XCB_BUTTON_RELEASE:
             {
-                xcb_button_press_event_t *press = (xcb_button_press_event_t *)event;
+                xcb_button_press_event_t *button_event = (xcb_button_press_event_t *)event;
 
-                // workaround for determining if the main windows is being displayed
+                // workaround for determining if the main window is being displayed
                 // because main_win->isVisible() doesn't work as expected
                 bool main_win_visible = (main_win==main_win->getWindowManager()->getTopVisibleWindow());
 
-                CRLog::trace("XCB_BUTTON_PRESS detail %d; root %d; event %d; child %d; event_x %d; event_y %d\n", press->detail, press->root, press->event, press->child, press->event_x, press->event_y);
-                if (press->event_y < 60) {
+                // The Kindle Touch sends two additional button press/release
+                // events when pressing for 1/2 second with a mouse button 9.
+                //
+                static bool ignore_event = false;
+                int state = 0;
+                if (button_event->detail == 1) {
+                    // Ignore the XCB_BUTTON_RELEASE event if the long press event
+                    // has already been processed.
+                    if (ignore_event) {
+                        ignore_event = false;
+                        break;
+                    }
+                } else if (button_event->detail == 9) {
+                        ignore_event = true;
+                        state = KEY_FLAG_LONG_PRESS;
+                }
+
+                CRLog::trace("XCB_BUTTON_RELEASE detail %d; root %d; event %d; child %d; event_x %d; event_y %d; time: %d\n", button_event->detail, button_event->root, button_event->event, button_event->child, button_event->event_x, button_event->event_y, button_event->time);
+                if (button_event->event_y < 60) {
                     // send Return == Ok for the top part of the screen
-                    postEvent( new CRGUIKeyDownEvent( XK_Return, 0 ) );
+                    postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
                 } else if (main_win_visible) {
                     // book is being displayed
                     // send next or previous page if clicked in lower or upper half
-                    postEvent( new CRGUIKeyDownEvent( (press->event_y < 400) ? '9' : '0', 0 ) );
-                } else if (press->event_y > 750) {
+                    postEvent( new CRGUIKeyDownEvent( (button_event->event_y < 400) ? '9' : '0', state ) );
+                } else if (button_event->event_y > 750) {
                     // send next or previous page if clicked in footer on
                     // the left or right side
-                    postEvent( new CRGUIKeyDownEvent( (press->event_x < 300) ? '9' : '0', 0 ) );
-                } else if (press->event_y <= 750) {
-                    int key = (press->event_y - 50)/(700/8);
+                    postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
+                } else if (button_event->event_y <= 750) {
+                    int key = (button_event->event_y - 50)/(700/8);
                     //CRLog::trace("Sending %d %c\n", key, '1'+1+key);
-                    postEvent( new CRGUIKeyDownEvent( '1'+key, 0 ) );
+                    postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
                 }
             }
             break;

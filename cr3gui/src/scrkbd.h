@@ -29,8 +29,13 @@ protected:
     int _cols;
     lString16Collection _keymap;
     virtual void draw();
+#ifndef KINDLE_TOUCH
     virtual lChar16 digitsToChar( lChar16 digit1, lChar16 digit2 );
     bool digitEntered( lChar16 c );
+#endif
+#ifdef KINDLE_TOUCH
+    bool onKeyPressed( int key, int flags );
+#endif
 public:
 	void setDefaultLayout();
 	void setLayout( CRKeyboardLayoutRef layout );

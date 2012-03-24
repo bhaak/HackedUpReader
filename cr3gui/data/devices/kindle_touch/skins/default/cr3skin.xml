@@ -137,7 +137,7 @@
   <menu id="vkeyboard" base="#toc" show-shortcuts="false">
         <text color="#000000" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="26" bold="true" italic="false" valign="center" halign="center"/>
         <background color="#555555"/>
-        <border widths="8,4,8,4"/>
+        <border widths="4,4,4,4"/>
         <!--icon image="filename" valign="" halign=""/-->
         <client>
             <text color="#000000" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="26" bold="true" italic="false" valign="center" halign="left"/>

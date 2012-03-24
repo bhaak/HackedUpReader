@@ -66,7 +66,7 @@ extern "C" {
 #define EINK_APOLLOFB_IOCTL_FORCE_REDRAW _IO('F', 0x22)
 #define EINK_APOLLOFB_IOCTL_SHOW_PREVIOUS _IO('F', 0x23)
 
-#define KINDLE_TOUCH true
+
 
 //=================================
 // START OF LIBEOI BATTERY SUPPORT
@@ -1104,7 +1104,10 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
         case XCB_BUTTON_PRESS:
             {
                 xcb_button_press_event_t *press = (xcb_button_press_event_t *)event;
-
+#ifdef KINDLE_TOUCH
+                _posX = press->event_x;
+                _posY = press->event_y;
+#endif    
                 // workaround for determining if the main windows is being displayed
                 // because main_win->isVisible() doesn't work as expected
                 bool main_win_visible = (main_win==main_win->getWindowManager()->getTopVisibleWindow());

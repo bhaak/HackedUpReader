@@ -1466,7 +1466,7 @@ int main(int argc, char **argv)
         const lChar16 * dirs[] = {
             L"/media/sd/crengine/",
             homecrengine.c_str(),
-            L"/mnt/us/cr3xcb/share/cr3/",
+            L"/mnt/us/cr3xcb/.settings/",
             NULL
         };
         int i;

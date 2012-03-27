@@ -9,9 +9,10 @@ mkdir -p /mnt/us/extensions/hackedupreader
 cp -a config.xml /mnt/us/extensions/hackedupreader/
 
 rm -f /opt/amazon/ebook/lib/HackedUpReaderExtension.jar
+mkdir -p /usr/local/ebook/lib/
 cp -a HackedUpReaderExtension.jar /usr/local/ebook/lib/
 
-} >/mnt/us/myupdate.log 2>&1
+} >/mnt/us/hackedupreader_installation.log 2>&1
 
 
 exit 0

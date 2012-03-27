@@ -1,0 +1,17 @@
+#!/bin/bash
+
+{
+set -x
+
+tar -x -f "cr3xcb.tar.gz" -C "/"
+
+mkdir -p /mnt/us/extensions/hackedupreader
+cp -a config.xml /mnt/us/extensions/hackedupreader/
+
+rm -f /opt/amazon/ebook/lib/HackedUpReaderExtension.jar
+cp -a HackedUpReaderExtension.jar /usr/local/ebook/lib/
+
+} >/mnt/us/myupdate.log 2>&1
+
+
+exit 0

@@ -1366,12 +1366,15 @@ int main(int argc, char **argv)
         return 2;
     }
 
+    const char * fname;
     if ( argc<2 ) {
-        printf("Usage: cr3 <filename_to_open>\n");
-        return 3;
+        // default command line option
+        fname = "--last-book";
+    } else {
+        // command line option or book to open
+        fname = argv[1];
     }
 
-    const char * fname = argv[1];
     const char * bmkdir = NULL;
 
     if ( !strcmp(fname, "unittest") ) {

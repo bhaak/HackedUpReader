@@ -1365,31 +1365,31 @@ int main(int argc, char **argv)
         printf("Cannot init CREngine - exiting\n");
         return 2;
     }
-#ifndef KINDLE_TOUCH
+
+    const char * fname;
     if ( argc<2 ) {
-        printf("Usage: cr3 <filename_to_open>\n");
-        return 3;
+        // default command line option
+        fname = "--last-book";
+    } else {
+        // command line option or book to open
+        fname = argv[1];
     }
 
-    const char * fname = argv[1];
-#endif
     const char * bmkdir = NULL;
-#ifndef KINDLE_TOUCH
+
     if ( !strcmp(fname, "unittest") ) {
         runCRUnitTests();
         return 0;
     }
-#endif
 
-#ifndef KINDLE_TOUCH
     lString8 fn8( fname );
     lString16 fn16 = LocalToUnicode( fn8 );
     CRLog::info("Filename to open=\"%s\"", LCSTR(fn16) );
     if ( fn8.startsWith( lString8("/media/sd/") ) )
         bmkdir = "/media/sd/bookmarks/";
-#endif
 #ifdef KINDLE_TOUCH
-    bmkdir = "/mnt/us/cr3xcb/bookmarks/";
+    else
+        bmkdir = "/mnt/us/cr3xcb/bookmarks/";
 #endif
     //TODO: remove hardcoded
 #ifdef __i386__
@@ -1411,7 +1411,7 @@ int main(int argc, char **argv)
         const char * keymap_locations [] = {
         //    "/etc/cr3",
         //    "/mnt/us/cr3xcb/share/cr3/keymaps",
-            "/mnt/us/cr3xcb/share/cr3/kindle_touch/keymaps",
+            "/mnt/us/cr3xcb/share/cr3/kindle_touch",
         //    home8.c_str(),
         //    "/media/sd/crengine/",
             NULL,
@@ -1469,7 +1469,7 @@ int main(int argc, char **argv)
         const lChar16 * dirs[] = {
             L"/media/sd/crengine/",
             homecrengine.c_str(),
-            L"/mnt/us/cr3xcb/share/cr3/",
+            L"/mnt/us/cr3xcb/.settings/",
             NULL
         };
         int i;
@@ -1510,7 +1510,7 @@ int main(int argc, char **argv)
         main_win->setAccelerators( CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( acc_table ) ) );
 #endif
         winman.activateWindow( main_win );
-#ifndef KINDLE_TOUCH
+
         if (!strncmp(fname, "--", 2)) {
             if (!strcmp(fname, "--last-book")) {
                 main_win->openRecentBook(0);
@@ -1528,10 +1528,6 @@ int main(int argc, char **argv)
                 winman.runEventLoop();
             }
         }
-#else
-        main_win->openRecentBook(0);
-        winman.runEventLoop();
-#endif
     }
     }
     HyphMan::uninit();

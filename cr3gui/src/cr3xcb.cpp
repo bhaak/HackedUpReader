@@ -1411,7 +1411,7 @@ int main(int argc, char **argv)
         const char * keymap_locations [] = {
         //    "/etc/cr3",
         //    "/mnt/us/cr3xcb/share/cr3/keymaps",
-            "/mnt/us/cr3xcb/share/cr3/kindle_touch",
+            "/mnt/us/cr3xcb/share/cr3/kindle_touch/keymaps",
         //    home8.c_str(),
         //    "/media/sd/crengine/",
             NULL,

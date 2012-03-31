@@ -91,7 +91,8 @@ void CRBooksDialogMenu::walkDirRecursively(const char *dirname) {
 						|| endsWith(fname, ".htm")
 						|| endsWith(fname, ".pdb") 
 						|| endsWith(fname, ".mobi")
-						|| endsWith(fname, ".chm")) 	
+						|| endsWith(fname, ".chm")
+						|| endsWith(fname, ".fb2.zip")) 	
 					{	
 						fn[len + strlen(fname) + 1] = '\0';
 		

@@ -1398,8 +1398,11 @@ int main(int argc, char **argv)
         CRXCBWindowManager winman( 600, 800 );
 
 #endif
-    if ( !ldomDocCache::init( lString16(L"/media/sd/.cr3/cache"), 0x100000 * 64 ))
-        ldomDocCache::init( lString16(L"/tmp/.cr3/cache"), 0x100000 * 64 ); /*64Mb*/
+    #ifndef KINDLE_TOUCH
+    ldomDocCache::init( lString16(L"/media/sd/.cr3/cache"), 0x100000 * 64 );
+	#else
+	ldomDocCache::init( lString16(L"/tmp/.cr3/cache"), 0x100000 * 64 ); /*64Mb*/
+	#endif
     if ( !winman.hasValidConnection() ) {
         CRLog::error("connection has an error! exiting.");
     } else {
@@ -1419,8 +1422,11 @@ int main(int argc, char **argv)
         loadKeymaps( winman, keymap_locations );
 
         if ( !winman.loadSkin(  homecrengine + L"skin" ) )
-            if ( !winman.loadSkin(  lString16( L"/media/sd/crengine/skin" ) ) )
-            	winman.loadSkin( lString16( L"/mnt/us/cr3xcb/share/cr3/kindle_touch/skins/default" ) );
+			#ifndef KINDLE_TOUCH
+            winman.loadSkin(  lString16( L"/media/sd/crengine/skin" ) );
+			#else
+			winman.loadSkin( lString16( L"/mnt/us/cr3xcb/share/cr3/kindle_touch/skins/default" ) );
+			#endif
         {
             const lChar16 * imgname =
                 ( winman.getScreenOrientation()&1 ) ? L"cr3_logo_screen_landscape.png" : L"cr3_logo_screen.png";
@@ -1435,13 +1441,15 @@ int main(int argc, char **argv)
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
-        if ( !main_win->loadDefaultCover( lString16( L"/media/sd/crengine/cr3_def_cover.png" ) ) )
-            main_win->loadDefaultCover( lString16( L"/mnt/us/cr3xcb/share/cr3/cr3_def_cover.png" ) );
-        if ( !main_win->loadCSS(  lString16( L"/media/sd/crengine/fb2.css" ) ) )
-            main_win->loadCSS( lString16( L"/mnt/us/cr3xcb/share/cr3/fb2.css" ) );
-
-        if ( !main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) ) )
-            main_win->loadDictConfig( lString16( L"/mnt/us/cr3xcb/share/cr3/dict/dictd.conf" ) );
+        #ifndef KINDLE_TOUCH
+		main_win->loadDefaultCover( lString16( L"/media/sd/crengine/cr3_def_cover.png" ) );
+		main_win->loadCSS(  lString16( L"/media/sd/crengine/fb2.css" ) );
+		main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) );
+		#else
+		main_win->loadDefaultCover( lString16( L"/mnt/us/cr3xcb/share/cr3/cr3_def_cover.png" ) );
+		main_win->loadCSS( lString16( L"/mnt/us/cr3xcb/share/cr3/fb2.css" ) );
+		main_win->loadDictConfig( lString16( L"/mnt/us/cr3xcb/share/cr3/dict/dictd.conf" ) );
+		#endif
 
         if ( bmkdir!=NULL )
             main_win->setBookmarkDir( lString16(bmkdir) );
@@ -1467,8 +1475,10 @@ int main(int argc, char **argv)
     #endif
     #endif
         const lChar16 * dirs[] = {
-            L"/media/sd/crengine/",
-            homecrengine.c_str(),
+        #ifndef KINDLE_TOUCH    
+			L"/media/sd/crengine/",
+        #endif
+		    homecrengine.c_str(),
             L"/mnt/us/cr3xcb/.settings/",
             NULL
         };

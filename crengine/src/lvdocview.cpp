@@ -106,6 +106,8 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 
 static int def_font_sizes[] = { 18, 20, 22, 24, 29, 33, 39, 44 };
 
+#define KINDLE_TOUCH 1
+
 LVDocView::LVDocView(int bitsPerPixel) :
 	m_bitsPerPixel(bitsPerPixel), m_dx(400), m_dy(200), _pos(0), _page(0),
 			_posIsSet(false), m_battery_state(CR_BATTERY_STATE_NO_BATTERY)
@@ -5405,8 +5407,13 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	if (list.length() > 0 && !list.contains(props->getStringDef(PROP_FONT_FACE,
 			defFontFace.c_str())))
 		props->setString(PROP_FONT_FACE, list[0]);
+#ifdef KINDLE_TOUCH
+    props->setIntDef(PROP_FONT_SIZE,
+	    m_font_sizes[m_font_sizes.length() * 2 / 8]);
+#else
 	props->setIntDef(PROP_FONT_SIZE,
 			m_font_sizes[m_font_sizes.length() * 2 / 3]);
+#endif
 	props->limitValueList(PROP_FONT_SIZE, m_font_sizes.ptr(),
 			m_font_sizes.length());
 	props->limitValueList(PROP_INTERLINE_SPACE, cr_interline_spaces,

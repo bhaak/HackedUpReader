@@ -927,7 +927,7 @@ VIEWER_MENU_4ABOUT=About...
     s.replaceParam(2, menu_win->getCommandKeyName(MCMD_OK));
     s.replaceParam(3, menu_win->getCommandKeyName(MCMD_CANCEL) );
 #else
-    lString16 s(_("$1 - choose command\n"));
+    lString16 s(_("$1 - choose command"));
     s.replaceParam(1, menu_win->getItemNumberKeysName());
 #endif
 	menu_win->setStatusText( s );

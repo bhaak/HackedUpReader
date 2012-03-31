@@ -3021,8 +3021,12 @@ void LVDocView::toggleViewMode() {
 }
 
 int LVDocView::getVisiblePageCount() {
+	#ifndef KINDLE_TOUCH
 	return (m_view_mode == DVM_SCROLL || m_dx < m_font_size * MIN_EM_PER_PAGE
 			|| m_dx * 5 < m_dy * 6) ? 1 : m_pagesVisible;
+	#else
+	return (m_view_mode == DVM_SCROLL || m_dx < m_font_size * MIN_EM_PER_PAGE) ? 1 : m_pagesVisible;
+	#endif
 }
 
 /// set window visible page count (1 or 2)

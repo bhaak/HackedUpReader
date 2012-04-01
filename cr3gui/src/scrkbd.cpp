@@ -32,7 +32,7 @@ bool CRScreenKeyboard::onKeyPressed( int key, int flags ) {
     const int dy = kbdRect.height() / _rows;
 
     lvRect rc = kbdRect;
-    rc.top += dy * (_rows-1);
+    rc.top += dy * _rows;
     rc.left += dx * (_cols-1);
     rc.bottom = rc.top + dy;
     rc.right = rc.left + dx;
@@ -82,7 +82,9 @@ void CRScreenKeyboard::draw()
     CRRectSkinRef shortcutSkin = _skin->getItemShortcutSkin();
     lvRect borders = clientSkin->getBorderWidths();
     LVRef<LVDrawBuf> drawbuf = _wm->getScreen()->getCanvas();
+	_rect.bottom = _rectBottom + 46;
     _skin->draw( *drawbuf, _rect );
+    _rect.bottom = _rectBottom;
     lvRect titleRect = _skin->getTitleRect( _rect );
     titleSkin->draw( *drawbuf, titleRect );
     titleSkin->drawText( *drawbuf, titleRect, _title );
@@ -99,7 +101,7 @@ void CRScreenKeyboard::draw()
     int dy = kbdRect.height() / _rows;
 	inputRect.right = inputRect.left + dx*_cols;
 	
-	for ( int y = 1; y<_rows; y++ ) {
+	for ( int y = 1; y<=_rows; y++ ) {
         for ( int x = 1; x<=_cols; x++ ) {
             lString16 txt;
      //       bool header = false;
@@ -137,7 +139,7 @@ void CRScreenKeyboard::draw()
 	
 	//draw the last symbol "<"
 	lvRect rc = kbdRect;
-	rc.top += dy * (_rows-1);
+	rc.top += dy * _rows;
     rc.left += dx * 9;
     rc.bottom = rc.top + dy;
     rc.right = rc.left + dx;
@@ -287,6 +289,9 @@ CRScreenKeyboard::CRScreenKeyboard(CRGUIWindowManager * wm, int id, const lStrin
     setAccelerators( _wm->getAccTables().get("vkeyboard") );
     _cols = 10;
 	setLayout( wm->getKeyboardLayouts().getCurrentLayout() );
+	#ifdef KINDLE_TOUCH
+	_rectBottom = _rect.bottom;
+	#endif
 }
 
 /// returns true if command is processed

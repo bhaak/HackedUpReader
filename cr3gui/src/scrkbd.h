@@ -18,6 +18,9 @@
 
 class CRScreenKeyboard : public CRGUIWindowBase
 {
+#ifdef KINDLE_TOUCH
+    int _rectBottom;
+#endif
 protected:
     lString16 & _buffer;
     lString16 _value;

@@ -1436,8 +1436,14 @@ int LVDocView::getPosPercent() {
 void LVDocView::getPageRectangle(int pageIndex, lvRect & pageRect) {
 	if ((pageIndex & 1) == 0 || (getVisiblePageCount() < 2))
 		pageRect = m_pageRects[0];
-	else
-		pageRect = m_pageRects[1];
+	else {
+    #ifndef KINDLE_TOUCH
+        pageRect = m_pageRects[1];
+    #else
+        pageRect = m_pageRects[0];
+        pageRect.right = m_pageRects[1].right;
+    #endif	
+	}
 }
 
 void LVDocView::getNavigationBarRectangle(lvRect & navRect) {
@@ -1701,6 +1707,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 			authorsw = m_infoFont->getTextWidth(authors.c_str(),
 					authors.length());
 		}
+        #ifndef KINDLE_TOUCH
 		int w = info.width() - 10;
 		if (authorsw + titlew + 10 > w) {
 			if ((pageIndex & 1))
@@ -1713,6 +1720,9 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 		} else {
 			text = authors + L"  " + title;
 		}
+        #else
+		    text = authors + L"  " + title;
+        #endif
 	}
 	lvRect newcr = headerRc;
 	newcr.right = info.right - 10;
@@ -1757,7 +1767,13 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 		if (getVisiblePageCount() == 2) {
 			if (page.index & 1) {
 				// right
-				phi &= ~PGHDR_AUTHOR;
+            #ifndef KINDLE_TOUCH
+			    phi &= ~PGHDR_AUTHOR;
+            #else
+                if (m_pagesVisible == 1) {
+                    phi &= ~PGHDR_AUTHOR;
+                }
+            #endif
             } else {
 				// left
 				phi &= ~PGHDR_TITLE;

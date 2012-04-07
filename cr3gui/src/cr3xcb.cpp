@@ -345,6 +345,11 @@ class CRXCBScreen : public CRGUIScreenBase
         }
         virtual void update( const lvRect & a_rc, bool full )
         {
+            bool main_win_visible = main_win == main_win->getWindowManager()->getTopVisibleWindow();
+            if (main_win_visible && checkFullUpdateCounter() && system("eips -c -f") != -1){
+                CRLog::error("Unable execute /mnt/us/clearme.sh");
+            }
+			
             lvRect rc(a_rc);
             CRLog::debug("update screen, bpp=%d width=%d, height=%d, rect={%d, %d, %d, %d} full=%d", (int)im->bpp,im->width,im->height, (int)rc.left, (int)rc.top, (int)rc.right, (int)rc.bottom, full?1:0 );
             if ( _forceNextUpdate && !_forceUpdateRect.isEmpty() ) {

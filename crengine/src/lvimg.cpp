@@ -40,6 +40,7 @@ typedef boolean wxjpeg_boolean;
 
 #endif
 
+#define KINDLE_TOUCH 1
 
 LVImageSource::~LVImageSource() {}
 
@@ -1867,8 +1868,11 @@ void LVDrawBatteryIcon( LVDrawBuf * drawbuf, const lvRect & batteryRc, int perce
                 iconIndex = 1;
             }
         }
-
+#ifndef KINDLE_TOUCH
         lvPoint sz( icons[0]->GetWidth(), icons[0]->GetHeight() );
+#else
+        lvPoint sz( icons[0]->GetWidth(), icons[0]->GetHeight() - 4);
+#endif 
         rc.left += (rc.width() - sz.x)/2;
         rc.top += (rc.height() - sz.y)/2;
         rc.right = rc.left + sz.x;

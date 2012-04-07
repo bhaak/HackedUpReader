@@ -444,21 +444,21 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 #endif
 		{NULL, NULL},
 	};
-
+#if ENABLE_UPDATE_MODE_SETTING==1
     item_def_t screen_update_options[] = {
-        {_("Always use fast updates"), "0"},
-        {_("Don't use fast updates"), "1"},
-        {_("Full updates every 2 pages"), "2"},
-        {_("Full updates every 3 pages"), "3"},
-        {_("Full updates every 4 pages"), "4"},
-        {_("Full updates every 5 pages"), "5"},
-        {_("Full updates every 6 pages"), "6"},
-        {_("Full updates every 8 pages"), "8"},
-        {_("Full updates every 10 pages"), "10"},
-        {_("Full updates every 14 pages"), "14"},
+        {_("Don't use page refresh"), "0"},
+        {_("Use page refresh always"), "1"},
+        {_("Use page refresh every 2 pages"), "2"},
+        {_("Use page refresh every 3 pages"), "3"},
+        {_("Use page refresh every 4 pages"), "4"},
+        {_("Use page refresh every 5 pages"), "5"},
+        {_("Use page refresh every 6 pages"), "6"},
+        {_("Use page refresh every 8 pages"), "8"},
+        {_("Use page refresh every 10 pages"), "10"},
+        {_("Use page refresh every 14 pages"), "14"},
         {NULL, NULL},
     };
-
+#endif
     item_def_t turbo_update_options[] = {
         {_("Turbo mode disabled"), "0"},
         {_("Turbo mode enabled"), "1"},

@@ -106,7 +106,7 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 
 static int def_font_sizes[] = { 18, 20, 22, 24, 29, 33, 39, 44 };
 
-#define KINDLE_TOUCH 1
+
 
 LVDocView::LVDocView(int bitsPerPixel) :
 	m_bitsPerPixel(bitsPerPixel), m_dx(400), m_dy(200), _pos(0), _page(0),
@@ -1437,7 +1437,7 @@ void LVDocView::getPageRectangle(int pageIndex, lvRect & pageRect) {
 	if ((pageIndex & 1) == 0 || (getVisiblePageCount() < 2))
 		pageRect = m_pageRects[0];
 	else {
-    #ifndef KINDLE_TOUCH
+    #if KINDLE_TOUCH!=1
         pageRect = m_pageRects[1];
     #else
         pageRect = m_pageRects[0];
@@ -1639,7 +1639,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 				//    brc.left = brc.right - brc.height()/2;
 				//else
 				brc.left = brc.right - batteryIconWidth - 2;
-                #ifndef KINDLE_TOUCH
+                #if KINDLE_TOUCH!=1
 				brc.bottom -= 5;
                 #else
 				brc.bottom += 6;
@@ -1711,7 +1711,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 			authorsw = m_infoFont->getTextWidth(authors.c_str(),
 					authors.length());
 		}
-        #ifndef KINDLE_TOUCH
+        #if KINDLE_TOUCH!=1
 		int w = info.width() - 10;
 		if (authorsw + titlew + 10 > w) {
 			if ((pageIndex & 1))
@@ -1771,7 +1771,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 		if (getVisiblePageCount() == 2) {
 			if (page.index & 1) {
 				// right
-            #ifndef KINDLE_TOUCH
+            #if KINDLE_TOUCH!=1
 			    phi &= ~PGHDR_AUTHOR;
             #else
                 if (m_pagesVisible == 1) {
@@ -3041,7 +3041,7 @@ void LVDocView::toggleViewMode() {
 }
 
 int LVDocView::getVisiblePageCount() {
-	#ifndef KINDLE_TOUCH
+	#if KINDLE_TOUCH!=1
 	return (m_view_mode == DVM_SCROLL || m_dx < m_font_size * MIN_EM_PER_PAGE
 			|| m_dx * 5 < m_dy * 6) ? 1 : m_pagesVisible;
 	#else
@@ -5431,7 +5431,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	if (list.length() > 0 && !list.contains(props->getStringDef(PROP_FONT_FACE,
 			defFontFace.c_str())))
 		props->setString(PROP_FONT_FACE, list[0]);
-#ifdef KINDLE_TOUCH
+#if KINDLE_TOUCH==1
     props->setIntDef(PROP_FONT_SIZE,
 	    m_font_sizes[m_font_sizes.length() * 2 / 8]);
 #else

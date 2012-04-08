@@ -391,6 +391,8 @@ bool CRViewDialog::onCommand( int command, int params )
 			return true;
         case MCMD_CANCEL:
         case MCMD_OK:
+            //show main menu
+            _wm->postCommand( MCMD_MAIN_MENU, 0 );
             _wm->closeWindow( this );
             return true;
         case MCMD_GO_PAGE:

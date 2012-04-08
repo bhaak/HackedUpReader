@@ -712,7 +712,7 @@ void V3DocViewWin::showBooksDialog() {
     _props = _docview->propsGetCurrent() | _props;
     _newProps = LVClonePropsContainer( _props );
     lvRect rc = _wm->getScreen()->getRect();
-    CRMenu * mainMenu = new CRBooksDialogMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, getMenuAccelerators(), rc, _docview );
+    CRMenu * mainMenu = new CRBooksDialogMenu( _wm, _newProps, MCMD_MAIN_MENU, menuFont, getMenuAccelerators(), rc, _docview );
     _wm->activateWindow( mainMenu );
 }
 
@@ -1162,6 +1162,7 @@ bool V3DocViewWin::onCommand( int command, int params )
         applySettings();
         saveSettings( lString16() );
         _wm->getSkin()->gc();
+        _wm->postCommand( MCMD_MAIN_MENU, 0 );
         return true;
     case DCMD_SAVE_HISTORY:
         saveHistory( lString16() );

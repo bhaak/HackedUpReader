@@ -347,7 +347,7 @@ class CRXCBScreen : public CRGUIScreenBase
         {
             bool main_win_visible = main_win == main_win->getWindowManager()->getTopVisibleWindow();
             if (main_win_visible && checkFullUpdateCounter() && system("eips -c -f") != -1){
-                CRLog::error("Unable execute /mnt/us/clearme.sh");
+                CRLog::error("Unable to execute eips -c -f command");
             }
 			
             lvRect rc(a_rc);

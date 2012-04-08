@@ -1,6 +1,10 @@
 package org.coolreader.crengine;
 
+import java.util.Locale;
+
 import org.coolreader.R;
+
+import android.util.Log;
 
 public interface Settings {
     public static final String PROP_PAGE_BACKGROUND_IMAGE       ="background.image";
@@ -105,7 +109,20 @@ public interface Settings {
     public static final String PROP_APP_SELECTION_ACTION = "app.selection.action";
     public static final String PROP_APP_MULTI_SELECTION_ACTION = "app.multiselection.action";
     public static final String PROP_APP_SELECTION_PERSIST = "app.selection.persist";
+
     public static final String PROP_APP_HIGHLIGHT_BOOKMARKS = "crengine.highlight.bookmarks";
+    public static final String PROP_HIGHLIGHT_SELECTION_COLOR = "crengine.highlight.selection.color";
+    public static final String PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT = "crengine.highlight.bookmarks.color.comment";
+    public static final String PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION = "crengine.highlight.bookmarks.color.correction";
+    public static final String PROP_APP_HIGHLIGHT_BOOKMARKS_DAY = "crengine.highlight.bookmarks.day";
+    public static final String PROP_HIGHLIGHT_SELECTION_COLOR_DAY = "crengine.highlight.selection.color.day";
+    public static final String PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT_DAY = "crengine.highlight.bookmarks.color.comment.day";
+    public static final String PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION_DAY = "crengine.highlight.bookmarks.color.correction.day";
+    public static final String PROP_APP_HIGHLIGHT_BOOKMARKS_NIGHT = "crengine.highlight.bookmarks.night";
+    public static final String PROP_HIGHLIGHT_SELECTION_COLOR_NIGHT = "crengine.highlight.selection.color.night";
+    public static final String PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT_NIGHT = "crengine.highlight.bookmarks.color.comment.night";
+    public static final String PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION_NIGHT = "crengine.highlight.bookmarks.color.correction.night";
+
     public static final String PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS = "app.browser.hide.empty.folders";
     public static final String PROP_APP_FILE_BROWSER_SIMPLE_MODE = "app.browser.simple.mode";
 
@@ -145,8 +162,8 @@ public interface Settings {
     	EN("en", R.string.options_app_locale_en, R.raw.help_template_en),
     	DE("de", R.string.options_app_locale_de, 0),
     	ES("es", R.string.options_app_locale_es, 0),
-    	RU("ru", R.string.options_app_locale_ru, 0),
-    	UK("uk", R.string.options_app_locale_uk, 0),
+    	RU("ru", R.string.options_app_locale_ru, R.raw.help_template_ru),
+    	UK("uk", R.string.options_app_locale_uk, R.raw.help_template_ru),
     	BG("bg", R.string.options_app_locale_bg, 0),
     	SK("sk", R.string.options_app_locale_sk, 0),
     	TR("tr", R.string.options_app_locale_tr, 0),
@@ -154,13 +171,33 @@ public interface Settings {
     	IT("it", R.string.options_app_locale_it, 0),
     	HU("hu", R.string.options_app_locale_hu, 0),
     	NL("nl", R.string.options_app_locale_nl, 0),
-    	ZH_CN("zh_CN", R.string.options_app_locale_zh_cn, 0),
+    	ZH_CN("zh_CN", R.string.options_app_locale_zh_cn, R.raw.help_template_zh_cn),
     	;
+    	
+    	public Locale getLocale() {
+   			return getLocale(code);
+    	}
+    	
+    	static public Locale getLocale(String code) {
+    		if (code.length() == 2)
+    			return new Locale(code);
+    		if (code.length() == 5)
+    			return new Locale(code.substring(0, 2), code.substring(3, 5));
+    		return null;
+    	}
+
+    	static public String getCode(Locale locale) {
+    		String country = locale.getCountry();
+    		if (country == null || country.length()==0)
+    			return locale.getLanguage();
+			return locale.getLanguage() + "_" + country;
+    	}
     	
     	static public Lang byCode(String code) {
     		for (Lang lang : values())
     			if (lang.code.equals(code))
     				return lang;
+    		Log.w("cr3", "language not found by code " + code);
     		return DEFAULT;
     	}
     	
@@ -199,7 +236,10 @@ public interface Settings {
 	    PROP_APP_DICTIONARY,
 	    PROP_APP_SELECTION_ACTION,
 	    PROP_APP_SELECTION_PERSIST,
-	    PROP_APP_HIGHLIGHT_BOOKMARKS,
+	    PROP_APP_HIGHLIGHT_BOOKMARKS + "*",
+	    PROP_HIGHLIGHT_SELECTION_COLOR + "*",
+	    PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT + "*",
+	    PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION + "*",
 
 	    PROP_APP_VIEW_AUTOSCROLL_SPEED,
 	    PROP_APP_VIEW_AUTOSCROLL_TYPE,

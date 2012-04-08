@@ -117,21 +117,21 @@ static bool GetEPUBBookProperties(const char *name, LVStreamRef stream, BookProp
         t = fs.st_mtime;
     }
 
-    lString16 author = doc->textFromXPath( lString16(L"package/metadata/creator")).trim();
-    lString16 title = doc->textFromXPath( lString16(L"package/metadata/title")).trim();
+    lString16 author = doc->textFromXPath( lString16("package/metadata/creator")).trim();
+    lString16 title = doc->textFromXPath( lString16("package/metadata/title")).trim();
 
     pBookProps->author = author;
     pBookProps->title = title;
 
     for ( int i=1; i<20; i++ ) {
-        ldomNode * item = doc->nodeFromXPath( lString16(L"package/metadata/meta[") + lString16::itoa(i) + L"]" );
+        ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/meta[") << fmt::decimal(i) << "]" );
         if ( !item )
             break;
-        lString16 name = item->getAttributeValue(L"name");
-        lString16 content = item->getAttributeValue(L"content");
-        if ( name==L"calibre:series" )
+        lString16 name = item->getAttributeValue("name");
+        lString16 content = item->getAttributeValue("content");
+        if (name == "calibre:series")
         	pBookProps->series = content.trim();
-        else if ( name==L"calibre:series_index" )
+        else if (name == "calibre:series_index")
         	pBookProps->seriesNumber = content.trim().atoi();
     }
 
@@ -213,12 +213,12 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
         LVStreamRef out = LVOpenFileStream(ofname, LVOM_WRITE);
         doc.saveToStream(out, "utf16");
     #endif
-    lString16 authors = extractDocAuthors( &doc, lString16(L"|"), false );
+    lString16 authors = extractDocAuthors( &doc, lString16("|"), false );
     lString16 title = extractDocTitle( &doc );
     lString16 series = extractDocSeries( &doc, &pBookProps->seriesNumber );
 #if SERIES_IN_AUTHORS==1
     if ( !series.empty() )
-    	authors << L"    " << series;
+        authors << "    " << series;
 #endif
     pBookProps->title = title;
     pBookProps->author = authors;
@@ -247,7 +247,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertie
 	if ( filename.empty() )
 		return JNI_FALSE;
 	if ( !arcname.empty() )
-	   filename = arcname + L"@/" + filename;
+       filename = arcname + "@/" + filename;
 
 	BookProperties props;
 	CRLog::debug("Looking for properties of file %s", LCSTR(filename));
@@ -441,10 +441,10 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
 	CRLog::info("CRENGINE version %s %s", CR_ENGINE_VERSION, CR_ENGINE_BUILD_DATE);
 	
 	CRLog::info("initializing hyphenation manager");
-	HyphMan::initDictionaries(lString16()); //don't look for dictionaries
+    HyphMan::initDictionaries(lString16::empty_str); //don't look for dictionaries
 	HyphMan::activateDictionary(lString16(HYPH_DICT_ID_NONE));
 	CRLog::info("creating font manager");
-	InitFontManager(lString8());
+    InitFontManager(lString8::empty_str);
 	CRLog::debug("converting fonts array: %d items", (int)env->GetArrayLength(fontArray));
 	lString16Collection fonts;
 	env.fromJavaStringArray(fontArray, fonts);
@@ -456,7 +456,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
 		if ( !fontMan->RegisterFont( fontName ) )
 			CRLog::error("cannot load font %s", fontName.c_str());
 	}
-	CRLog::info("%d fonts registered", (int)fontMan->GetFontCount());
+    CRLog::info("%d fonts registered", fontMan->GetFontCount());
 	return fontMan->GetFontCount() ? JNI_TRUE : JNI_FALSE;
 }
 

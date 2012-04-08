@@ -12,10 +12,14 @@ import java.util.zip.ZipEntry;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.EngineTask;
+import org.coolreader.db.CRDB;
+import org.coolreader.db.CRDBService;
 
 import android.util.Log;
 
-public class Scanner {
+public class Scanner extends FileInfoChangeSource {
+	
+	public static final Logger log = L.create("sc");
 	
 	HashMap<String, FileInfo> mFileList = new HashMap<String, FileInfo>();
 //	ArrayList<FileInfo> mFilesForParsing = new ArrayList<FileInfo>();
@@ -222,6 +226,109 @@ public class Scanner {
 			stopped = true;
 		}
 	}
+
+	/**
+	 * Call this method (in GUI thread) to update views if directory content is changed outside.
+	 * @param dir is directory with changed content
+	 */
+	public void onDirectoryContentChanged(FileInfo dir) {
+		onChange(dir);
+	}
+	
+	/**
+	 * For all files in directory, retrieve metadata from DB or scan and save into DB.
+	 * Call in GUI thread only!
+	 * @param baseDir is directory with files to lookup/scan; file items will be updated with info from file metadata or DB
+	 * @param readyCallback is Runable to call when operation is finished or stopped (will be called in GUI thread)
+	 * @param control allows to stop long operation
+	 */
+	private void scanDirectoryFiles(final FileInfo baseDir, final ScanControl control, final Engine.ProgressControl progress, final Runnable readyCallback) {
+		// GUI thread
+		BackgroundThread.ensureGUI();
+		ArrayList<String> pathNames = new ArrayList<String>();
+		for (int i=0; i < baseDir.fileCount(); i++)
+			pathNames.add(baseDir.getFile(i).getPathName());
+		if (pathNames.size() == 0) {
+			readyCallback.run();
+			return;
+		}
+			
+		db().loadFileInfos(pathNames, new CRDBService.FileInfoLoadingCallback() {
+			@Override
+			public void onFileInfoListLoaded(ArrayList<FileInfo> list) {
+				log.v("onFileInfoListLoaded");
+				// GUI thread
+				final ArrayList<FileInfo> filesForParsing = new ArrayList<FileInfo>();
+				ArrayList<FileInfo> filesForSave = new ArrayList<FileInfo>();
+				Map<String, FileInfo> map = new HashMap<String, FileInfo>();
+				for (FileInfo f : list)
+					map.put(f.getPathName(), f);
+				for (int i=0; i<baseDir.fileCount(); i++) {
+					FileInfo item = baseDir.getFile(i);
+					FileInfo fromDB = map.get(item.getPathName());
+					if (fromDB != null) {
+						// use DB value
+						baseDir.setFile(i, fromDB);
+					} else {
+						// not found in DB
+						if (item.format.canParseProperties()) {
+							filesForParsing.add(new FileInfo(item));
+						} else {
+							filesForSave.add(new FileInfo(item));
+						}
+					}
+				}
+				if (filesForSave.size() > 0) {
+					db().saveFileInfos(filesForSave);
+				}
+				if (filesForParsing.size() == 0 || control.isStopped()) {
+					readyCallback.run();
+					return;
+				}
+				// scan files in Background thread
+				BackgroundThread.instance().postBackground(new Runnable() {
+					@Override
+					public void run() {
+						// Background thread
+						final ArrayList<FileInfo> filesForSave = new ArrayList<FileInfo>();
+						try {
+							int count = filesForParsing.size();
+							for ( int i=0; i<count; i++ ) {
+								if (control.isStopped())
+									break;
+								progress.setProgress(i * 10000 / count);
+								FileInfo item = filesForParsing.get(i);
+								engine.scanBookProperties(item);
+								filesForSave.add(item);
+							}
+						} catch (Exception e) {
+							L.e("Exception while scanning", e);
+						}
+						progress.hide();
+						// jump to GUI thread
+						BackgroundThread.instance().postGUI(new Runnable() {
+							@Override
+							public void run() {
+								// GUI thread
+								try {
+									if (filesForSave.size() > 0) {
+										db().saveFileInfos(filesForSave);
+									}
+									for (FileInfo file : filesForSave)
+										baseDir.setFile(file);
+								} catch (Exception e ) {
+									L.e("Exception while scanning", e);
+								}
+								// call finish handler
+								readyCallback.run();
+							}
+						});
+					}
+					
+				});
+			}
+		});
+	}
 	
 	/**
 	 * Scan single directory for dir and file properties in background thread.
@@ -230,105 +337,57 @@ public class Scanner {
 	 */
 	public void scanDirectory( final FileInfo baseDir, final Runnable readyCallback, final boolean recursiveScan, final ScanControl scanControl )
 	{
-		final long startTime = System.currentTimeMillis();
+		// Call in GUI thread only!
+		BackgroundThread.ensureGUI();
 		listDirectory(baseDir);
 		listSubtree( baseDir, 2, android.os.SystemClock.uptimeMillis() + 700 );
 		if ( (!getDirScanEnabled() || baseDir.isScanned) && !recursiveScan ) {
 			readyCallback.run();
 			return;
 		}
-		engine.execute(new EngineTask() {
-			long nextProgressTime = startTime + 2000;
-			boolean progressShown = false;
-			final Collection<FileInfo> booksToSave = new ArrayList<FileInfo>();
-			void progress( int percent )
-			{
-				if ( recursiveScan )
-					return; // no progress dialog for recursive scan
-				long ts = System.currentTimeMillis();
-				if ( ts>=nextProgressTime ) {
-					engine.showProgress(percent, R.string.progress_scanning);
-					nextProgressTime = ts + 1500;
-					progressShown = true;
-				}
-			}
-			
-			public void done() {
-				baseDir.isScanned = true;
-				if ( progressShown )
-					engine.hideProgress();
-				readyCallback.run();
-				
-			}
-
-			public void fail(Exception e) {
-				L.e("Exception while scanning directory " + baseDir.pathname, e);
-				baseDir.isScanned = true;
-				if ( progressShown )
-					engine.hideProgress();
-				readyCallback.run();
-			}
-
-			public void scan( FileInfo baseDir ) {
-				if ( baseDir.isRecentDir() )
-					return;
-				//listDirectory(baseDir);
-				progress(1000);
-				if ( scanControl.isStopped() )
-					return;
-				for ( int i=baseDir.dirCount()-1; i>=0; i-- ) {
-					if ( scanControl.isStopped() )
+		Engine.ProgressControl progress = engine.createProgress(recursiveScan ? 0 : R.string.progress_scanning); 
+		scanDirectoryFiles(baseDir, scanControl, progress, new Runnable() {
+			@Override
+			public void run() {
+				// GUI thread
+				onDirectoryContentChanged(baseDir);
+				try {
+					if (scanControl.isStopped()) {
+						// scan is stopped
+						readyCallback.run();
 						return;
-					listDirectory(baseDir.getDir(i));
-				}
-				progress(2000);
-				if ( mHideEmptyDirs )
-					baseDir.removeEmptyDirs();
-				if ( scanControl.isStopped() )
-					return;
-				ArrayList<FileInfo> filesForParsing = new ArrayList<FileInfo>();
-				int count = baseDir.fileCount();
-				for ( int i=0; i<count; i++ ) {
-					FileInfo item = baseDir.getFile(i);
-					boolean found = db.findByPathname(item);
-					if ( found )
-						Log.v("cr3db", "File " + item.pathname + " is found in DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
+					} else {
+						baseDir.isScanned = true;
 
-					boolean saveToDB = true;
-					if ( !found && item.format.canParseProperties() ) {
-						filesForParsing.add(item);
-						saveToDB = false;
+						if ( recursiveScan ) {
+							if ( scanControl.isStopped() )
+								return;
+							final ArrayList<FileInfo> dirsToScan = new ArrayList<FileInfo>(); 
+							for ( int i=baseDir.dirCount()-1; i>=0; i-- ) {
+								dirsToScan.add(baseDir.getDir(i));
+							}
+							Runnable dirIterator = new Runnable() {
+								@Override
+								public void run() {
+									// process next directory from list
+									if (dirsToScan.size() == 0 || scanControl.isStopped()) {
+										readyCallback.run();
+										return;
+									}
+									FileInfo dir = dirsToScan.get(0);
+									dirsToScan.remove(0);
+									scanDirectory(dir, this, true, scanControl);
+								}
+							};
+							dirIterator.run();
+						} else {
+							readyCallback.run();
+						}
 					}
-
-					if ( !found && saveToDB ) {
-						db.save(item);
-						Log.v("cr3db", "File " + item.pathname + " is added to DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
-					}
-					progress( 2000 + 3000 * i / count );
+				} catch (Exception e) {
+					// treat as finished
+					readyCallback.run();
 				}
-				// db lookup files
-				count = filesForParsing.size();
-				for ( int i=0; i<count; i++ ) {
-					if ( scanControl.isStopped() )
-						return;
-					FileInfo item = filesForParsing.get(i);
-					engine.scanBookProperties(item);
-					booksToSave.add(item);
-					progress( 5000 + 5000 * i / count );
-				}
-				if ( recursiveScan ) {
-					if ( scanControl.isStopped() )
-						return;
-					for ( int i=baseDir.dirCount()-1; i>=0; i-- )
-						scan(baseDir.getDir(i));
-				}
-			}
-			
-			public void work() throws Exception {
-				// scan (list) directories
-				nextProgressTime = startTime + 1500;
-				scan( baseDir );
-				db.saveFileInfos(booksToSave);
 			}
 		});
 	}
@@ -351,7 +410,7 @@ public class Scanner {
 //		int count = mFileList.size();
 //		for ( int i=0; i<count; i++ ) {
 //			FileInfo item = mFileList.get(i);
-//			boolean found = db.findByPathname(item);
+//			boolean found = db().findByPathname(item);
 //			if ( found )
 //				Log.v("cr3db", "File " + item.pathname + " is found in DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
 //
@@ -362,7 +421,7 @@ public class Scanner {
 //			}
 //
 //			if ( !found && saveToDB ) {
-//				db.save(item);
+//				db().save(item);
 //				Log.v("cr3db", "File " + item.pathname + " is added to DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
 //			}
 //			updateProgress( 1000 + 4000 * i / count );
@@ -375,7 +434,7 @@ public class Scanner {
 //		for ( int i=0; i<count; i++ ) {
 //			FileInfo item = mFilesForParsing.get(i);
 //			engine.scanBookProperties(item);
-//			db.save(item);
+//			db().save(item);
 //			Log.v("cr3db", "File " + item.pathname + " is added to DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
 //			updateProgress( 5000 + 5000 * i / count );
 //		}
@@ -405,7 +464,7 @@ public class Scanner {
 	}
 	
 	private void addOPDSRoot() {
-		FileInfo dir = new FileInfo();
+		final FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.OPDS_LIST_TAG;
 		dir.filename = coolReader.getString(R.string.mi_book_opds_root);
@@ -413,7 +472,6 @@ public class Scanner {
 		dir.isScanned = true;
 		dir.parent = mRoot;
 		mRoot.addDir(dir);
-		db.loadOPDSCatalogs(dir);
 	}
 	
 	private void addSearchRoot() {
@@ -617,21 +675,9 @@ public class Scanner {
 		}
 	}
 	
-	public static final String[] SD_MOUNT_POINTS = {
-		"/system/media/sdcard",
-		"/media",
-		"/nand",
-		"/PocketBook701",
-		"/mnt/extsd",
-		"/mnt/ext.sd",
-		"/mnt/external1",
-		"/ext.sd",
-		"/sdcard2",
-		"/mnt/sdcard2",
-		};
-	
 	public void initRoots(Map<String, String> fsRoots)
 	{
+		Log.d("cr3", "Scanner.initRoots(" + fsRoots + ")");
 		mRoot.clear();
 		// create recent books dir
 		addRoot( FileInfo.RECENT_DIR_TAG, R.string.dir_recent_books, false);
@@ -699,6 +745,8 @@ public class Scanner {
 		for ( int i=0; i<mRoot.dirCount(); i++ ) {
 			FileInfo item = mRoot.getDir(i);
 			if ( !item.isSpecialDir() && !item.isArchive ) {
+				if (!item.isListed)
+					listDirectory(item);
 				FileInfo books = item.findItemByPathName(item.pathname + "/Books");
 				if (books == null)
 					books = item.findItemByPathName(item.pathname + "/books");
@@ -709,7 +757,7 @@ public class Scanner {
 					if (!dir.canWrite())
 						Log.w("cr3", "Directory " + dir + " is readonly");
 					File f = new File( dir, "Books" );
-					if ( f.mkdirs() ) {
+					if ( f.mkdirs() || f.isDirectory() ) {
 						books = new FileInfo(f);
 						books.parent = item;
 						item.addDir(books);
@@ -719,6 +767,11 @@ public class Scanner {
 					}
 				}
 			}
+		}
+		try {
+			throw new Exception("download directory not found and cannot be created");
+		} catch (Exception e) {
+			Log.e("cr3", "download directory is not found!!!", e);
 		}
 		return null;
 	}
@@ -738,10 +791,19 @@ public class Scanner {
 		return null;
 	}
 	
-	public Scanner( CoolReader coolReader, CRDB db, Engine engine )
+	public FileInfo getRecentDir() 
+	{
+		for ( int i=0; i<mRoot.dirCount(); i++ ) {
+			if ( mRoot.getDir(i).isRecentDir())
+				return mRoot.getDir(i);
+		}
+		L.w("Recent books directory not found!");
+		return null;
+	}
+	
+	public Scanner( CoolReader coolReader, Engine engine )
 	{
 		this.engine = engine;
-		this.db = db;
 		this.coolReader = coolReader;
 		mRoot = new FileInfo();
 		mRoot.path = FileInfo.ROOT_DIR_TAG;	
@@ -752,7 +814,10 @@ public class Scanner {
 		mRoot.isDirectory = true;
 	}
 
+	private CRDBService.LocalBinder db() {
+		return coolReader.getDB();
+	}
+
 	private final Engine engine;
-	private final CRDB db;
 	private final CoolReader coolReader;
 }

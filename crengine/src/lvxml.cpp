@@ -128,10 +128,10 @@ int LVFileParserBase::getProgressPercent()
 lString16 LVFileParserBase::getFileName()
 {
     if ( m_stream.isNull() )
-        return lString16();
+        return lString16::empty_str;
     lString16 name( m_stream->GetName() );
     int lastPathDelim = -1;
-    for ( unsigned i=0; i<name.length(); i++ ) {
+    for ( int i=0; i<name.length(); i++ ) {
         if ( name[i]=='\\' || name[i]=='/' ) {
             lastPathDelim = i;
         }
@@ -1002,48 +1002,48 @@ void LVTextFileBase::Reset()
 void LVTextFileBase::SetCharset( const lChar16 * name )
 {
     m_encoding_name = lString16( name );
-    if ( m_encoding_name == L"utf-8" ) {
+    if ( m_encoding_name == "utf-8" ) {
         m_enc_type = ce_utf8;
         SetCharsetTable( NULL );
-    } else if ( m_encoding_name == L"utf-16" ) {
+    } else if ( m_encoding_name == "utf-16" ) {
         m_enc_type = ce_utf16_le;
         SetCharsetTable( NULL );
 #if GBK_ENCODING_SUPPORT == 1
-    } else if ( m_encoding_name == L"gbk" || m_encoding_name == L"cp936" || m_encoding_name == L"cp-936") {
+    } else if ( m_encoding_name == "gbk" || m_encoding_name == "cp936" || m_encoding_name == "cp-936") {
         m_enc_type = ce_gbk;
         SetCharsetTable( NULL );
 #endif
 #if JIS_ENCODING_SUPPORT == 1
-    } else if ( m_encoding_name == L"shift-jis" || m_encoding_name == L"shift_jis" || m_encoding_name == L"sjis" || m_encoding_name == L"ms_kanji" || m_encoding_name == L"csshiftjis" || m_encoding_name == L"shift_jisx0213" || m_encoding_name == L"shift_jis-2004" || m_encoding_name == L"cp932") {
+    } else if ( m_encoding_name == "shift-jis" || m_encoding_name == "shift_jis" || m_encoding_name == "sjis" || m_encoding_name == "ms_kanji" || m_encoding_name == "csshiftjis" || m_encoding_name == "shift_jisx0213" || m_encoding_name == "shift_jis-2004" || m_encoding_name == "cp932") {
         m_enc_type = ce_shift_jis;
         SetCharsetTable( NULL );
-    } else if (m_encoding_name == L"euc-jisx0213" ||  m_encoding_name == L"euc-jis-2004" ||  m_encoding_name == L"euc-jis" ||  m_encoding_name == L"euc-jp" ||  m_encoding_name == L"eucjp") {
+    } else if (m_encoding_name == "euc-jisx0213" ||  m_encoding_name == "euc-jis-2004" ||  m_encoding_name == "euc-jis" ||  m_encoding_name == "euc-jp" ||  m_encoding_name == "eucjp") {
         m_enc_type = ce_euc_jis;
         SetCharsetTable( NULL );
 #endif
 #if BIG5_ENCODING_SUPPORT == 1
-    } else if ( m_encoding_name == L"big5" || m_encoding_name == L"big5-2003" || m_encoding_name == L"big-5" || m_encoding_name == L"big-five" || m_encoding_name == L"bigfive" || m_encoding_name == L"cn-big5" || m_encoding_name == L"csbig5" || m_encoding_name == L"cp950") {
+    } else if ( m_encoding_name == "big5" || m_encoding_name == "big5-2003" || m_encoding_name == "big-5" || m_encoding_name == "big-five" || m_encoding_name == "bigfive" || m_encoding_name == "cn-big5" || m_encoding_name == "csbig5" || m_encoding_name == "cp950") {
         m_enc_type = ce_big5;
         SetCharsetTable( NULL );
 #endif
 #if EUC_KR_ENCODING_SUPPORT == 1
-    } else if ( m_encoding_name == L"euc_kr" || m_encoding_name == L"euc-kr" || m_encoding_name == L"euckr" || m_encoding_name == L"cseuckr" || m_encoding_name == L"cp51949" || m_encoding_name == L"cp949") {
+    } else if ( m_encoding_name == "euc_kr" || m_encoding_name == "euc-kr" || m_encoding_name == "euckr" || m_encoding_name == "cseuckr" || m_encoding_name == "cp51949" || m_encoding_name == "cp949") {
         m_enc_type = ce_euc_kr;
         SetCharsetTable( NULL );
 #endif
-    } else if ( m_encoding_name == L"utf-16le" ) {
+    } else if ( m_encoding_name == "utf-16le" ) {
         m_enc_type = ce_utf16_le;
         SetCharsetTable( NULL );
-    } else if ( m_encoding_name == L"utf-16be" ) {
+    } else if ( m_encoding_name == "utf-16be" ) {
         m_enc_type = ce_utf16_be;
         SetCharsetTable( NULL );
-    } else if ( m_encoding_name == L"utf-32" ) {
+    } else if ( m_encoding_name == "utf-32" ) {
         m_enc_type = ce_utf32_le;
         SetCharsetTable( NULL );
-    } else if ( m_encoding_name == L"utf-32le" ) {
+    } else if ( m_encoding_name == "utf-32le" ) {
         m_enc_type = ce_utf32_le;
         SetCharsetTable( NULL );
-    } else if ( m_encoding_name == L"utf-32be" ) {
+    } else if ( m_encoding_name == "utf-32be" ) {
         m_enc_type = ce_utf32_be;
         SetCharsetTable( NULL );
     } else {
@@ -1125,7 +1125,7 @@ int DetectHeadingLevelByText( const lString16 & str )
         return 3;
     lChar16 ch = str[0];
     if ( ch>='0' && ch<='9' ) {
-        unsigned i;
+        int i;
         int point_count = 0;
         for ( i=1; i<str.length(); i++ ) {
             ch = str[i];
@@ -1539,18 +1539,18 @@ public:
         bookTitle.clear();
         bookAuthors.clear();
         lString16 firstLine = get(i)->text;
-        lString16 pgPrefix = L"The Project Gutenberg Etext of ";
+        lString16 pgPrefix("The Project Gutenberg Etext of ");
         if ( firstLine.length() < pgPrefix.length() )
             return false;
         if ( firstLine.substr(0, pgPrefix.length()) != pgPrefix )
             return false;
         firstLine = firstLine.substr( pgPrefix.length(), firstLine.length() - pgPrefix.length());
-        int byPos = firstLine.pos(L", by ");
+        int byPos = firstLine.pos(", by ");
         if ( byPos<=0 )
             return false;
         bookTitle = firstLine.substr( 0, byPos );
         bookAuthors = firstLine.substr( byPos + 5, firstLine.length()-byPos-5 );
-        for ( ; i<length() && i<500 && get(i)->text.pos(L"*END*") != 0; i++ )
+        for ( ; i<length() && i<500 && get(i)->text.pos("*END*") != 0; i++ )
             ;
         if ( i<length() && i<500 ) {
             for ( i++; i<length() && i<500 && get(i)->text.empty(); i++ )
@@ -1572,7 +1572,7 @@ public:
         bookAuthors.clear();
         lString16 firstLine = get(i)->text;
         firstLine.trim();
-        int dotPos = firstLine.pos(L". ");
+        int dotPos = firstLine.pos(". ");
         if ( dotPos<=0 )
             return false;
         bookAuthors = firstLine.substr( 0, dotPos );
@@ -1607,7 +1607,7 @@ public:
             }
             //update book description
             if ( i==0 ) {
-                bookTitle = L"no name";
+                bookTitle = "no name";
             } else {
                 bookTitle = s[1];
             }
@@ -1619,7 +1619,7 @@ public:
         if ( !bookAuthors.empty() )
             author_list.parse( bookAuthors, ',', true );
 
-        unsigned i;
+        int i;
         for ( i=0; i<author_list.length(); i++ ) {
             lString16Collection name_list;
             name_list.parse( author_list[i], ' ', true );
@@ -1684,7 +1684,7 @@ public:
             //if ( i==startline )
             //    pos = item->fpos;
             //sz = (item->fpos + item->fsize) - pos;
-            str += item->text + L"\n";
+            str += item->text + "\n";
         }
         bool singleLineFollowedByEmpty = false;
         bool singleLineFollowedByTwoEmpty = false;
@@ -1810,7 +1810,7 @@ public:
         }
 
         int styleTagPos(lChar16 ch) {
-            for ( unsigned i=0; i<styleTags.length(); i++ )
+            for ( int i=0; i<styleTags.length(); i++ )
                 if ( styleTags[i]==ch )
                     return i;
             return -1;
@@ -1849,7 +1849,7 @@ public:
         }
 
         void openStyleTags() {
-            for ( unsigned i=0; i<styleTags.length(); i++ )
+            for ( int i=0; i<styleTags.length(); i++ )
                 openStyleTag(styleTags[i], false);
         }
 
@@ -1913,7 +1913,7 @@ public:
                 return;
             sectionId++;
             callback->OnTagOpen(NULL, L"section");
-            callback->OnAttribute(NULL, L"id", (lString16(L"_section") + lString16::itoa(sectionId)).c_str() );
+            callback->OnAttribute(NULL, L"id", (lString16("_section") + fmt::decimal(sectionId)).c_str() );
             callback->OnTagBody();
             inSection = true;
             endOfParagraph();
@@ -1990,7 +1990,7 @@ public:
                 callback->OnTagOpen(NULL, L"a");
                 callback->OnAttribute(NULL, L"href", ref.c_str());
                 callback->OnTagBody();
-                styleTags << L"a";
+                styleTags << "a";
                 inLink = true;
             }
         }
@@ -2421,10 +2421,10 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lUInt32 & flags )
         ch = ReadCharFromBuffer();
         //if ( ch==0xFEFF && fpos==0 && res.empty() ) {
         //} else 
-        if ( ch!='\r' && ch!='\n' ) {
+        if (ch != '\r' && ch != '\n') {
             res.append( 1, ch );
-            if ( ch==' ' || ch=='\t' ) {
-                if ( res.length()>=(unsigned)maxLineSize )
+            if (ch == ' ' || ch == '\t') {
+                if (res.length() >= maxLineSize )
                     break;
             }
         } else {
@@ -2459,7 +2459,7 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lUInt32 & flags )
             }
         } else if ( ch=='-' || ch=='*' || ch=='=' ) {
             bool sameChars = true;
-            for ( unsigned i=firstNs; i<res.length(); i++ ) {
+            for ( int i=firstNs; i<res.length(); i++ ) {
                 lChar16 ch2 = res[i];
                 if ( ch2!=' ' && ch2!='\t' && ch2!=ch ) {
                     sameChars = false;
@@ -2467,7 +2467,7 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lUInt32 & flags )
                 }
             }
             if ( sameChars ) {
-                res = L"* * *"; // hline
+                res = "* * *"; // hline
                 flags |= LINE_IS_HEADER;
             }
         }
@@ -2570,13 +2570,13 @@ bool LVTextBookmarkParser::Parse()
         //if ( line.startsWith( lString16() )
     }
     lString16 desc;
-    desc << L"Bookmarks: ";
+    desc << "Bookmarks: ";
     if ( !author.empty() )
-        desc << author << L"  ";
+        desc << author << "  ";
     if ( !title.empty() )
-        desc << title << L"  ";
+        desc << title << "  ";
     else
-        desc << fname << L"  ";
+        desc << fname << "  ";
     //queue.
     // make fb2 document structure
     m_callback->OnTagOpen( NULL, L"?xml" );
@@ -2620,9 +2620,9 @@ bool LVTextBookmarkParser::Parse()
                             prefix = txt.substr(0, 3);
                             txt = txt.substr( 3 );
                         }
-                        if ( prefix==L"## " ) {
+                        if (prefix == "## ") {
                             prefix = txt;
-                            txt = L" ";
+                            txt = " ";
                         }
                     }
                     postParagraph( m_callback, UnicodeToUtf8(prefix).c_str(), txt, false );
@@ -2849,7 +2849,7 @@ enum parser_state_t {
     ps_bof,
     ps_lt,
     ps_attr,     // waiting for attributes or end of tag
-    ps_text,
+    ps_text
 };
 
 
@@ -2906,15 +2906,17 @@ bool LVXMLParser::CheckFormat()
     bool res = false;
     if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
-        bool flg = !m_fb2Only || s.pos(L"<FictionBook") >= 0;
-        if ( flg && (( (s.pos(L"<?xml") >=0 || s.pos(L" xmlns=")>0 )&& s.pos(L"version=") >= 6) ||
-             m_allowHtml && s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"")>=0 )) {
-            //&& s.pos(L"<FictionBook") >= 0
+        bool flg = !m_fb2Only || s.pos("<FictionBook") >= 0;
+        if ( flg && (
+                 ((s.pos("<?xml") >= 0 || s.pos(" xmlns=") > 0) && s.pos("version=") >= 6) ||
+                 (m_allowHtml && s.pos("<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0)
+                 )) {
+            //&& s.pos("<FictionBook") >= 0
             res = true;
-            int encpos=s.pos(L"encoding=\"");
+            int encpos=s.pos("encoding=\"");
             if ( encpos>=0 ) {
                 lString16 encname = s.substr( encpos+10, 20 );
-                int endpos = s.pos(L"\"");
+                int endpos = s.pos("\"");
                 if ( endpos>0 ) {
                     encname.erase( endpos, encname.length() - endpos );
                     SetCharset( encname.c_str() );
@@ -3039,14 +3041,14 @@ bool LVXMLParser::Parse()
 
                 if (qFlag) {
                     tagname.insert(0, 1, '?');
-                    inXmlTag = (tagname==L"?xml");
+                    inXmlTag = (tagname == "?xml");
                 } else {
                     inXmlTag = false;
                 }
                 m_callback->OnTagOpen(tagns.c_str(), tagname.c_str());
 //                if ( dumpActive )
 //                    CRLog::trace("<%s>", LCSTR(tagname) );
-                if ( !bodyStarted && tagname==L"body" )
+                if (!bodyStarted && tagname == "body")
                     bodyStarted = true;
 
                 m_state = ps_attr;
@@ -3122,7 +3124,7 @@ bool LVXMLParser::Parse()
                     PreProcessXmlString( attrvalue, 0, m_conv_table );
                 }
                 m_callback->OnAttribute( attrns.c_str(), attrname.c_str(), attrvalue.c_str());
-                if (inXmlTag && attrname==L"encoding")
+                if (inXmlTag && attrname == "encoding")
                 {
                     SetCharset( attrvalue.c_str() );
                 }
@@ -3761,19 +3763,19 @@ lString16 htmlCharset( lString16 htmlHeader )
 {
     // META HTTP-EQUIV
     htmlHeader.lowercase();
-    lString16 meta(L"meta http-equiv=\"content-type\"");
+    lString16 meta("meta http-equiv=\"content-type\"");
     int p = htmlHeader.pos( meta );
     if ( p<0 )
-        return lString16();
+        return lString16::empty_str;
     htmlHeader = htmlHeader.substr( p + meta.length() );
-    p = htmlHeader.pos(L">");
+    p = htmlHeader.pos(">");
     if ( p<0 )
-        return lString16();
+        return lString16::empty_str;
     htmlHeader = htmlHeader.substr( 0, p );
     CRLog::trace("http-equiv content-type: %s", UnicodeToUtf8(htmlHeader).c_str() );
-    p = htmlHeader.pos(L"charset=");
+    p = htmlHeader.pos("charset=");
     if ( p<0 )
-        return lString16();
+        return lString16::empty_str;
     htmlHeader = htmlHeader.substr( p + 8 ); // skip "charset="
     lString16 enc;
     for ( int i=0; i<(int)htmlHeader.length(); i++ ) {
@@ -3783,8 +3785,8 @@ lString16 htmlCharset( lString16 htmlHeader )
         else
             break;
     }
-    if ( enc==L"utf-16" )
-        return lString16();
+    if (enc == "utf-16")
+        return lString16::empty_str;
     return enc;
 }
 
@@ -3804,20 +3806,20 @@ bool LVHTMLParser::CheckFormat()
     if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
         s.lowercase();
-        if ( s.pos(L"<html") >=0 && ( s.pos(L"<head") >= 0 || s.pos(L"<body") >=0 ) ) //&& s.pos(L"<FictionBook") >= 0
+        if ( s.pos("<html") >=0 && ( s.pos("<head") >= 0 || s.pos("<body") >=0 ) ) //&& s.pos("<FictionBook") >= 0
             res = true;
         lString16 name=m_stream->GetName();
         name.lowercase();
-        bool html_ext = name.endsWith(lString16(".htm")) || name.endsWith(lString16(".html"))
-                        || name.endsWith(lString16(".hhc"))
-                        || name.endsWith(lString16(".xhtml"));
-        if ( html_ext && (s.pos(L"<!--")>=0 || s.pos(L"UL")>=0
-                           || s.pos(L"<p>")>=0 || s.pos(L"ul")>=0) )
+        bool html_ext = name.endsWith(".htm") || name.endsWith(".html")
+                        || name.endsWith(".hhc")
+                        || name.endsWith(".xhtml");
+        if ( html_ext && (s.pos("<!--")>=0 || s.pos("UL")>=0
+                           || s.pos("<p>")>=0 || s.pos("ul")>=0) )
             res = true;
         lString16 enc = htmlCharset( s );
         if ( !enc.empty() )
             SetCharset( enc.c_str() );
-        //else if ( s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0 )
+        //else if ( s.pos("<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0 )
         //    res = true;
     }
     delete[] chbuf;
@@ -3856,7 +3858,7 @@ lString16 LVReadTextFile( lString16 filename )
 lString16 LVReadTextFile( LVStreamRef stream )
 {
 	if ( stream.isNull() )
-		return lString16();
+        return lString16::empty_str;
     lString16 buf;
     LVTextParser reader( stream, NULL, true );
     if ( !reader.AutodetectEncoding() )

@@ -32,35 +32,35 @@ public class FileInfo {
 	
 	
 	
-	Long id; // db id
-	String title; // book title
-	String authors; // authors, delimited with '|'
-	String series; // series name w/o number
-	int seriesNumber; // number of book inside series
-	String path; // path to directory where file or archive is located
-	String filename; // file name w/o path for normal file, with optional path for file inside archive 
-	String pathname; // full path+arcname+filename
-	String arcname; // archive file name w/o path
-	DocumentFormat format;
-	int size;
-	int arcsize;
-	long createTime;
-	long lastAccessTime;
-	int flags;
-	boolean isArchive;
-	boolean isDirectory;
-	boolean isModified;
-	boolean isListed;
-	boolean isScanned;
+	public Long id; // db id
+	public String title; // book title
+	public String authors; // authors, delimited with '|'
+	public String series; // series name w/o number
+	public int seriesNumber; // number of book inside series
+	public String path; // path to directory where file or archive is located
+	public String filename; // file name w/o path for normal file, with optional path for file inside archive 
+	public String pathname; // full path+arcname+filename
+	public String arcname; // archive file name w/o path
+	public DocumentFormat format;
+	public int size;
+	public int arcsize;
+	public long createTime;
+	public long lastAccessTime;
+	public int flags;
+	public boolean isArchive;
+	public boolean isDirectory;
+	public boolean isModified;
+	public boolean isListed;
+	public boolean isScanned;
+	public FileInfo parent; // parent item
+	public Object tag; // some additional information
+	
 	private ArrayList<FileInfo> files;// files
 	private ArrayList<FileInfo> dirs; // directories
-	FileInfo parent; // parent item
-	
-	Object tag; // some additional information
 	
 	public static final int DONT_USE_DOCUMENT_STYLES_FLAG = 1;
 	public static final int DONT_REFLOW_TXT_FILES_FLAG = 2;
-	public static final int DONT_USE_DOCUMENT_FONTS_FLAG = 4;
+	public static final int USE_DOCUMENT_FONTS_FLAG = 4;
 
 	/**
 	 * To separate archive name from file name inside archive.
@@ -405,17 +405,43 @@ public class FileInfo {
 			}
 		return null;
 	}
+
+	public static boolean eq(String s1, String s2) {
+		if (s1 == null)
+			return s2 == null;
+		return s1.equals(s2);
+	}
+	
+	public boolean pathNameEquals(FileInfo item) {
+		return isDirectory == item.isDirectory && eq(arcname, item.arcname) && eq(pathname, item.pathname);
+	}
+	
+	public boolean hasItem(FileInfo item) {
+		return getItemIndex(item) >= 0;
+	}
+	
 	public int getItemIndex( FileInfo item )
 	{
 		if ( item==null )
 			return -1;
 		for ( int i=0; i<dirCount(); i++ ) {
-			if ( item.getPathName().equals(getDir(i).getPathName()) )
+			if ( item.pathNameEquals(getDir(i)) )
 				return i;
 		}
 		for ( int i=0; i<fileCount(); i++ ) {
-			if ( item.getPathName().equals(getFile(i).getPathName()) )
+			if (item.pathNameEquals(getFile(i)))
 				return i + dirCount();
+		}
+		return -1;
+	}
+
+	public int getFileIndex( FileInfo item )
+	{
+		if ( item==null )
+			return -1;
+		for ( int i=0; i<fileCount(); i++ ) {
+			if (item.pathNameEquals(getFile(i)))
+				return i;
 		}
 		return -1;
 	}
@@ -435,6 +461,53 @@ public class FileInfo {
 		if ( index<fileCount())
 			return files.get(index);
 		throw new IndexOutOfBoundsException();
+	}
+
+	public void setFile(int index, FileInfo file)
+	{
+		if ( index<0 )
+			throw new IndexOutOfBoundsException();
+		if (index < fileCount()) {
+			files.set(index, file);
+			file.parent = this;
+			return;
+		}
+		throw new IndexOutOfBoundsException();
+	}
+
+	public void setFile(FileInfo file)
+	{
+		int index = getFileIndex(file);
+		if ( index<0 )
+			return;
+		setFile(index, file);
+	}
+
+	public void setItems(FileInfo copyFrom)
+	{
+		clear();
+		for (int i=0; i<copyFrom.fileCount(); i++) {
+			addFile(copyFrom.getFile(i));
+			copyFrom.getFile(i).parent = this;
+		}
+		for (int i=0; i<copyFrom.dirCount(); i++) {
+			addDir(copyFrom.getDir(i));
+			copyFrom.getDir(i).parent = this;
+		}
+	}
+
+	public void setItems(Collection<FileInfo> list)
+	{
+		clear();
+		if (list == null)
+			return;
+		for (FileInfo item : list) {
+			if (item.isDirectory)
+				addDir(item);
+			else
+				addFile(item);
+			item.parent = this;
+		}
 	}
 
 	public void removeEmptyDirs()

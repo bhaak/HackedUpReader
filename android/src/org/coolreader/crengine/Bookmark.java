@@ -22,6 +22,20 @@ public class Bookmark {
 		modified=v.modified;
 	}
 	
+	public String getUniqueKey() {
+		switch (type) {
+		case TYPE_LAST_POSITION:
+			return "l";
+		case TYPE_POSITION:
+			return "p" + startPos;
+		case TYPE_COMMENT:
+			return "c" + startPos + "-" + endPos;
+		case TYPE_CORRECTION:
+			return "r" + startPos + "-" + endPos;
+		default:
+			return "unknown";
+		}
+	}
 	
 	public int getType() {
 		return type;
@@ -115,6 +129,16 @@ public class Bookmark {
 	}
 	public void setModified(boolean modified) {
 		this.modified = modified;
+	}
+	
+	public boolean isValid() {
+		if (startPos == null || startPos.length() == 0)
+			return false;
+		if (type < TYPE_LAST_POSITION || type > TYPE_CORRECTION)
+			return false;
+		if ((endPos == null || endPos.length() == 0) && (type == TYPE_COMMENT || type == TYPE_CORRECTION))
+			return false;
+		return true;
 	}
 
 	public static final int TYPE_LAST_POSITION = 0;

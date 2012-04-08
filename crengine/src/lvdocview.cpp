@@ -169,7 +169,7 @@ LVDocView::LVDocView(int bitsPerPixel) :
 	propsUpdateDefaults( m_props);
 
 	//m_drawbuf.Clear(m_backgroundColor);
-	createDefaultDocument(lString16(L"No document"), lString16(
+    createDefaultDocument(lString16("No document"), lString16(
 			L"Welcome to CoolReader! Please select file to open"));
 
     m_font = fontMan->GetFont(m_font_size, 400, false, DEFAULT_FONT_FAMILY,
@@ -244,7 +244,7 @@ void LVDocView::requestReload() {
 			//swapToCache();
 			restorePosition();
 		} else {
-			createDefaultDocument(lString16(), lString16(
+            createDefaultDocument(lString16::empty_str, lString16(
 					"Error while opening document ") + fn);
 		}
 		checkRender();
@@ -400,7 +400,7 @@ void LVDocView::setPageHeaderInfo(int hdrFlags) {
 }
 
 lString16 mergeCssMacros(CRPropRef props) {
-    lString8 res = lString8();
+    lString8 res = lString8::empty_str;
     for (int i=0; i<props->getCount(); i++) {
     	lString8 n(props->getName(i));
     	if (n.endsWith(".day") || n.endsWith(".night"))
@@ -943,7 +943,7 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
 	lString16 title = getTitle();
 	lString16 series = getSeries();
 	if (title.empty())
-		title = L"no title";
+        title = "no title";
 	LFormattedText txform;
 	if (!authors.empty())
 		txform.AddSourceLine(authors.c_str(), authors.length(), 0xFFFFFFFF,
@@ -1092,7 +1092,7 @@ bool LVDocView::exportWolFile(LVStream * stream, bool flgGray, int levels) {
 
 		// add TOC
 		ldomNode * body = m_doc->nodeFromXPath(lString16(
-				L"/FictionBook/body[1]"));
+                "/FictionBook/body[1]"));
 		lUInt16 section_id = m_doc->getElementNameIndex(L"section");
 
 		if (body) {
@@ -1376,7 +1376,7 @@ LVArray<int> & LVDocView::getSectionBounds() {
 		return m_section_bounds;
 	m_section_bounds.clear();
 	m_section_bounds.add(0);
-	ldomNode * body = m_doc->nodeFromXPath(lString16(L"/FictionBook/body[1]"));
+    ldomNode * body = m_doc->nodeFromXPath(lString16("/FictionBook/body[1]"));
 	lUInt16 section_id = m_doc->getElementNameIndex(L"section");
 	int fh = GetFullHeight();
     int pc = getVisiblePageCount();
@@ -1491,12 +1491,12 @@ lString16 fitTextWidthWithEllipsis(lString16 text, LVFontRef font, int maxwidth)
 		return text;
 	int len;
 	for (len = text.length() - 1; len > 1; len--) {
-		lString16 s = text.substr(0, len) + L"...";
+        lString16 s = text.substr(0, len) + "...";
 		w = font->getTextWidth(s.c_str(), s.length());
 		if (w <= maxwidth)
 			return s;
 	}
-	return lString16();
+    return lString16::empty_str;
 }
 
 /// substitute page header with custom text (e.g. to be used while loading)
@@ -1520,9 +1520,9 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 //        CRLog::trace("Status color = TRANSPARENT, textColor=%06x", getTextColor());
 //    }
 	lUInt32 cl1 = m_statusColor!=0xFF000000 ? m_statusColor : getTextColor();
-	lUInt32 cl2 = getBackgroundColor();
-	lUInt32 cl3 = 0xD0D0D0;
-	lUInt32 cl4 = 0xC0C0C0;
+    //lUInt32 cl2 = getBackgroundColor();
+    //lUInt32 cl3 = 0xD0D0D0;
+    //lUInt32 cl4 = 0xC0C0C0;
 	drawbuf->SetTextColor(cl1);
 	//lUInt32 pal[4];
 	int percent = getPosPercent();
@@ -1535,12 +1535,12 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	lvRect navBar;
 	getNavigationBarRectangle(pageIndex, navBar);
 	int gpos = info.bottom;
-	if (drawbuf->GetBitsPerPixel() <= 2) {
-		// gray
-		cl3 = 1;
-		cl4 = cl1;
-		//pal[0] = cl1;
-	}
+//	if (drawbuf->GetBitsPerPixel() <= 2) {
+//		// gray
+//		cl3 = 1;
+//		cl4 = cl1;
+//		//pal[0] = cl1;
+//	}
         if ( leftPage )
             drawbuf->FillRect(info.left, gpos - 2, info.right, gpos - 2     + 1, cl1);
         //drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl1 ); //cl3
@@ -1651,28 +1651,25 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 		lString16 pageinfo;
 		if (pageCount > 0) {
 			if (phi & PGHDR_PAGE_NUMBER)
-				pageinfo += lString16::itoa(pageIndex + 1);
+                pageinfo += fmt::decimal(pageIndex + 1);
             if (phi & PGHDR_PAGE_COUNT) {
                 if ( !pageinfo.empty() )
-                    pageinfo += L" / ";
-                pageinfo += lString16::itoa(pageCount);
+                    pageinfo += " / ";
+                pageinfo += fmt::decimal(pageCount);
             }
             if (phi & PGHDR_PERCENT) {
                 if ( !pageinfo.empty() )
-                    pageinfo += L"  ";
+                    pageinfo += "  ";
                 //pageinfo += lString16::itoa(percent/100)+L"%"; //+L"."+lString16::itoa(percent/10%10)+L"%";
-                pageinfo += lString16::itoa(percent/100);
-                pageinfo += L",";
+                pageinfo += fmt::decimal(percent/100);
+                pageinfo += ",";
                 int pp = percent%100;
                 if ( pp<10 )
-                	pageinfo += L"0";
-                pageinfo += lString16::itoa(pp);
-                pageinfo += L"%";
+                    pageinfo << "0";
+                pageinfo << fmt::decimal(pp) << "%";
             }
             if ( batteryPercentNormalFont && m_battery_state>=0 ) {
-            	pageinfo += L"  [";
-                pageinfo += lString16::itoa(m_battery_state)+L"%";
-            	pageinfo += L"]";
+                pageinfo << "  [" << fmt::decimal(m_battery_state) << "%]";
             }
 		}
 		int piw = 0;
@@ -1690,26 +1687,34 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 					clock.c_str(), clock.length(), L' ', NULL, false);
 			info.right -= w + info.height() / 2;
 		}
+        #if KINDLE_TOUCH!=1
 		int authorsw = 0;
+        #endif
 		lString16 authors;
 		if (phi & PGHDR_AUTHOR)
 			authors = getAuthors();
+        #if KINDLE_TOUCH!=1
 		int titlew = 0;
+		#endif
 		lString16 title;
 		if (phi & PGHDR_TITLE) {
 			title = getTitle();
 			if (title.empty() && authors.empty())
 				title = m_doc_props->getStringDef(DOC_PROP_FILE_NAME);
+			#if KINDLE_TOUCH!=1
 			if (!title.empty())
 				titlew
 						= m_infoFont->getTextWidth(title.c_str(),
 								title.length());
+            #endif
 		}
 		if (phi & PGHDR_AUTHOR && !authors.empty()) {
 			if (!title.empty())
 				authors += L'.';
+			#if KINDLE_TOUCH!=1
 			authorsw = m_infoFont->getTextWidth(authors.c_str(),
 					authors.length());
+            #endif
 		}
         #if KINDLE_TOUCH!=1
 		int w = info.width() - 10;
@@ -1722,7 +1727,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 					text = text.substr(0, text.length() - 1);
 			}
 		} else {
-			text = authors + L"  " + title;
+            text = authors + "  " + title;
 		}
         #else
 		    text = authors + L"  " + title;
@@ -2366,7 +2371,7 @@ int LVDocView::getCurrentPageImageCount()
         /// called for each found node in range
         virtual bool onElement(ldomXPointerEx * ptr) {
             lString16 nodeName = ptr->getNode()->getNodeName();
-            if (nodeName == L"img" || nodeName == L"image")
+            if (nodeName == "img" || nodeName == "image")
                 count++;
 			return true;
         }
@@ -2412,6 +2417,12 @@ void LVDocView::setRenderProps(int dx, int dy) {
 
     m_doc->setRenderProps(dx, dy, m_showCover, m_showCover ? dy
             + m_pageMargins.bottom * 4 : 0, m_font, m_def_interline_space, m_props);
+    text_highlight_options_t h;
+    h.bookmarkHighlightMode = m_props->getIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
+    h.selectionColor = (m_props->getColorDef(PROP_HIGHLIGHT_SELECTION_COLOR, 0xC0C0C0) & 0xFFFFFF);
+    h.commentColor = (m_props->getColorDef(PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT, 0xA08000) & 0xFFFFFF);
+    h.correctionColor = (m_props->getColorDef(PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, 0xA00000) & 0xFFFFFF);
+    m_doc->setHightlightOptions(h);
 }
 
 void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
@@ -2670,14 +2681,14 @@ bool LVDocView::goLink(lString16 link, bool savePos) {
 	if (link[0] != '#' || link.length() <= 1) {
 		lString16 filename = link;
 		lString16 id;
-		int p = filename.pos(L"#");
+        int p = filename.pos("#");
 		if (p >= 0) {
 			// split filename and anchor
 			// part1.html#chapter3 =>   part1.html & chapter3
 			id = filename.substr(p + 1);
 			filename = filename.substr(0, p);
 		}
-		if (filename.pos(L":") >= 0) {
+        if (filename.pos(":") >= 0) {
 			// URL with protocol like http://
 			if (m_callback) {
 				m_callback->OnExternalLink(link, element);
@@ -2744,8 +2755,8 @@ bool LVDocView::goLink(lString16 link, bool savePos) {
 			m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->crc32());
 			// TODO: load document from stream properly
 			if (!LoadDocument(stream)) {
-				createDefaultDocument(lString16(L"Load error"), lString16(
-						L"Cannot open file ") + filename);
+                createDefaultDocument(lString16("Load error"), lString16(
+                        "Cannot open file ") + filename);
 				return false;
 			}
 			//m_filename = newPathName;
@@ -2757,7 +2768,7 @@ bool LVDocView::goLink(lString16 link, bool savePos) {
 			// TODO: setup properties
 			// go to anchor
 			if (!id.empty())
-				goLink(lString16(L"#") + id);
+                goLink(lString16("#") + id);
 			clearImageCache();
 			requestRender();
 			return true;
@@ -2791,7 +2802,7 @@ bool LVDocView::goSelectedLink() {
 bool splitNavigationPos(lString16 pos, lString16 & fname, lString16 & path) {
 	int p = pos.pos(lString16(NAVIGATION_FILENAME_SEPARATOR));
 	if (p <= 0) {
-		fname = lString16();
+        fname = lString16::empty_str;
 		path = pos;
 		return false;
 	}
@@ -2807,7 +2818,7 @@ lString16 LVDocView::getNavigationPath() {
 	LVAppendPathDelimiter(fpath);
 	lString16 s = fpath + fname;
 	if (!m_arc.isNull())
-		s = lString16(L"/") + s;
+        s = lString16("/") + s;
 	return s;
 }
 
@@ -3361,9 +3372,9 @@ static void FileToArcProps(CRPropRef props) {
 	s = props->getStringDef(DOC_PROP_FILE_SIZE);
 	if (!s.empty())
 		props->setString(DOC_PROP_ARC_SIZE, s);
-	props->setString(DOC_PROP_FILE_NAME, lString16());
-	props->setString(DOC_PROP_FILE_PATH, lString16());
-	props->setString(DOC_PROP_FILE_SIZE, lString16());
+    props->setString(DOC_PROP_FILE_NAME, lString16::empty_str);
+    props->setString(DOC_PROP_FILE_PATH, lString16::empty_str);
+    props->setString(DOC_PROP_FILE_SIZE, lString16::empty_str);
 	props->setHex(DOC_PROP_FILE_CRC32, 0);
 }
 
@@ -3444,11 +3455,11 @@ bool LVDocView::LoadDocument(const lChar16 * fname) {
 	}
 	lString16 dir;
 	if ( last_slash==-1 )
-	dir = L".";
+        dir = ".";
 	else if ( last_slash == 0 )
-	dir << slash_char;
+        dir << slash_char;
 	else
-	dir = lString16( fname, last_slash );
+        dir = lString16( fname, last_slash );
 	lString16 fn( fname + last_slash + 1 );
 #endif
 
@@ -3519,7 +3530,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname) {
 void LVDocView::close() {
     if ( m_doc )
         m_doc->updateMap();
-	createDefaultDocument(lString16(L""), lString16(L""));
+    createDefaultDocument(lString16::empty_str, lString16::empty_str);
 }
 
 void LVDocView::createDefaultDocument(lString16 title, lString16 message) {
@@ -3624,7 +3635,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             bool res = ImportPDBDocument( m_stream, m_doc, m_callback, this, contentFormat );
             if ( !res ) {
                 setDocFormat( doc_format_none );
-                createDefaultDocument( lString16(L"ERROR: Error reading PDB format"), lString16(L"Cannot open document") );
+                createDefaultDocument( lString16("ERROR: Error reading PDB format"), lString16("Cannot open document") );
                 if ( m_callback ) {
                     m_callback->OnLoadFileError( lString16("Error reading PDB document") );
                 }
@@ -3655,7 +3666,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             bool res = ImportEpubDocument( m_stream, m_doc, m_callback, this );
 			if ( !res ) {
 				setDocFormat( doc_format_none );
-				createDefaultDocument( lString16(L"ERROR: Error reading EPUB format"), lString16(L"Cannot open document") );
+                createDefaultDocument( lString16("ERROR: Error reading EPUB format"), lString16("Cannot open document") );
 				if ( m_callback ) {
 					m_callback->OnLoadFileError( lString16("Error reading EPUB document") );
 				}
@@ -3694,7 +3705,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             bool res = ImportCHMDocument( m_stream, m_doc, m_callback, this );
 			if ( !res ) {
 				setDocFormat( doc_format_none );
-				createDefaultDocument( lString16(L"ERROR: Error reading CHM format"), lString16(L"Cannot open document") );
+                createDefaultDocument( lString16("ERROR: Error reading CHM format"), lString16("Cannot open document") );
 				if ( m_callback ) {
 					m_callback->OnLoadFileError( lString16("Error reading CHM document") );
 				}
@@ -3727,7 +3738,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             bool res = ImportWordDocument( m_stream, m_doc, m_callback, this );
             if ( !res ) {
                 setDocFormat( doc_format_none );
-                createDefaultDocument( lString16(L"ERROR: Error reading DOC format"), lString16(L"Cannot open document") );
+                createDefaultDocument( lString16("ERROR: Error reading DOC format"), lString16("Cannot open document") );
                 if ( m_callback ) {
                     m_callback->OnLoadFileError( lString16("Error reading DOC document") );
                 }
@@ -3755,13 +3766,6 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 			m_container = m_arc;
 			m_doc_props->setInt( DOC_PROP_ARC_FILE_COUNT, m_arc->GetObjectCount() );
 			bool found = false;
-			lString16 htmlExt(L".html");
-			lString16 htmExt(L".htm");
-			lString16 fb2Ext(L".fb2");
-			lString16 rtfExt(L".rtf");
-			lString16 txtExt(L".txt");
-            lString16 pmlExt(L".pml");
-            lString16 fbdExt(L".fbd");
 			int htmCount = 0;
 			int fb2Count = 0;
 			int rtfCount = 0;
@@ -3782,38 +3786,38 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 						lString16 s = name;
 						s.lowercase();
 						bool nameIsOk = true;
-						if ( s.endsWith(htmExt) || s.endsWith(htmlExt) ) {
+                        if ( s.endsWith(".htm") || s.endsWith(".html") ) {
 							lString16 nm = LVExtractFilenameWithoutExtension( s );
-							if ( nm==L"index" || nm==L"default" )
+                            if ( nm == "index" || nm == "default" )
 							defHtml = name;
 							htmCount++;
-						} else if ( s.endsWith(fb2Ext) ) {
+                        } else if ( s.endsWith(".fb2") ) {
 							fb2Count++;
-						} else if ( s.endsWith(rtfExt) ) {
+                        } else if ( s.endsWith(".rtf") ) {
 							rtfCount++;
-						} else if ( s.endsWith(txtExt) ) {
+                        } else if ( s.endsWith(".txt") ) {
 							txtCount++;
-                        } else if ( s.endsWith(pmlExt) ) {
+                        } else if ( s.endsWith(".pml") ) {
                             pmlCount++;
-                        } else if ( s.endsWith(fbdExt) ) {
+                        } else if ( s.endsWith(".fbd") ) {
 							fbdCount++;
 						} else {
 							nameIsOk = false;
 						}
 						if ( nameIsOk ) {
 							if ( firstGood.empty() )
-							firstGood = name;
+                                firstGood = name;
 						}
 						if ( name.length() >= 5 )
 						{
 							name.lowercase();
 							const lChar16 * pext = name.c_str() + name.length() - 4;
-							if ( pext[0]=='.' && pext[1]=='f' && pext[2]=='b' && pext[3]=='2')
-							nameIsOk = true;
-							else if ( pext[0]=='.' && pext[1]=='t' && pext[2]=='x' && pext[3]=='t')
-							nameIsOk = true;
-							else if ( pext[0]=='.' && pext[1]=='r' && pext[2]=='t' && pext[3]=='f')
-							nameIsOk = true;
+                            if (!lStr_cmp(pext, ".fb2"))
+                                nameIsOk = true;
+                            else if (!lStr_cmp(pext, ".txt"))
+                                nameIsOk = true;
+                            else if (!lStr_cmp(pext, ".rtf"))
+                                nameIsOk = true;
 						}
 						if ( !nameIsOk )
 						continue;
@@ -4036,8 +4040,8 @@ bool LVDocView::ParseDocument() {
 				HTML_AUTOCLOSE_TABLE);
 
 		if (m_stream->GetSize() < 5) {
-			createDefaultDocument(lString16(L"ERROR: Wrong document size"),
-					lString16(L"Cannot open document"));
+            createDefaultDocument(lString16("ERROR: Wrong document size"),
+                    lString16("Cannot open document"));
 			return false;
 		}
 
@@ -4100,8 +4104,8 @@ bool LVDocView::ParseDocument() {
 		// unknown format
 		if (!parser) {
 			setDocFormat( doc_format_none);
-			createDefaultDocument(lString16(L"ERROR: Unknown document format"),
-					lString16(L"Cannot open document"));
+            createDefaultDocument(lString16("ERROR: Unknown document format"),
+                    lString16("Cannot open document"));
 			if (m_callback) {
 				m_callback->OnLoadFileError(
 						lString16("Unknown document format"));
@@ -4127,8 +4131,8 @@ bool LVDocView::ParseDocument() {
 			if (m_callback) {
 				m_callback->OnLoadFileError(lString16("Bad document format"));
 			}
-			createDefaultDocument(lString16(L"ERROR: Bad document format"),
-					lString16(L"Cannot open document"));
+            createDefaultDocument(lString16("ERROR: Bad document format"),
+                    lString16("Cannot open document"));
 			return false;
 		}
 		delete parser;
@@ -4344,7 +4348,7 @@ bool LVDocView::getBookmarkPosText(ldomXPointer bm, lString16 & titleText,
 		lString16 & posText) {
 	LVLock lock(getMutex());
 	checkRender();
-	titleText = posText = lString16();
+    titleText = posText = lString16::empty_str;
 	if (bm.isNull())
 		return false;
 	ldomNode * el = bm.getNode();
@@ -4356,7 +4360,7 @@ bool LVDocView::getBookmarkPosText(ldomXPointer bm, lString16 & titleText,
 		if (len > 0)
 			txt = txt.substr(startPos, len);
 		if (startPos > 0)
-			posText = L"...";
+            posText = "...";
         posText += txt;
 		el = el->getParentNode();
 	} else {
@@ -4385,8 +4389,8 @@ bool LVDocView::getBookmarkPosText(ldomXPointer bm, lString16 & titleText,
 			lChar16 lastch = !txt.empty() ? txt[txt.length() - 1] : 0;
 			if (!titleText.empty()) {
 				if (lastch != '.' && lastch != '?' && lastch != '!')
-					txt += L".";
-				txt += L" ";
+                    txt += ".";
+                txt += " ";
 			}
 			titleText = txt + titleText;
 			el = el->getParentNode();
@@ -4757,13 +4761,13 @@ bool LVDocView::exportBookmarks(lString16 filename) {
 			if (dir.empty())
 				dir = arcpath;
 			if (arcFileCount > 1)
-				filename = arcname + L"." + fname + L".bmk.txt";
+                filename = arcname + "." + fname + ".bmk.txt";
 			else
-				filename = arcname + L".bmk.txt";
+                filename = arcname + ".bmk.txt";
 		} else {
 			if (dir.empty())
 				dir = fpath;
-			filename = fname + L".bmk.txt";
+            filename = fname + ".bmk.txt";
 		}
 		LVAppendPathDelimiter(dir);
 		filename = dir + filename;
@@ -4840,7 +4844,7 @@ bool LVDocView::exportBookmarks(lString16 filename) {
 		if (newContent.length() > 0)
 			if (os->Write(newContent.c_str(), newContent.length(),
 					&bytesWritten) != LVERR_OK || bytesWritten
-					!= newContent.length())
+                    != (lUInt32)newContent.length())
 				return false;
 	}
 	return true;
@@ -5304,7 +5308,7 @@ int LVDocView::onSelectionCommand( int cmd, int param )
     int y0 = GetPos();
     int h = m_pageRects[0].height() - m_pageMargins.top
             - m_pageMargins.bottom - getPageHeaderHeight();
-    int y1 = y0 + h;
+    //int y1 = y0 + h;
     if (makeSelStartVisible) {
         // make start of selection visible
         if (startPoint.y < y0 + m_font_size * 2 || startPoint.y > y0 + h * 3/4)
@@ -5431,6 +5435,8 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	if (list.length() > 0 && !list.contains(props->getStringDef(PROP_FONT_FACE,
 			defFontFace.c_str())))
 		props->setString(PROP_FONT_FACE, list[0]);
+        props->setStringDef(PROP_FALLBACK_FONT_FACE, props->getStringDef(PROP_FONT_FACE,
+                        defFontFace.c_str()));
 #if KINDLE_TOUCH==1
     props->setIntDef(PROP_FONT_SIZE,
 	    m_font_sizes[m_font_sizes.length() * 2 / 8]);
@@ -5450,6 +5456,12 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	static int bool_options_def_false[] = { 0, 1 };
 
 	props->limitValueList(PROP_FONT_WEIGHT_EMBOLDEN, bool_options_def_false, 2);
+#ifndef ANDROID
+	props->limitValueList(PROP_EMBEDDED_STYLES, bool_options_def_true, 2);
+	props->limitValueList(PROP_EMBEDDED_FONTS, bool_options_def_true, 2);
+#endif
+	static int int_option_hinting[] = { 0, 1, 2 };
+	props->limitValueList(PROP_FONT_HINTING, int_option_hinting, 3);
     static int int_options_1_2[] = { 2, 1 };
 	props->limitValueList(PROP_LANDSCAPE_PAGES, int_options_1_2, 2);
 	props->limitValueList(PROP_PAGE_VIEW_MODE, bool_options_def_true, 2);
@@ -5459,7 +5471,13 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_BOOKMARK_ICONS, bool_options_def_false, 2);
 	props->limitValueList(PROP_FONT_KERNING_ENABLED, bool_options_def_false, 2);
     //props->limitValueList(PROP_FLOATING_PUNCTUATION, bool_options_def_true, 2);
-        props->limitValueList(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, bool_options_def_true, 2);
+    static int def_bookmark_highlight_modes[] = { 0, 1, 2 };
+    props->setIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
+    props->limitValueList(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, def_bookmark_highlight_modes, sizeof(def_bookmark_highlight_modes)/sizeof(int));
+    props->setColorDef(PROP_HIGHLIGHT_SELECTION_COLOR, 0xC0C0C0); // silver
+    props->setColorDef(PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT, 0xA08020); // yellow
+    props->setColorDef(PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, 0xA04040); // red
+
     static int def_status_line[] = { 0, 1, 2 };
 	props->limitValueList(PROP_STATUS_LINE, def_status_line, 3);
     static int def_margin[] = {8, 0, 1, 2, 3, 4, 5, 8, 10, 12, 14, 15, 16, 20, 25, 30, 40, 50, 60, 80, 100, 130, 150, 200, 300};
@@ -5487,24 +5505,26 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 					HYPH_DICT_ID_ALGORITHM));
 	}
 #endif
-	props->setStringDef(PROP_STATUS_LINE, "0");
-	props->setStringDef(PROP_SHOW_TITLE, "1");
-	props->setStringDef(PROP_SHOW_TIME, "1");
-	props->setStringDef(PROP_SHOW_BATTERY, "1");
-    props->setStringDef(PROP_SHOW_BATTERY_PERCENT, "0");
-    props->setStringDef(PROP_SHOW_PAGE_COUNT, "1");
-    props->setStringDef(PROP_SHOW_PAGE_NUMBER, "1");
-    props->setStringDef(PROP_SHOW_POS_PERCENT, "0");
-    props->setStringDef(PROP_STATUS_CHAPTER_MARKS, "1");
-    props->setStringDef(PROP_FLOATING_PUNCTUATION, "1");
+	props->setIntDef(PROP_STATUS_LINE, 0);
+	props->setIntDef(PROP_SHOW_TITLE, 1);
+	props->setIntDef(PROP_SHOW_TIME, 1);
+	props->setIntDef(PROP_SHOW_BATTERY, 1);
+    props->setIntDef(PROP_SHOW_BATTERY_PERCENT, 0);
+    props->setIntDef(PROP_SHOW_PAGE_COUNT, 1);
+    props->setIntDef(PROP_SHOW_PAGE_NUMBER, 1);
+    props->setIntDef(PROP_SHOW_POS_PERCENT, 0);
+    props->setIntDef(PROP_STATUS_CHAPTER_MARKS, 1);
+    props->setIntDef(PROP_FLOATING_PUNCTUATION, 1);
 
 #ifndef ANDROID
-    props->setStringDef(PROP_EMBEDDED_STYLES, "1");
+    props->setIntDef(PROP_EMBEDDED_STYLES, 1);
+    props->setIntDef(PROP_EMBEDDED_FONTS, 1);
     props->setIntDef(PROP_TXT_OPTION_PREFORMATTED, 0);
     props->limitValueList(PROP_TXT_OPTION_PREFORMATTED, bool_options_def_false,
             2);
 #endif
 
+    props->setStringDef(PROP_FONT_GAMMA, "1.00");
 
     img_scaling_option_t defImgScaling;
     props->setIntDef(PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, defImgScaling.max_scale);
@@ -5569,7 +5589,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 	for (int i = 0; i < props->getCount(); i++) {
 		lString8 name(props->getName(i));
 		lString16 value = props->getValue(i);
-		bool isUnknown = false;
+        //bool isUnknown = false;
 		if (name == PROP_FONT_ANTIALIASING) {
 			int antialiasingMode = props->getIntDef(PROP_FONT_ANTIALIASING, 2);
 			fontMan->SetAntialiasMode(antialiasingMode);
@@ -5591,6 +5611,8 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 fontMan->SetHintingMode((hinting_mode_t)mode);
                 requestRender();
             }
+        } else if (name == PROP_HIGHLIGHT_SELECTION_COLOR || name == PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT || name == PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT) {
+            REQUEST_RENDER("propsApply - highlight")
         } else if (name == PROP_LANDSCAPE_PAGES) {
             int pages = props->getIntDef(PROP_LANDSCAPE_PAGES, 2);
 			setVisiblePageCount(pages);
@@ -5644,7 +5666,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 		} else if (name == PROP_PAGE_MARGIN_TOP || name
 				== PROP_PAGE_MARGIN_LEFT || name == PROP_PAGE_MARGIN_RIGHT
 				|| name == PROP_PAGE_MARGIN_BOTTOM) {
-			lUInt32 margin = props->getIntDef(name.c_str(), 8);
+            int margin = props->getIntDef(name.c_str(), 8);
             int maxmargin = (name == PROP_PAGE_MARGIN_LEFT || name == PROP_PAGE_MARGIN_RIGHT) ? m_dx / 3 : m_dy / 3;
             if (margin > maxmargin)
                 margin = maxmargin;
@@ -5756,6 +5778,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 m_highlightBookmarks = value;
                 updateBookMarksRanges();
             }
+            REQUEST_RENDER("propsApply - PROP_HIGHLIGHT_COMMENT_BOOKMARKS")
         } else if (name == PROP_PAGE_VIEW_MODE) {
 			LVDocViewMode m =
 					props->getIntDef(PROP_PAGE_VIEW_MODE, 1) ? DVM_PAGES
@@ -5764,7 +5787,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 		} else {
 			// unknown property, adding to list of unknown properties
 			unknown->setString(name.c_str(), value);
-			isUnknown = true;
+            //isUnknown = true;
 		}
 		//if ( !isUnknown ) {
 		// update current value in properties

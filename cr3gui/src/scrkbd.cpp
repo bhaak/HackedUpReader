@@ -220,7 +220,7 @@ void CRScreenKeyboard::draw()
                 if ( x-1 < (int)s.length() )
                     txt = lString16(&s[ x - 1 ], 1);
                 else
-                    txt = L" ";
+                    txt = " ";
             }
             lvRect rc = kbdRect;
             rc.top += dy * y;
@@ -243,7 +243,7 @@ void CRScreenKeyboard::draw()
     }
     // draw input area
     clientSkin->draw( *drawbuf, inputRect );
-    clientSkin->drawText( *drawbuf, inputRect, lString16(" ") + _value+L"_" );
+    clientSkin->drawText(*drawbuf, inputRect, lString16(" ") << _value << "_");
 }
 #endif
 

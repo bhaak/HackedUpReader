@@ -12,7 +12,6 @@ import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BaseDialog;
 import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.BookmarksDlg;
-import org.coolreader.crengine.CRDB;
 import org.coolreader.crengine.DeviceInfo;
 import org.coolreader.crengine.EinkScreen;
 import org.coolreader.crengine.Engine;
@@ -34,6 +33,9 @@ import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.crengine.ToastView;
 import org.coolreader.crengine.Utils;
+import org.coolreader.db.CRDB;
+import org.coolreader.db.CRDBService;
+import org.coolreader.db.CRDBServiceAccessor;
 import org.coolreader.donations.BillingService;
 import org.coolreader.donations.BillingService.RequestPurchase;
 import org.coolreader.donations.BillingService.RestoreTransactions;
@@ -42,6 +44,7 @@ import org.coolreader.donations.Consts.PurchaseState;
 import org.coolreader.donations.Consts.ResponseCode;
 import org.coolreader.donations.PurchaseObserver;
 import org.coolreader.donations.ResponseHandler;
+import org.coolreader.sync.SyncServiceAccessor;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.app.Activity;
@@ -100,7 +103,7 @@ public class CoolReader extends Activity
 	FrameLayout mFrame;
 	//View startupView;
 	History mHistory;
-	CRDB mDB;
+	//CRDB mDB;
 	private BackgroundThread mBackgroundThread;
 	
 	
@@ -131,13 +134,14 @@ public class CoolReader extends Activity
 		return mReaderView;
 	}
 	
-	public CRDB getDB()
+	public CRDBService.LocalBinder getDB()
 	{
-		return mDB;
+		return mCRDBService.get();
 	}
 	
 	private static String PREF_FILE = "CR3LastBook";
 	private static String PREF_LAST_BOOK = "LastBook";
+	private static String PREF_HELP_FILE = "HelpFile";
 	public String getLastSuccessfullyOpenedBook()
 	{
 		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
@@ -150,6 +154,19 @@ public class CoolReader extends Activity
 	{
 		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
 		pref.edit().putString(PREF_LAST_BOOK, filename).commit();
+	}
+	
+	public String getLastGeneratedHelpFileSignature()
+	{
+		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
+		String res = pref.getString(PREF_HELP_FILE, null);
+		return res;
+	}
+	
+	public void setLastGeneratedHelpFileSignature(String v)
+	{
+		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
+		pref.edit().putString(PREF_HELP_FILE, v).commit();
 	}
 	
 	private int mScreenUpdateMode = 0;
@@ -233,6 +250,7 @@ public class CoolReader extends Activity
 			wnd.setFlags(0, 
 			        WindowManager.LayoutParams.FLAG_FULLSCREEN );
 		}
+		mEngine.setSystemUiVisibility();
 	}
 	public void setFullscreen( boolean fullscreen )
 	{
@@ -345,9 +363,13 @@ public class CoolReader extends Activity
 		public ScreenBacklightControl() {
 		}
 
-
+		long lastUpdateTimeStamp;
+		
 		public void onUserActivity() {
 			lastUserActivityTime = Utils.timeStamp();
+			if (Utils.timeInterval(lastUpdateTimeStamp) < 5000)
+				return;
+			lastUpdateTimeStamp = android.os.SystemClock.uptimeMillis();
 			if (!isWakeLockEnabled())
 				return;
 			if (wl == null) {
@@ -385,6 +407,7 @@ public class CoolReader extends Activity
 				wl.release();
 			}
 			backlightTimerTask = null;
+			lastUpdateTimeStamp = 0;
 		}
 
 		private class BacklightTimerTask implements Runnable {
@@ -429,7 +452,7 @@ public class CoolReader extends Activity
 		return densityDpi;
 	}
 	
-	private int densityDpi = 120;
+	private int densityDpi = 160;
 	int initialBatteryState = -1;
 	String fileToLoadOnStart = null;
 	BroadcastReceiver intentReceiver;
@@ -518,6 +541,10 @@ public class CoolReader extends Activity
 		}
 	}
 	
+	public View getContentView() {
+		return mFrame;
+	}
+	
 	private boolean isFirstStart = true;
 	
 	/** Called when the activity is first created. */
@@ -526,6 +553,9 @@ public class CoolReader extends Activity
     {
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
+		mSyncService = new SyncServiceAccessor(this);
+		mCRDBService = new CRDBServiceAccessor(this);
+        mCRDBService.bind();
 
     	isFirstStart = true;
 		
@@ -601,7 +631,7 @@ public class CoolReader extends Activity
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		setFullscreen( props.getBool(ReaderView.PROP_APP_FULLSCREEN, (DeviceInfo.EINK_SCREEN?true:false)));
-		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, 0); //(DeviceInfo.EINK_SCREEN?0:4)
+		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, 4); //(DeviceInfo.EINK_SCREEN?0:4)
 		if ( orientation < 0 || orientation > 4 )
 			orientation = 0;
 		setScreenOrientation(orientation);
@@ -633,12 +663,12 @@ public class CoolReader extends Activity
 		if ( externalDir!=null ) {
 			dbfile = Engine.checkOrMoveFile(externalDir, dbdir, SQLITE_DB_NAME);
 		}
-		mDB = new CRDB(dbfile);
+		//mDB = new CRDB(dbfile);
 
-       	mScanner = new Scanner(this, mDB, mEngine);
+       	mScanner = new Scanner(this, mEngine);
        	mScanner.initRoots(mEngine.getMountedRootsMap());
 		
-       	mHistory = new History(this, mDB);
+       	mHistory = new History(this);
 		mHistory.setCoverPagesEnabled(props.getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
 
 //		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
@@ -704,7 +734,16 @@ public class CoolReader extends Activity
         }
 		
         log.i("CoolReader.onCreate() exiting");
+        
+        mSyncService.bind();
+        mSyncService.setSyncDirectory(new File(mScanner.getDownloadDirectory().getPathName()));
     }
+    
+    private SyncServiceAccessor mSyncService;
+    public SyncServiceAccessor getSyncService() {
+    	return mSyncService;
+    }
+    private CRDBServiceAccessor mCRDBService;
     
     public ClipboardManager getClipboardmanager() {
     	return (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
@@ -892,19 +931,11 @@ public class CoolReader extends Activity
 			//mEngine.uninit();
 		}
 
-		if ( mDB!=null ) {
-			final CRDB db = mDB;
-			mBackgroundThread.executeBackground(new Runnable() {
-				public void run() {
-					db.close();
-				}
-			});
-		}
+		mCRDBService.unbind();
 //		if ( mBackgroundThread!=null ) {
 //			mBackgroundThread.quit();
 //		}
 			
-		mDB = null;
 		mReaderView = null;
 		//mEngine = null;
 		mBackgroundThread = null;
@@ -918,6 +949,7 @@ public class CoolReader extends Activity
 		
 		log.i("CoolReader.onDestroy() exiting");
 		super.onDestroy();
+		mSyncService.unbind();
 	}
 
 	private String extractFileName( Uri uri )
@@ -1065,8 +1097,10 @@ public class CoolReader extends Activity
 		PhoneStateReceiver.setPhoneActivityHandler(new Runnable() {
 			@Override
 			public void run() {
-				if (tts != null)
-					tts.stop();
+				if (mReaderView != null) {
+					mReaderView.stopTTS();
+					mReaderView.save();
+				}
 			}
 		});
 
@@ -1099,6 +1133,7 @@ public class CoolReader extends Activity
         //engine.waitTasksCompletion();
 //		restarted = false;
 		stopped = false;
+		
 		final String fileName = fileToLoadOnStart;
 		mBackgroundThread.postGUI(new Runnable() {
 			public void run() {
@@ -1722,7 +1757,7 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_FONT_ANTIALIASING, "2");
 		props.applyDefault(ReaderView.PROP_APP_GESTURE_PAGE_FLIPPING, "1");
 		props.applyDefault(ReaderView.PROP_APP_SHOW_COVERPAGES, "1");
-		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, "0"); // DeviceInfo.EINK_SCREEN ? "0" : "4"
+		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, DeviceInfo.EINK_SCREEN ? "0" : "4"); // "0"
 		props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
 		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
 		props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());
@@ -1769,7 +1804,23 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
 		props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, "0");
 		
-		props.applyDefault(ReaderView.PROP_APP_HIGHLIGHT_BOOKMARKS, "1");
+		if (!DeviceInfo.EINK_SCREEN) {
+			props.applyDefault(ReaderView.PROP_APP_HIGHLIGHT_BOOKMARKS, "1");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_SELECTION_COLOR, "#AAAAAA");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT, "#AAAA55");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, "#C07070");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_SELECTION_COLOR_DAY, "#AAAAAA");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT_DAY, "#AAAA55");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION_DAY, "#C07070");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_SELECTION_COLOR_NIGHT, "#808080");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT_NIGHT, "#A09060");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION_NIGHT, "#906060");
+		} else {
+			props.applyDefault(ReaderView.PROP_APP_HIGHLIGHT_BOOKMARKS, "2");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_SELECTION_COLOR, "#808080");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT, "#000000");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, "#000000");
+		}
         
         return props;
 	}
@@ -2125,14 +2176,15 @@ public class CoolReader extends Activity
 		    // Change locale settings in the app.
 		    DisplayMetrics dm = res.getDisplayMetrics();
 		    android.content.res.Configuration conf = res.getConfiguration();
-		    conf.locale = (lang == Lang.DEFAULT) ? defaultLocale : new Locale(lang.code);
-		    currentLanguage = (lang == Lang.DEFAULT) ? defaultLocale.getLanguage() : lang.code;
+		    conf.locale = (lang == Lang.DEFAULT) ? defaultLocale : lang.getLocale();
+		    currentLanguage = (lang == Lang.DEFAULT) ? Lang.getCode(defaultLocale) : lang.code;
 		    res.updateConfiguration(conf, dm);
 		} catch (Exception e) {
 			log.e("error while setting locale " + lang, e);
 		}
 	}
 	
+	// Store system locale here, on class creation
 	private static final Locale defaultLocale = Locale.getDefault();
 	
 	//==============================================================

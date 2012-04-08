@@ -777,17 +777,28 @@ public class Engine {
 		}
 	}
 
-	private final static int SYSTEM_UI_FLAG_LOW_PROFILE = 1;
-	private final static int SYSTEM_UI_FLAG_VISIBLE = 0;
-	public boolean setKeyBacklight(int value) {
-		// Try ICS way
-		if (DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH) {
-			View view = mActivity.getReaderView();
+	private int lastSystemUiVisibility = -1;
+	private boolean setSystemUiVisibility(int value) {
+		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
+			boolean a4 = DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH;
+			if (value == lastSystemUiVisibility)// && a4)
+				return false;
+			lastSystemUiVisibility = value;
+			if (!a4)
+				value &= SYSTEM_UI_FLAG_LOW_PROFILE;
+			View view;
+			//if (a4)
+				view = mActivity.getWindow().getDecorView(); // getReaderView();
+			//else
+			//	view = mActivity.getContentView(); // getReaderView();
+			
+			if (view == null)
+				return false;
 			Method m;
 			try {
 				m = view.getClass().getMethod("setSystemUiVisibility", int.class);
-				m.invoke(view, value == 0 ? SYSTEM_UI_FLAG_LOW_PROFILE :
-					SYSTEM_UI_FLAG_VISIBLE);
+				m.invoke(view, value);
+				return true;
 			} catch (SecurityException e) {
 				// ignore
 			} catch (NoSuchMethodException e) {
@@ -799,7 +810,33 @@ public class Engine {
 			} catch (InvocationTargetException e) {
 				// ignore
 			}
+		}
+		return false;
+	}
+
+	public boolean setSystemUiVisibility() {
+		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
+			int flags = 0;
+			if (currentKeyBacklightLevel == 0)
+				flags |= SYSTEM_UI_FLAG_LOW_PROFILE;
+			if (mActivity.isFullscreen())
+				flags |= SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+			setSystemUiVisibility(flags);
 			return true;
+		}
+		return false;
+	}
+	
+	private final static int SYSTEM_UI_FLAG_LOW_PROFILE = 1;
+	private final static int SYSTEM_UI_FLAG_HIDE_NAVIGATION = 2;
+	
+	private final static int SYSTEM_UI_FLAG_VISIBLE = 0;
+	private int currentKeyBacklightLevel = 1;
+	public boolean setKeyBacklight(int value) {
+		currentKeyBacklightLevel = value;
+		// Try ICS way
+		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
+			return setSystemUiVisibility();
 		}
 
 		// thread safe
@@ -924,7 +961,7 @@ public class Engine {
 				Environment.getExternalStorageDirectory(), CACHE_BASE_DIR_NAME);
 		// non-standard SD mount points
 		if (cacheDirName == null) {
-			for ( String dirname : Scanner.SD_MOUNT_POINTS ) {
+			for (String dirname : mountedRootsMap.keySet()) {
 				cacheDirName = createCacheDir(new File(dirname),
 						CACHE_BASE_DIR_NAME);
 				if ( cacheDirName!=null )
@@ -959,6 +996,10 @@ public class Engine {
 	private boolean addMountRoot(Map<String, String> list, String path, String name) {
 		if (list.containsKey(path))
 			return false;
+		for (String key : list.keySet()) {
+			if (path.startsWith(key + "/"))
+				return false; // duplicate subpath
+		}
 		try {
 			File dir = new File(path);
 			if (dir.exists() && dir.isDirectory()) {
@@ -1014,10 +1055,45 @@ public class Engine {
 	
 	private void initMountRoots() {
 		Map<String, String> map = new LinkedHashMap<String, String>();
+
+		// standard external directory
 		String sdpath = Environment.getExternalStorageDirectory().getAbsolutePath();
+		// dirty fix
 		if ( "/nand".equals(sdpath) && new File("/sdcard").isDirectory() )
 			sdpath = "/sdcard";
+		// main storage
 		addMountRoot(map, sdpath, R.string.dir_sd_card);
+
+		// retrieve list of mount points from system
+		{
+			String s = loadFileUtf8(new File("/etc/vold.conf"));
+			if (s == null)
+				s = loadFileUtf8(new File("/etc/vold.fstab"));
+			//Log.v("cr3", "mount points: " + s);
+			if ( s!= null) {
+				String[] rows = s.split("\n");
+				for (String row : rows) {
+					if (row != null && row.startsWith("dev_mount")) {
+						String[] cols = row.split(" ");
+						if (cols.length > 3) {
+							String name = cols[1];
+							String point = cols[2];
+							if (name!=null && point!=null && name.length()>0 && point.length()>0) {
+								Log.v("cr3", "mount point configured: " + name + " = " + point);
+								if (!point.equals(sdpath)) {
+									// external SD
+									addMountRoot(map, point, "External SD " + point);
+								}
+							}
+						}
+					}
+				}
+			}
+//			String mounted = loadFileUtf8(new File("/proc/mounts"));
+//			Log.v("cr3", "/proc/mounts = " + mounted);
+		}
+
+		// TODO: probably, hardcoded list is not necessary after /etc/vold parsing 
 		// internal SD card on Nook
 		addMountRoot(map, "/system/media/sdcard", R.string.dir_internal_sd_card);
 		// internal memory
@@ -1040,8 +1116,8 @@ public class Engine {
 		addMountRoot(map, "/sdcard2", R.string.dir_sd_card_2);
 		
 		// auto detection
-		autoAddRoots(map, "/", SYSTEM_ROOT_PATHS);
-		autoAddRoots(map, "/mnt", new String[] {});
+		//autoAddRoots(map, "/", SYSTEM_ROOT_PATHS);
+		//autoAddRoots(map, "/mnt", new String[] {});
 		
 		mountedRootsMap = map;
 		Collection<File> list = new ArrayList<File>();
@@ -1049,6 +1125,7 @@ public class Engine {
 			list.add(new File(f));
 		}
 		mountedRootsList = list.toArray(new File[] {});
+		Log.i("cr3", "Root list: " + list);
 	}
 	
 	private void init() throws IOException {
@@ -1347,6 +1424,44 @@ public class Engine {
 					return item;
 		}
 		return NO_TEXTURE;
+	}
+
+	/**
+	 * Create progress dialog control.
+	 * @param resourceId is string resource Id of dialog title, 0 to disable progress
+	 * @return created control object.
+	 */
+	public ProgressControl createProgress(int resourceId) {
+		return new ProgressControl(resourceId);
+	}
+	private static final int PROGRESS_UPDATE_INTERVAL = DeviceInfo.EINK_SCREEN ? 4000 : 500;
+	private static final int PROGRESS_SHOW_INTERVAL = DeviceInfo.EINK_SCREEN ? 4000 : 1500;
+	public class ProgressControl {
+		private final int resourceId;
+		private long createTime = Utils.timeStamp();
+		private long lastUpdateTime;
+		private boolean shown;
+		private ProgressControl(int resourceId) {
+			this.resourceId = resourceId;
+		}
+		public void hide() {
+			if (resourceId == 0)
+				return; // disabled
+			if (shown)
+				hideProgress();
+			shown = false;
+		}
+		public void setProgress(int percent) {
+			if (resourceId == 0)
+				return; // disabled
+			if (Utils.timeInterval(createTime) < PROGRESS_SHOW_INTERVAL)
+				return;
+			if (Utils.timeInterval(lastUpdateTime) < PROGRESS_UPDATE_INTERVAL)
+				return;
+			shown = true;
+			lastUpdateTime = Utils.timeStamp();
+			showProgress(percent, resourceId);
+		}
 	}
 
 }

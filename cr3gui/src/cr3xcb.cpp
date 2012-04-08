@@ -78,7 +78,7 @@ typedef enum {
     DISCHARGING,
     NOT_CHARGING,
     FULL_CHARGE,
-    LOW_CHARGE,
+    LOW_CHARGE
 } battery_status_t;
 
 typedef struct {
@@ -183,7 +183,7 @@ eoi_get_battery_info(battery_info_t * info)
 
 
 static xcb_connection_t *connection = NULL;
-static xcb_window_t window = NULL;
+static xcb_window_t window;
 static xcb_screen_t *screen = NULL;
 static V3DocViewWin * main_win = NULL;
 
@@ -270,6 +270,7 @@ class CRXCBScreen : public CRGUIScreenBase
             if ( !CRGUIScreenBase::setSize( dx, dy ) )
                 return false;
             createImage();
+			return true;
         }
         void createImage()
         {
@@ -706,20 +707,20 @@ static struct atom {
     const char *name;
     xcb_atom_t atom;
 } atoms[] = {
-    "UTF8_STRING", 0,
-    "ACTIVE_DOC_AUTHOR", 0,
-    "ACTIVE_DOC_TITLE", 0,
-    "ACTIVE_DOC_FILENAME", 0,
-    "ACTIVE_DOC_FILEPATH", 0,
-    "ACTIVE_DOC_SERIES", 0,
-    "ACTIVE_DOC_SERIES_NUMBER", 0,
-    "ACTIVE_DOC_TYPE", 0,
-    "ACTIVE_DOC_SIZE", 0,
-    "ACTIVE_DOC_CURRENT_POSITION", 0,
-    "ACTIVE_DOC_CURRENT_PAGE", 0,
-    "ACTIVE_DOC_PAGES_COUNT", 0,
-    "ACTIVE_DOC_WINDOW_ID", 0,
-    "ACTIVE_DOC_COVER_IMAGE", 0,
+    {"UTF8_STRING", 0},
+    {"ACTIVE_DOC_AUTHOR", 0},
+    {"ACTIVE_DOC_TITLE", 0},
+    {"ACTIVE_DOC_FILENAME", 0},
+    {"ACTIVE_DOC_FILEPATH", 0},
+    {"ACTIVE_DOC_SERIES", 0},
+    {"ACTIVE_DOC_SERIES_NUMBER", 0},
+    {"ACTIVE_DOC_TYPE", 0},
+    {"ACTIVE_DOC_SIZE", 0},
+    {"ACTIVE_DOC_CURRENT_POSITION", 0},
+    {"ACTIVE_DOC_CURRENT_PAGE", 0},
+    {"ACTIVE_DOC_PAGES_COUNT", 0},
+    {"ACTIVE_DOC_WINDOW_ID", 0},
+    {"ACTIVE_DOC_COVER_IMAGE", 0}
 };
 
 cr_rotate_angle_t readXCBScreenRotationAngle()
@@ -825,7 +826,7 @@ public:
             LVStreamRef coverStream = doc_view->getCoverPageImageStream();
             if ( !coverStream.isNull() ) {
                 //LVStreamRef out = LVOpenFileStream(COVER_FILE_NAME, LVOM_WRITE);
-                int size = coverStream->GetSize();
+                lvsize_t size = coverStream->GetSize();
                 if ( size>0 && size<1000000 ) {
                     cover_image_file.addSpace(size);
                     lvsize_t bytesRead = 0;
@@ -1207,7 +1208,7 @@ int CRXCBWindowManager::runEventLoop()
     wm_protocols_atom = reply->atom;
     free(reply);
 
-    static bool alt_pressed = false;
+//    static bool alt_pressed = false;
 
     CRLog::trace("CRXCBWindowManager::runEventLoop()");
     keysyms = xcb_key_symbols_alloc( connection );
@@ -1404,7 +1405,8 @@ int main(int argc, char **argv)
 
 #endif
     #if KINDLE_TOUCH!=1
-    ldomDocCache::init( lString16(L"/media/sd/.cr3/cache"), 0x100000 * 64 );
+    if ( !ldomDocCache::init( lString16("/media/sd/.cr3/cache"), 0x100000 * 64 ))
+        ldomDocCache::init( lString16("/tmp/.cr3/cache"), 0x100000 * 64 ); /*64Mb*/
 	#else
 	ldomDocCache::init( lString16(L"/tmp/.cr3/cache"), 0x100000 * 64 ); /*64Mb*/
 	#endif
@@ -1413,7 +1415,7 @@ int main(int argc, char **argv)
     } else {
 
         lString16 home = Utf8ToUnicode(lString8(( getenv("HOME") ) ));
-        lString16 homecrengine = home + L"/.crengine/";
+        lString16 homecrengine = home + "/.crengine/";
 
         lString8 home8 = UnicodeToUtf8( homecrengine );
         const char * keymap_locations [] = {
@@ -1428,10 +1430,12 @@ int main(int argc, char **argv)
 
         if ( !winman.loadSkin(  homecrengine + L"skin" ) )
 			#if KINDLE_TOUCH!=1
-            winman.loadSkin(  lString16( L"/media/sd/crengine/skin" ) );
+            if ( !winman.loadSkin(  lString16("/media/sd/crengine/skin") ) )
+                winman.loadSkin( lString16("/usr/share/cr3/skins/default") );
 			#else
 			winman.loadSkin( lString16( L"/mnt/us/cr3xcb/share/cr3/kindle_touch/skins/default" ) );
 			#endif
+
         {
             const lChar16 * imgname =
                 ( winman.getScreenOrientation()&1 ) ? L"cr3_logo_screen_landscape.png" : L"cr3_logo_screen.png";
@@ -1499,7 +1503,7 @@ int main(int argc, char **argv)
         CRLog::debug("settings at %s", UnicodeToUtf8(ini).c_str() );
         lString16 hist;
         for ( i=0; dirs[i]; i++ ) {
-            hist = lString16(dirs[i]) + L"cr3hist.bmk";
+            hist = lString16(dirs[i]) + "cr3hist.bmk";
             if ( main_win->loadHistory( hist ) ) {
                 break;
             }

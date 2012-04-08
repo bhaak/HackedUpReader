@@ -1,4 +1,4 @@
-package org.coolreader.crengine;
+package org.coolreader.db;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -6,6 +6,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+
+import org.coolreader.crengine.BookInfo;
+import org.coolreader.crengine.Bookmark;
+import org.coolreader.crengine.DeviceInfo;
+import org.coolreader.crengine.DocumentFormat;
+import org.coolreader.crengine.FileInfo;
+import org.coolreader.crengine.L;
+import org.coolreader.crengine.Utils;
 
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -672,6 +680,19 @@ public class CRDB {
 		return found;
 	}
 
+	public boolean loadBookmarks(BookInfo book)
+	{
+		if (book.getFileInfo().id == null)
+			return false; // unknown book id
+		boolean found = false;
+		ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>(); 
+		if ( load( bookmarks, "book_fk=" + book.getFileInfo().id + " ORDER BY type" ) ) {
+			found = true;
+			book.setBookmarks(bookmarks);
+		}
+		return found;
+	}
+	
 	synchronized public boolean load( ArrayList<Bookmark> list, String condition )
 	{
 		boolean found = false;
@@ -1348,10 +1369,7 @@ public class CRDB {
 		for ( FileInfo file : list ) {
 			fileList.put(file.getPathName(), file);
 			BookInfo item = new BookInfo( file );
-			ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>(); 
-			if ( load( bookmarks, "book_fk=" + file.id + " ORDER BY type" ) ) {
-				item.setBookmarks(bookmarks);
-			}
+			loadBookmarks(item);
 			res.add(item);
 		}
 		return res;
@@ -1457,42 +1475,46 @@ public class CRDB {
 		execSQLIgnoreErrors("UPDATE book SET last_access_time=0 WHERE id=" + fileInfo.id);
 	}
 	
-	synchronized public void deleteBookmark( Bookmark bm )
-	{
+	public void deleteBookmark(Bookmark bm) {
 		if ( bm.getId()==null )
 			return;
 		execSQLIgnoreErrors("DELETE FROM bookmark WHERE id=" + bm.getId());
 	}
 	
-	synchronized public void deleteBook( FileInfo fileInfo )
-	{
-		if ( fileInfo==null || fileInfo.id==0 )
+	public void deleteBook(FileInfo fileInfo)	{
+		if (fileInfo==null || fileInfo.id==0)
 			return;
 		execSQLIgnoreErrors("DELETE FROM bookmark WHERE book_fk=" + fileInfo.id);
 		execSQLIgnoreErrors("DELETE FROM coverpage WHERE book_fk=" + fileInfo.id);
 		execSQLIgnoreErrors("DELETE FROM book WHERE id=" + fileInfo.id);
 	}
 	
-	synchronized public boolean save( FileInfo fileInfo )
+	synchronized public boolean save(FileInfo fileInfo)
 	{
 		boolean authorsChanged = true;
 		try {
+			boolean found = false;
+			FileInfo oldValue = new FileInfo();
 			if ( fileInfo.id!=null ) {
 				// update
-				FileInfo oldValue = new FileInfo();
 				oldValue.id = fileInfo.id;
 				if ( findById(oldValue) ) {
-					// found, updating
-					QueryHelper h = new QueryHelper(fileInfo, oldValue);
-					h.update(fileInfo.id);
-					authorsChanged = !eq(fileInfo.authors, oldValue.authors);
-				} else {
-					oldValue = new FileInfo();
-					QueryHelper h = new QueryHelper(fileInfo, oldValue);
-					fileInfo.id = h.insert();
+					found = true;
 				}
+			}
+			if (!found) {
+				oldValue = new FileInfo(fileInfo);
+				if (findByPathname(oldValue)) {
+					found = true;
+				}
+			}
+			if (found) {
+				// found, updating
+				QueryHelper h = new QueryHelper(fileInfo, oldValue);
+				h.update(fileInfo.id);
+				authorsChanged = !eq(fileInfo.authors, oldValue.authors);
 			} else {
-				FileInfo oldValue = new FileInfo();
+				// inserting
 				QueryHelper h = new QueryHelper(fileInfo, oldValue);
 				fileInfo.id = h.insert();
 			}

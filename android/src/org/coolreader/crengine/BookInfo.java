@@ -1,6 +1,5 @@
 package org.coolreader.crengine;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -41,10 +40,25 @@ public class BookInfo {
 	
 	public void updateAccess()
 	{
-		// TODO:
+		if (lastPosition != null) {
+			lastPosition.setTimeStamp(System.currentTimeMillis());
+		}
 	}
 	
-	public BookInfo( FileInfo fileInfo )
+	/**
+	 * Deep copy.
+	 * @param bookInfo is source object to copy from.
+	 */
+	public BookInfo(BookInfo bookInfo) {
+		this.fileInfo = new FileInfo(bookInfo.fileInfo);
+		if (bookInfo.lastPosition != null)
+			this.lastPosition = new Bookmark(bookInfo.lastPosition);
+		for (int i=0; i < bookInfo.getBookmarkCount(); i++) {
+			this.addBookmark(new Bookmark(bookInfo.getBookmark(i)));
+		}
+	}
+	
+	public BookInfo(FileInfo fileInfo)
 	{
 		this.fileInfo = fileInfo; //new FileInfo(fileInfo);
 	}
@@ -89,6 +103,15 @@ public class BookInfo {
 		return bookmarks.get(index);
 	}
 
+	synchronized public ArrayList<Bookmark> getAllBookmarks()
+	{
+		ArrayList<Bookmark> list = new ArrayList<Bookmark>(bookmarks.size() + 1);
+		list.addAll(bookmarks);
+		if (lastPosition != null)
+			list.add(lastPosition);
+		return list;
+	}
+
 	synchronized public Bookmark findBookmark(Bookmark bm)
 	{
 		if ( bm==null )
@@ -106,6 +129,10 @@ public class BookInfo {
 		int index = -1;
 		for ( int i=0; i<bookmarks.size(); i++ ) {
 			Bookmark item = bookmarks.get(i);
+			if (bm.getType() == Bookmark.TYPE_LAST_POSITION && item.getType() == Bookmark.TYPE_LAST_POSITION) {
+				index = i;
+				break;
+			}
 			if ( bm.getShortcut()>0 && item.getShortcut()==bm.getShortcut() ) {
 				index = i;
 				break;
@@ -124,6 +151,27 @@ public class BookInfo {
 			}
 		}
 		return index;
+	}
+
+	synchronized public Bookmark syncBookmark(Bookmark bm)
+	{
+		if ( bm==null )
+			return null;
+		int index = findBookmarkIndex(bm);
+		if ( index<0 ) {
+			addBookmark(bm);
+			return bm;
+		}
+		Bookmark item = bookmarks.get(index);
+		if (item.getTimeStamp() >= bm.getTimeStamp())
+			return null;
+		item.setType(bm.getType());
+		item.setTimeStamp(bm.getTimeStamp());
+		item.setPosText(bm.getPosText());
+		item.setCommentText(bm.getCommentText());
+		if (item.isModified())
+			return item;
+		return null;
 	}
 
 	synchronized public Bookmark updateBookmark(Bookmark bm)
@@ -218,7 +266,7 @@ public class BookInfo {
 				if ( ps.length()<2 )
 					ps = "0" + ps;
 				ps = String.valueOf(percent/100) + "." + ps  + "%";
-				writer.write("## " + ps + " - " + (bm.getType()!=Bookmark.TYPE_COMMENT ? "comment" : "correction")  + "\r\n");
+				writer.write("## " + ps + " - " + (bm.getType()==Bookmark.TYPE_COMMENT ? "comment" : "correction")  + "\r\n");
 				if ( bm.getTitleText()!=null )
 					writer.write("## " + bm.getTitleText() + "\r\n");
 				if ( bm.getPosText()!=null )
@@ -241,7 +289,7 @@ public class BookInfo {
 		return bookmarks.remove(index);
 	}
 	
-	synchronized void setBookmarks(ArrayList<Bookmark> list)
+	synchronized public void setBookmarks(ArrayList<Bookmark> list)
 	{
 		if ( list.size()>0 ) {
 			if ( list.get(0).getType()==0 ) {

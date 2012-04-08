@@ -21,7 +21,19 @@
 #include <dirent.h>    /* struct DIR, struct dirent, opendir().. */ 
 
 #include "mainwnd.h"
-							
+
+static int endsWith(const char *str, const char *suffix) {
+	if (!str || !suffix) {
+		return 0;
+	}
+	size_t lenstr = strlen(str);
+	size_t lensuffix = strlen(suffix);
+	if (lensuffix >  lenstr) {
+		return 0;
+	}
+	return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
+}
+
 lString16 CRBookMenuItem::getBookPath() const {
 	return _fBookPath;
 }
@@ -47,10 +59,10 @@ bool CRBooksDialogMenu::onCommand( int command, int params )
 
 CRBooksDialogMenu::CRBooksDialogMenu( CRGUIWindowManager * wm, CRPropRef newProps, int id, LVFontRef font, CRGUIAcceleratorTableRef menuAccelerators, lvRect &rc, LVDocView * docview)
 : CRFullScreenMenu( wm, id, lString16(_("Select book")), 8, rc ),
-  props( newProps ),
+   _valueFont(LVFontRef(fontMan->GetFont( VALUE_FONT_SIZE, 400, true, css_ff_sans_serif, lString8("Arial")))),
+  _props( newProps ),
   _menuAccelerators( menuAccelerators ),
-  _docview(docview),
-  _valueFont(LVFontRef(fontMan->GetFont( VALUE_FONT_SIZE, 400, true, css_ff_sans_serif, lString8("Arial"))))
+  _docview(docview)
 {
     setSkinName(lString16(L"#settings"));
 	setAccelerators( _menuAccelerators );
@@ -99,7 +111,7 @@ void CRBooksDialogMenu::walkDirRecursively(const char *dirname) {
 						CRLog::info("adding ebook file: %s", fn);
 						++totalFound;				
 						CRMenu *fNameItem = new CRBookMenuItem(_wm, this, BOOKS_DIALOG_MENU_COMMANDS_START + totalFound, 
-							_(fname), LVImageSourceRef(), LVFontRef(), _valueFont, lString16(fn), props, PROP_FONT_FACE); 
+							_(fname), LVImageSourceRef(), LVFontRef(), _valueFont, lString16(fn), _props, PROP_FONT_FACE); 
 						
 						fNameItem->setSkinName(lString16(L"#settings"));
 						fNameItem->setFullscreen( true );

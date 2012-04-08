@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr 3gui\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2012-03-17 03:13+0600\n"
+"POT-Creation-Date: 2012-04-07 19:19+0600\n"
 "PO-Revision-Date: 2010-02-24 21:50+0300\n"
 "Last-Translator: Stanislovas Zacharovas\n"
 "Language-Team: Lithuanian\n"
@@ -97,7 +97,7 @@ msgstr "Nustatymai"
 msgid "Keyboard layout"
 msgstr "Klavišų priskyrimas"
 
-#: ../src/mainwnd.cpp:920
+#: ../src/mainwnd.cpp:921
 msgid ""
 "$1 - choose command\n"
 "$2, $3 - close"
@@ -105,175 +105,180 @@ msgstr ""
 "$1 - pasirinkti komandą\n"
 "$2, $3 - uždaryti"
 
-#: ../src/mainwnd.cpp:1028
+#: ../src/mainwnd.cpp:930
+#, fuzzy
+msgid "$1 - choose command"
+msgstr "išsirinkti komandą"
+
+#: ../src/mainwnd.cpp:1033
 msgid "Current page"
 msgstr "Esamas puslapis"
 
-#: ../src/mainwnd.cpp:1029
+#: ../src/mainwnd.cpp:1034
 msgid "Total pages"
 msgstr "Viso puslapių"
 
-#: ../src/mainwnd.cpp:1030
+#: ../src/mainwnd.cpp:1035
 msgid "Battery state"
 msgstr "Baterijos būvis"
 
-#: ../src/mainwnd.cpp:1030
+#: ../src/mainwnd.cpp:1035
 msgid "charging..."
 msgstr "kraunasi..."
 
-#: ../src/mainwnd.cpp:1031
+#: ../src/mainwnd.cpp:1036
 msgid "Current Time"
 msgstr "Esamas laikas"
 
-#: ../src/mainwnd.cpp:1036
+#: ../src/mainwnd.cpp:1041
 msgid "Current chapter"
 msgstr "Esamas skyrius"
 
-#: ../src/mainwnd.cpp:1039
+#: ../src/mainwnd.cpp:1044
 msgid "Status"
 msgstr "Būsena"
 
-#: ../src/mainwnd.cpp:1042
+#: ../src/mainwnd.cpp:1047
 msgid "Archive name"
 msgstr "Archyvo pavadinimas"
 
-#: ../src/mainwnd.cpp:1043
+#: ../src/mainwnd.cpp:1048
 msgid "Archive path"
 msgstr "Kelias prie archyvo"
 
-#: ../src/mainwnd.cpp:1044
+#: ../src/mainwnd.cpp:1049
 msgid "Archive size"
 msgstr "Archyvo dydis"
 
-#: ../src/mainwnd.cpp:1045
+#: ../src/mainwnd.cpp:1050
 msgid "File name"
 msgstr "Failo pavadinimas"
 
-#: ../src/mainwnd.cpp:1046
+#: ../src/mainwnd.cpp:1051
 msgid "File path"
 msgstr "Kelias prie failo"
 
-#: ../src/mainwnd.cpp:1047
+#: ../src/mainwnd.cpp:1052
 msgid "File size"
 msgstr "Failo dydis"
 
-#: ../src/mainwnd.cpp:1048
+#: ../src/mainwnd.cpp:1053
 msgid "File format"
 msgstr "Failo formatas"
 
-#: ../src/mainwnd.cpp:1049
+#: ../src/mainwnd.cpp:1054
 msgid "File info"
 msgstr "Informacija apie failą"
 
-#: ../src/mainwnd.cpp:1052
+#: ../src/mainwnd.cpp:1057
 msgid "Title"
 msgstr "Pavadinimas"
 
-#: ../src/mainwnd.cpp:1053
+#: ../src/mainwnd.cpp:1058
 msgid "Author(s)"
 msgstr "Autorius(ai)"
 
-#: ../src/mainwnd.cpp:1054
+#: ../src/mainwnd.cpp:1059
 msgid "Series name"
 msgstr "Serijos pavadinimas"
 
-#: ../src/mainwnd.cpp:1055
+#: ../src/mainwnd.cpp:1060
 msgid "Series number"
 msgstr "Numeris serijoje"
 
-#: ../src/mainwnd.cpp:1056
+#: ../src/mainwnd.cpp:1061
 msgid "Date"
 msgstr "Data"
 
-#: ../src/mainwnd.cpp:1057
+#: ../src/mainwnd.cpp:1062
 msgid "Genres"
 msgstr "Žanras"
 
-#: ../src/mainwnd.cpp:1058
+#: ../src/mainwnd.cpp:1063
 msgid "Translator"
 msgstr "Vertėjas"
 
-#: ../src/mainwnd.cpp:1059
+#: ../src/mainwnd.cpp:1064
 msgid "Book info"
 msgstr "Kita informacija"
 
-#: ../src/mainwnd.cpp:1062
+#: ../src/mainwnd.cpp:1067
 msgid "Document author"
 msgstr "Dokumento autorius"
 
-#: ../src/mainwnd.cpp:1063
+#: ../src/mainwnd.cpp:1068
 msgid "Document date"
 msgstr "Dokumento data"
 
-#: ../src/mainwnd.cpp:1064
+#: ../src/mainwnd.cpp:1069
 msgid "Document source URL"
 msgstr "Dokumento šaltinio URL"
 
-#: ../src/mainwnd.cpp:1065
+#: ../src/mainwnd.cpp:1070
 msgid "OCR by"
 msgstr "Nuskaityta"
 
-#: ../src/mainwnd.cpp:1066
+#: ../src/mainwnd.cpp:1071
 msgid "Document version"
 msgstr "Dokumento versija"
 
-#: ../src/mainwnd.cpp:1067
+#: ../src/mainwnd.cpp:1072
 msgid "Change history"
 msgstr "Pakeitimų istorija"
 
-#: ../src/mainwnd.cpp:1068
+#: ../src/mainwnd.cpp:1073
 msgid "Document info"
 msgstr "Dokumento informacija"
 
-#: ../src/mainwnd.cpp:1071
+#: ../src/mainwnd.cpp:1076
 msgid "Publication name"
 msgstr "Leidinio pavadinimas"
 
-#: ../src/mainwnd.cpp:1072
+#: ../src/mainwnd.cpp:1077
 msgid "Publisher"
 msgstr "Leidėjas"
 
-#: ../src/mainwnd.cpp:1073
+#: ../src/mainwnd.cpp:1078
 msgid "Publisher city"
 msgstr "Leidybos miestas"
 
-#: ../src/mainwnd.cpp:1074
+#: ../src/mainwnd.cpp:1079
 msgid "Publication year"
 msgstr "Leidybos metai"
 
-#: ../src/mainwnd.cpp:1075
+#: ../src/mainwnd.cpp:1080
 msgid "ISBN"
 msgstr "ISBN"
 
-#: ../src/mainwnd.cpp:1076
+#: ../src/mainwnd.cpp:1081
 msgid "Publication info"
 msgstr "Leidybinė informacija"
 
-#: ../src/mainwnd.cpp:1078
+#: ../src/mainwnd.cpp:1083
 msgid "Custom info"
 msgstr "Kita informacija"
 
-#: ../src/mainwnd.cpp:1082
+#: ../src/mainwnd.cpp:1087
 msgid "CoolReader for PocketBook"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1083 ../src/mainwnd.cpp:1088
+#: ../src/mainwnd.cpp:1088 ../src/mainwnd.cpp:1093
 msgid "Build date"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1084 ../src/mainwnd.cpp:1089
+#: ../src/mainwnd.cpp:1089 ../src/mainwnd.cpp:1094
 msgid "About program"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1087
+#: ../src/mainwnd.cpp:1092
 msgid "Cool Reader"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1213
+#: ../src/mainwnd.cpp:1218
 msgid "Loading: please wait..."
 msgstr "Atidaromas failas, prašome palaukti..."
 
-#: ../src/recentdlg.cpp:104
+#: ../src/recentdlg.cpp:104 ../src/viewdlg.cpp:574
 msgid "Open book"
 msgstr "Atidaryti knygą"
 
@@ -289,7 +294,7 @@ msgstr ""
 "$1 - atidaryti knygą\n"
 "$2, $3 - uždaryti"
 
-#: ../src/booksdlg.cpp:45
+#: ../src/booksdlg.cpp:49
 #, fuzzy
 msgid "Select book"
 msgstr "Žymės nustatymas"
@@ -546,43 +551,52 @@ msgid "200%"
 msgstr "200%"
 
 #: ../src/settings.cpp:449
-msgid "Always use fast updates"
-msgstr "Visada greitas atnaujinimas"
-
-#: ../src/settings.cpp:450
-msgid "Don't use fast updates"
+#, fuzzy
+msgid "Don't use page refresh"
 msgstr "Nenaudoti greito atnaujinimo"
 
+#: ../src/settings.cpp:450
+msgid "Use page refresh always"
+msgstr ""
+
 #: ../src/settings.cpp:451
-msgid "Full updates every 2 pages"
+#, fuzzy
+msgid "Use page refresh every 2 pages"
 msgstr "Pilnai atnaujinti kas 2 puslapiai"
 
 #: ../src/settings.cpp:452
-msgid "Full updates every 3 pages"
+#, fuzzy
+msgid "Use page refresh every 3 pages"
 msgstr "Pilnai atnaujinti kas 3 puslapiai"
 
 #: ../src/settings.cpp:453
-msgid "Full updates every 4 pages"
+#, fuzzy
+msgid "Use page refresh every 4 pages"
 msgstr "Pilnai atnaujinti kas 4 puslapiai"
 
 #: ../src/settings.cpp:454
-msgid "Full updates every 5 pages"
+#, fuzzy
+msgid "Use page refresh every 5 pages"
 msgstr "Pilnai atnaujinti kas 5 puslapiai"
 
 #: ../src/settings.cpp:455
-msgid "Full updates every 6 pages"
+#, fuzzy
+msgid "Use page refresh every 6 pages"
 msgstr "Pilnai atnaujinti kas 6 puslapiai"
 
 #: ../src/settings.cpp:456
-msgid "Full updates every 8 pages"
+#, fuzzy
+msgid "Use page refresh every 8 pages"
 msgstr "Pilnai atnaujinti kas 8 puslapiai"
 
 #: ../src/settings.cpp:457
-msgid "Full updates every 10 pages"
+#, fuzzy
+msgid "Use page refresh every 10 pages"
 msgstr "Pilnai atnaujinti kas 10 puslapiai"
 
 #: ../src/settings.cpp:458
-msgid "Full updates every 14 pages"
+#, fuzzy
+msgid "Use page refresh every 14 pages"
 msgstr "Pilnai atnaujinti kas 14 puslapiai"
 
 #: ../src/settings.cpp:463
@@ -1050,11 +1064,6 @@ msgstr "Pereiti prie pozicijos %"
 msgid "PocketBook Main menu"
 msgstr "Pagrindinis meniu"
 
-#: ../src/viewdlg.cpp:574
-#, fuzzy
-msgid "Open book!"
-msgstr "Atidaryti knygą"
-
 #: ../src/viewdlg.cpp:575
 msgid "Unknown command"
 msgstr "Nepažįstama komanda"
@@ -1110,6 +1119,13 @@ msgstr "Klavišas"
 #: ../src/viewdlg.cpp:626
 msgid "Assigned function"
 msgstr "Priskirti veiksmą"
+
+#~ msgid "Always use fast updates"
+#~ msgstr "Visada greitas atnaujinimas"
+
+#, fuzzy
+#~ msgid "Open book!"
+#~ msgstr "Atidaryti knygą"
 
 #~ msgid "Close book"
 #~ msgstr "Uždaryti knygą"

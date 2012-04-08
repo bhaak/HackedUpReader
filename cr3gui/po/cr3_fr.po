@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2012-03-17 03:13+0600\n"
+"POT-Creation-Date: 2012-04-07 19:19+0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -96,181 +96,186 @@ msgstr "Paramètres"
 msgid "Keyboard layout"
 msgstr ""
 
-#: ../src/mainwnd.cpp:920
+#: ../src/mainwnd.cpp:921
 msgid ""
 "$1 - choose command\n"
 "$2, $3 - close"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1028
+#: ../src/mainwnd.cpp:930
+#, fuzzy
+msgid "$1 - choose command"
+msgstr "choisir la commande"
+
+#: ../src/mainwnd.cpp:1033
 msgid "Current page"
 msgstr "Page actuelle"
 
-#: ../src/mainwnd.cpp:1029
+#: ../src/mainwnd.cpp:1034
 msgid "Total pages"
 msgstr "Nombre de pages"
 
-#: ../src/mainwnd.cpp:1030
+#: ../src/mainwnd.cpp:1035
 msgid "Battery state"
 msgstr "Etat de la batterie"
 
-#: ../src/mainwnd.cpp:1030
+#: ../src/mainwnd.cpp:1035
 msgid "charging..."
 msgstr "rechargement..."
 
-#: ../src/mainwnd.cpp:1031
+#: ../src/mainwnd.cpp:1036
 msgid "Current Time"
 msgstr "Heure actuelle"
 
-#: ../src/mainwnd.cpp:1036
+#: ../src/mainwnd.cpp:1041
 msgid "Current chapter"
 msgstr "Chapitre actuel"
 
-#: ../src/mainwnd.cpp:1039
+#: ../src/mainwnd.cpp:1044
 msgid "Status"
 msgstr "Status"
 
-#: ../src/mainwnd.cpp:1042
+#: ../src/mainwnd.cpp:1047
 msgid "Archive name"
 msgstr "Nom de l'archive"
 
-#: ../src/mainwnd.cpp:1043
+#: ../src/mainwnd.cpp:1048
 msgid "Archive path"
 msgstr "Chemin de l'archive"
 
-#: ../src/mainwnd.cpp:1044
+#: ../src/mainwnd.cpp:1049
 msgid "Archive size"
 msgstr "Taille de l'archive"
 
-#: ../src/mainwnd.cpp:1045
+#: ../src/mainwnd.cpp:1050
 msgid "File name"
 msgstr "Nom du fichier"
 
-#: ../src/mainwnd.cpp:1046
+#: ../src/mainwnd.cpp:1051
 msgid "File path"
 msgstr "Chemin du fichier"
 
-#: ../src/mainwnd.cpp:1047
+#: ../src/mainwnd.cpp:1052
 msgid "File size"
 msgstr "Taille du fichier"
 
-#: ../src/mainwnd.cpp:1048
+#: ../src/mainwnd.cpp:1053
 msgid "File format"
 msgstr "Format du fichier"
 
-#: ../src/mainwnd.cpp:1049
+#: ../src/mainwnd.cpp:1054
 msgid "File info"
 msgstr "Information du fichier"
 
-#: ../src/mainwnd.cpp:1052
+#: ../src/mainwnd.cpp:1057
 msgid "Title"
 msgstr "Titre"
 
-#: ../src/mainwnd.cpp:1053
+#: ../src/mainwnd.cpp:1058
 msgid "Author(s)"
 msgstr "Auteur(s)"
 
-#: ../src/mainwnd.cpp:1054
+#: ../src/mainwnd.cpp:1059
 msgid "Series name"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1055
+#: ../src/mainwnd.cpp:1060
 msgid "Series number"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1056
+#: ../src/mainwnd.cpp:1061
 msgid "Date"
 msgstr "Date"
 
-#: ../src/mainwnd.cpp:1057
+#: ../src/mainwnd.cpp:1062
 msgid "Genres"
 msgstr "Genres"
 
-#: ../src/mainwnd.cpp:1058
+#: ../src/mainwnd.cpp:1063
 msgid "Translator"
 msgstr "Traducteur"
 
-#: ../src/mainwnd.cpp:1059
+#: ../src/mainwnd.cpp:1064
 msgid "Book info"
 msgstr "Information du livre"
 
-#: ../src/mainwnd.cpp:1062
+#: ../src/mainwnd.cpp:1067
 msgid "Document author"
 msgstr "Auteur du document"
 
-#: ../src/mainwnd.cpp:1063
+#: ../src/mainwnd.cpp:1068
 msgid "Document date"
 msgstr "Date du document"
 
-#: ../src/mainwnd.cpp:1064
+#: ../src/mainwnd.cpp:1069
 msgid "Document source URL"
 msgstr "URL source du document"
 
-#: ../src/mainwnd.cpp:1065
+#: ../src/mainwnd.cpp:1070
 msgid "OCR by"
 msgstr "OCR par"
 
-#: ../src/mainwnd.cpp:1066
+#: ../src/mainwnd.cpp:1071
 msgid "Document version"
 msgstr "Version du document"
 
-#: ../src/mainwnd.cpp:1067
+#: ../src/mainwnd.cpp:1072
 msgid "Change history"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1068
+#: ../src/mainwnd.cpp:1073
 msgid "Document info"
 msgstr "Information du document"
 
-#: ../src/mainwnd.cpp:1071
+#: ../src/mainwnd.cpp:1076
 msgid "Publication name"
 msgstr "Nom de publication"
 
-#: ../src/mainwnd.cpp:1072
+#: ../src/mainwnd.cpp:1077
 msgid "Publisher"
 msgstr "Editeur"
 
-#: ../src/mainwnd.cpp:1073
+#: ../src/mainwnd.cpp:1078
 msgid "Publisher city"
 msgstr "Vile de l'éditeur"
 
-#: ../src/mainwnd.cpp:1074
+#: ../src/mainwnd.cpp:1079
 msgid "Publication year"
 msgstr "Année de publication"
 
-#: ../src/mainwnd.cpp:1075
+#: ../src/mainwnd.cpp:1080
 msgid "ISBN"
 msgstr "ISBN"
 
-#: ../src/mainwnd.cpp:1076
+#: ../src/mainwnd.cpp:1081
 msgid "Publication info"
 msgstr "Informations de publication"
 
-#: ../src/mainwnd.cpp:1078
+#: ../src/mainwnd.cpp:1083
 msgid "Custom info"
 msgstr "Informations personnalisée"
 
-#: ../src/mainwnd.cpp:1082
+#: ../src/mainwnd.cpp:1087
 msgid "CoolReader for PocketBook"
 msgstr "CoolReader pour PocketBook"
 
-#: ../src/mainwnd.cpp:1083 ../src/mainwnd.cpp:1088
+#: ../src/mainwnd.cpp:1088 ../src/mainwnd.cpp:1093
 msgid "Build date"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1084 ../src/mainwnd.cpp:1089
+#: ../src/mainwnd.cpp:1089 ../src/mainwnd.cpp:1094
 msgid "About program"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1087
+#: ../src/mainwnd.cpp:1092
 msgid "Cool Reader"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1213
+#: ../src/mainwnd.cpp:1218
 msgid "Loading: please wait..."
 msgstr "Chargement: patientez..."
 
-#: ../src/recentdlg.cpp:104
+#: ../src/recentdlg.cpp:104 ../src/viewdlg.cpp:574
 msgid "Open book"
 msgstr "Ouvrir un livre"
 
@@ -284,7 +289,7 @@ msgid ""
 "$2, $3 - close"
 msgstr ""
 
-#: ../src/booksdlg.cpp:45
+#: ../src/booksdlg.cpp:49
 #, fuzzy
 msgid "Select book"
 msgstr "Supprimer le marque-page"
@@ -531,43 +536,52 @@ msgid "200%"
 msgstr "200%"
 
 #: ../src/settings.cpp:449
-msgid "Always use fast updates"
-msgstr "Toujours utiliser des mises à jour rapides"
-
-#: ../src/settings.cpp:450
-msgid "Don't use fast updates"
+#, fuzzy
+msgid "Don't use page refresh"
 msgstr "Ne pas utiliser de mises à jour rapides"
 
+#: ../src/settings.cpp:450
+msgid "Use page refresh always"
+msgstr ""
+
 #: ../src/settings.cpp:451
-msgid "Full updates every 2 pages"
+#, fuzzy
+msgid "Use page refresh every 2 pages"
 msgstr "Mise à jour complètes toutes les 2 pages"
 
 #: ../src/settings.cpp:452
-msgid "Full updates every 3 pages"
+#, fuzzy
+msgid "Use page refresh every 3 pages"
 msgstr "Mise à jour complètes toutes les 3 pages"
 
 #: ../src/settings.cpp:453
-msgid "Full updates every 4 pages"
+#, fuzzy
+msgid "Use page refresh every 4 pages"
 msgstr "Mise à jour complètes toutes les 4 pages"
 
 #: ../src/settings.cpp:454
-msgid "Full updates every 5 pages"
+#, fuzzy
+msgid "Use page refresh every 5 pages"
 msgstr "Mise à jour complètes toutes les 5 pages"
 
 #: ../src/settings.cpp:455
-msgid "Full updates every 6 pages"
+#, fuzzy
+msgid "Use page refresh every 6 pages"
 msgstr "Mise à jour complètes toutes les 6 pages"
 
 #: ../src/settings.cpp:456
-msgid "Full updates every 8 pages"
+#, fuzzy
+msgid "Use page refresh every 8 pages"
 msgstr "Mise à jour complètes toutes les 8 pages"
 
 #: ../src/settings.cpp:457
-msgid "Full updates every 10 pages"
+#, fuzzy
+msgid "Use page refresh every 10 pages"
 msgstr "Mise à jour complètes toutes les 10 pages"
 
 #: ../src/settings.cpp:458
-msgid "Full updates every 14 pages"
+#, fuzzy
+msgid "Use page refresh every 14 pages"
 msgstr "Mise à jour complètes toutes les 14 pages"
 
 #: ../src/settings.cpp:463
@@ -1026,11 +1040,6 @@ msgstr ""
 msgid "PocketBook Main menu"
 msgstr ""
 
-#: ../src/viewdlg.cpp:574
-#, fuzzy
-msgid "Open book!"
-msgstr "Ouvrir un livre"
-
 #: ../src/viewdlg.cpp:575
 msgid "Unknown command"
 msgstr ""
@@ -1089,3 +1098,10 @@ msgstr ""
 #: ../src/viewdlg.cpp:626
 msgid "Assigned function"
 msgstr ""
+
+#~ msgid "Always use fast updates"
+#~ msgstr "Toujours utiliser des mises à jour rapides"
+
+#, fuzzy
+#~ msgid "Open book!"
+#~ msgstr "Ouvrir un livre"

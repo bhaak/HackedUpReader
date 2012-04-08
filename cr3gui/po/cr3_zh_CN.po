@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2012-03-17 03:13+0600\n"
+"POT-Creation-Date: 2012-04-07 19:19+0600\n"
 "PO-Revision-Date: 2009-03-05 15:24+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: Chinese\n"
@@ -95,7 +95,7 @@ msgstr "设置"
 msgid "Keyboard layout"
 msgstr "键盘布局"
 
-#: ../src/mainwnd.cpp:920
+#: ../src/mainwnd.cpp:921
 msgid ""
 "$1 - choose command\n"
 "$2, $3 - close"
@@ -103,175 +103,180 @@ msgstr ""
 "$1 - 选择命令\n"
 "$2, $3 - 关闭"
 
-#: ../src/mainwnd.cpp:1028
+#: ../src/mainwnd.cpp:930
+#, fuzzy
+msgid "$1 - choose command"
+msgstr "选择命令"
+
+#: ../src/mainwnd.cpp:1033
 msgid "Current page"
 msgstr "当前页"
 
-#: ../src/mainwnd.cpp:1029
+#: ../src/mainwnd.cpp:1034
 msgid "Total pages"
 msgstr "总页数"
 
-#: ../src/mainwnd.cpp:1030
+#: ../src/mainwnd.cpp:1035
 msgid "Battery state"
 msgstr "电池状态"
 
-#: ../src/mainwnd.cpp:1030
+#: ../src/mainwnd.cpp:1035
 msgid "charging..."
 msgstr "充电中……"
 
-#: ../src/mainwnd.cpp:1031
+#: ../src/mainwnd.cpp:1036
 msgid "Current Time"
 msgstr "当前时间"
 
-#: ../src/mainwnd.cpp:1036
+#: ../src/mainwnd.cpp:1041
 msgid "Current chapter"
 msgstr "当前章"
 
-#: ../src/mainwnd.cpp:1039
+#: ../src/mainwnd.cpp:1044
 msgid "Status"
 msgstr "状态"
 
-#: ../src/mainwnd.cpp:1042
+#: ../src/mainwnd.cpp:1047
 msgid "Archive name"
 msgstr "存档名称"
 
-#: ../src/mainwnd.cpp:1043
+#: ../src/mainwnd.cpp:1048
 msgid "Archive path"
 msgstr "存档路径"
 
-#: ../src/mainwnd.cpp:1044
+#: ../src/mainwnd.cpp:1049
 msgid "Archive size"
 msgstr "存档大小"
 
-#: ../src/mainwnd.cpp:1045
+#: ../src/mainwnd.cpp:1050
 msgid "File name"
 msgstr "文件名"
 
-#: ../src/mainwnd.cpp:1046
+#: ../src/mainwnd.cpp:1051
 msgid "File path"
 msgstr "文件路径"
 
-#: ../src/mainwnd.cpp:1047
+#: ../src/mainwnd.cpp:1052
 msgid "File size"
 msgstr "文件大小"
 
-#: ../src/mainwnd.cpp:1048
+#: ../src/mainwnd.cpp:1053
 msgid "File format"
 msgstr "文件格式"
 
-#: ../src/mainwnd.cpp:1049
+#: ../src/mainwnd.cpp:1054
 msgid "File info"
 msgstr "文件信息"
 
-#: ../src/mainwnd.cpp:1052
+#: ../src/mainwnd.cpp:1057
 msgid "Title"
 msgstr "标题"
 
-#: ../src/mainwnd.cpp:1053
+#: ../src/mainwnd.cpp:1058
 msgid "Author(s)"
 msgstr "作者"
 
-#: ../src/mainwnd.cpp:1054
+#: ../src/mainwnd.cpp:1059
 msgid "Series name"
 msgstr "系列名称"
 
-#: ../src/mainwnd.cpp:1055
+#: ../src/mainwnd.cpp:1060
 msgid "Series number"
 msgstr "系列号"
 
-#: ../src/mainwnd.cpp:1056
+#: ../src/mainwnd.cpp:1061
 msgid "Date"
 msgstr "日期"
 
-#: ../src/mainwnd.cpp:1057
+#: ../src/mainwnd.cpp:1062
 msgid "Genres"
 msgstr "类型"
 
-#: ../src/mainwnd.cpp:1058
+#: ../src/mainwnd.cpp:1063
 msgid "Translator"
 msgstr "翻译"
 
-#: ../src/mainwnd.cpp:1059
+#: ../src/mainwnd.cpp:1064
 msgid "Book info"
 msgstr "书籍信息"
 
-#: ../src/mainwnd.cpp:1062
+#: ../src/mainwnd.cpp:1067
 msgid "Document author"
 msgstr "文档作者"
 
-#: ../src/mainwnd.cpp:1063
+#: ../src/mainwnd.cpp:1068
 msgid "Document date"
 msgstr "文档日期"
 
-#: ../src/mainwnd.cpp:1064
+#: ../src/mainwnd.cpp:1069
 msgid "Document source URL"
 msgstr "文档源URL"
 
-#: ../src/mainwnd.cpp:1065
+#: ../src/mainwnd.cpp:1070
 msgid "OCR by"
 msgstr "OCR"
 
-#: ../src/mainwnd.cpp:1066
+#: ../src/mainwnd.cpp:1071
 msgid "Document version"
 msgstr "文档版本"
 
-#: ../src/mainwnd.cpp:1067
+#: ../src/mainwnd.cpp:1072
 msgid "Change history"
 msgstr "变动历史"
 
-#: ../src/mainwnd.cpp:1068
+#: ../src/mainwnd.cpp:1073
 msgid "Document info"
 msgstr "文档信息"
 
-#: ../src/mainwnd.cpp:1071
+#: ../src/mainwnd.cpp:1076
 msgid "Publication name"
 msgstr "发行商名称"
 
-#: ../src/mainwnd.cpp:1072
+#: ../src/mainwnd.cpp:1077
 msgid "Publisher"
 msgstr "出版社"
 
-#: ../src/mainwnd.cpp:1073
+#: ../src/mainwnd.cpp:1078
 msgid "Publisher city"
 msgstr "出版社城市"
 
-#: ../src/mainwnd.cpp:1074
+#: ../src/mainwnd.cpp:1079
 msgid "Publication year"
 msgstr "出版日期"
 
-#: ../src/mainwnd.cpp:1075
+#: ../src/mainwnd.cpp:1080
 msgid "ISBN"
 msgstr "ISBN"
 
-#: ../src/mainwnd.cpp:1076
+#: ../src/mainwnd.cpp:1081
 msgid "Publication info"
 msgstr "发行商信息"
 
-#: ../src/mainwnd.cpp:1078
+#: ../src/mainwnd.cpp:1083
 msgid "Custom info"
 msgstr "用户信息"
 
-#: ../src/mainwnd.cpp:1082
+#: ../src/mainwnd.cpp:1087
 msgid "CoolReader for PocketBook"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1083 ../src/mainwnd.cpp:1088
+#: ../src/mainwnd.cpp:1088 ../src/mainwnd.cpp:1093
 msgid "Build date"
 msgstr "编译日期"
 
-#: ../src/mainwnd.cpp:1084 ../src/mainwnd.cpp:1089
+#: ../src/mainwnd.cpp:1089 ../src/mainwnd.cpp:1094
 msgid "About program"
 msgstr "关于程序"
 
-#: ../src/mainwnd.cpp:1087
+#: ../src/mainwnd.cpp:1092
 msgid "Cool Reader"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1213
+#: ../src/mainwnd.cpp:1218
 msgid "Loading: please wait..."
 msgstr "正在加载，请等待……"
 
-#: ../src/recentdlg.cpp:104
+#: ../src/recentdlg.cpp:104 ../src/viewdlg.cpp:574
 msgid "Open book"
 msgstr "打开书籍"
 
@@ -287,7 +292,7 @@ msgstr ""
 "$1 - 打开书籍\n"
 "$2, $3 - 关闭"
 
-#: ../src/booksdlg.cpp:45
+#: ../src/booksdlg.cpp:49
 #, fuzzy
 msgid "Select book"
 msgstr "设置书签"
@@ -542,43 +547,52 @@ msgid "200%"
 msgstr "200%"
 
 #: ../src/settings.cpp:449
-msgid "Always use fast updates"
-msgstr "始终使用快速刷新"
-
-#: ../src/settings.cpp:450
-msgid "Don't use fast updates"
+#, fuzzy
+msgid "Don't use page refresh"
 msgstr "不使用快速刷新"
 
+#: ../src/settings.cpp:450
+msgid "Use page refresh always"
+msgstr ""
+
 #: ../src/settings.cpp:451
-msgid "Full updates every 2 pages"
+#, fuzzy
+msgid "Use page refresh every 2 pages"
 msgstr "每2页整体刷新"
 
 #: ../src/settings.cpp:452
-msgid "Full updates every 3 pages"
+#, fuzzy
+msgid "Use page refresh every 3 pages"
 msgstr "每3页整体刷新"
 
 #: ../src/settings.cpp:453
-msgid "Full updates every 4 pages"
+#, fuzzy
+msgid "Use page refresh every 4 pages"
 msgstr "每4页整体刷新"
 
 #: ../src/settings.cpp:454
-msgid "Full updates every 5 pages"
+#, fuzzy
+msgid "Use page refresh every 5 pages"
 msgstr "每5页整体刷新"
 
 #: ../src/settings.cpp:455
-msgid "Full updates every 6 pages"
+#, fuzzy
+msgid "Use page refresh every 6 pages"
 msgstr "每6页整体刷新"
 
 #: ../src/settings.cpp:456
-msgid "Full updates every 8 pages"
+#, fuzzy
+msgid "Use page refresh every 8 pages"
 msgstr "每8页整体刷新"
 
 #: ../src/settings.cpp:457
-msgid "Full updates every 10 pages"
+#, fuzzy
+msgid "Use page refresh every 10 pages"
 msgstr "每10页整体刷新"
 
 #: ../src/settings.cpp:458
-msgid "Full updates every 14 pages"
+#, fuzzy
+msgid "Use page refresh every 14 pages"
 msgstr "每14页整体刷新"
 
 #: ../src/settings.cpp:463
@@ -1042,11 +1056,6 @@ msgstr "跳到百分数……"
 msgid "PocketBook Main menu"
 msgstr "PocketBook 主菜单"
 
-#: ../src/viewdlg.cpp:574
-#, fuzzy
-msgid "Open book!"
-msgstr "打开书籍"
-
 #: ../src/viewdlg.cpp:575
 msgid "Unknown command"
 msgstr "未知命令"
@@ -1102,6 +1111,13 @@ msgstr "键"
 #: ../src/viewdlg.cpp:626
 msgid "Assigned function"
 msgstr "分配的功能"
+
+#~ msgid "Always use fast updates"
+#~ msgstr "始终使用快速刷新"
+
+#, fuzzy
+#~ msgid "Open book!"
+#~ msgstr "打开书籍"
 
 #~ msgid "Close book"
 #~ msgstr "关闭书籍"

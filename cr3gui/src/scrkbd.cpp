@@ -12,7 +12,7 @@
 
 #include "scrkbd.h"
 
-#ifdef KINDLE_TOUCH
+#if KINDLE_TOUCH==1
 bool CRScreenKeyboard::onKeyPressed( int key, int flags ) {
 
     CRRectSkinRef clientSkin = _skin->getClientSkin();
@@ -289,7 +289,7 @@ CRScreenKeyboard::CRScreenKeyboard(CRGUIWindowManager * wm, int id, const lStrin
     setAccelerators( _wm->getAccTables().get("vkeyboard") );
     _cols = 10;
 	setLayout( wm->getKeyboardLayouts().getCurrentLayout() );
-	#ifdef KINDLE_TOUCH
+	#if KINDLE_TOUCH==1
 	_rectBottom = _rect.bottom;
 	#endif
 }
@@ -336,7 +336,7 @@ bool CRScreenKeyboard::onCommand( int command, int params )
 			setLayout( _wm->getKeyboardLayouts().prevLayout() );
         }
         break;
-#ifndef KINDLE_TOUCH    
+#if KINDLE_TOUCH!=1    
 	case MCMD_SELECT_0:
     case MCMD_SELECT_1:
     case MCMD_SELECT_2:

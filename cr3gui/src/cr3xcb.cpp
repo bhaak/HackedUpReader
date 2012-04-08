@@ -1110,7 +1110,7 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
         case XCB_BUTTON_RELEASE:
             {
                 xcb_button_press_event_t *button_event = (xcb_button_press_event_t *)event;
-#ifdef KINDLE_TOUCH
+#if KINDLE_TOUCH==1
                 _posX = button_event->event_x;
                 _posY = button_event->event_y;
 #endif
@@ -1305,7 +1305,7 @@ int main(int argc, char **argv)
     CRLog::setLogLevel( CRLog::LL_TRACE );
 #else
     //CRLog::setLogLevel( CRLog::LL_ERROR );
-#ifndef KINDLE_TOUCH
+#if KINDLE_TOUCH!=1
     InitCREngineLog("/home/user/.crengine/crlog.ini");
 #else
 	InitCREngineLog("/mnt/us/cr3xcb/crlog.ini");
@@ -1392,7 +1392,7 @@ int main(int argc, char **argv)
     CRLog::info("Filename to open=\"%s\"", LCSTR(fn16) );
     if ( fn8.startsWith( lString8("/media/sd/") ) )
         bmkdir = "/media/sd/bookmarks/";
-#ifdef KINDLE_TOUCH
+#if KINDLE_TOUCH==1
     else
         bmkdir = "/mnt/us/cr3xcb/bookmarks/";
 #endif
@@ -1403,7 +1403,7 @@ int main(int argc, char **argv)
         CRXCBWindowManager winman( 600, 800 );
 
 #endif
-    #ifndef KINDLE_TOUCH
+    #if KINDLE_TOUCH!=1
     ldomDocCache::init( lString16(L"/media/sd/.cr3/cache"), 0x100000 * 64 );
 	#else
 	ldomDocCache::init( lString16(L"/tmp/.cr3/cache"), 0x100000 * 64 ); /*64Mb*/
@@ -1427,7 +1427,7 @@ int main(int argc, char **argv)
         loadKeymaps( winman, keymap_locations );
 
         if ( !winman.loadSkin(  homecrengine + L"skin" ) )
-			#ifndef KINDLE_TOUCH
+			#if KINDLE_TOUCH!=1
             winman.loadSkin(  lString16( L"/media/sd/crengine/skin" ) );
 			#else
 			winman.loadSkin( lString16( L"/mnt/us/cr3xcb/share/cr3/kindle_touch/skins/default" ) );
@@ -1446,7 +1446,7 @@ int main(int argc, char **argv)
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
-        #ifndef KINDLE_TOUCH
+        #if KINDLE_TOUCH!=1
 		main_win->loadDefaultCover( lString16( L"/media/sd/crengine/cr3_def_cover.png" ) );
 		main_win->loadCSS(  lString16( L"/media/sd/crengine/fb2.css" ) );
 		main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) );
@@ -1465,7 +1465,7 @@ int main(int argc, char **argv)
         CRLog::trace("choosing init file...");
         const lChar16 * ini_fname = L"cr3.ini";
     #ifdef SEPARATE_INI_FILES
-    #ifndef KINDLE_TOUCH
+    #if KINDLE_TOUCH!=1
         if ( strstr(fname, ".txt")!=NULL || strstr(fname, ".tcr")!=NULL) {
             ini_fname = L"cr3-txt.ini";
         } else if ( strstr(fname, ".rtf")!=NULL ) {
@@ -1480,7 +1480,7 @@ int main(int argc, char **argv)
     #endif
     #endif
         const lChar16 * dirs[] = {
-        #ifndef KINDLE_TOUCH    
+        #if KINDLE_TOUCH!=1    
 			L"/media/sd/crengine/",
         #endif
 		    homecrengine.c_str(),

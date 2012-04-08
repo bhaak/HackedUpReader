@@ -764,6 +764,7 @@ lString16 CRSettingsMenu::getStatusText()
     if ( !_acceleratorTable->findCommandKey( MCMD_OK, 0, applyKey, applyFlags )
         || !_acceleratorTable->findCommandKey( MCMD_CANCEL, 0, cancelKey, cancelFlags ) )
         return _statusText;
+#if KINDLE_TOUCH!=1		
     lString16 pattern(_("Press $1 to change option\n$2 to apply, $3 to cancel"));
 #ifdef CR_POCKETBOOK
 	pattern.replaceParam(1, getCommandKeyName(MCMD_SELECT) );
@@ -772,5 +773,9 @@ lString16 CRSettingsMenu::getStatusText()
 #endif
     pattern.replaceParam(2, getCommandKeyName(MCMD_OK) );
     pattern.replaceParam(3, getCommandKeyName(MCMD_CANCEL) );
+#else
+    lString16 pattern(_("Press $1 to change option"));
+    pattern.replaceParam(1, getItemNumberKeysName());
+#endif
     return pattern;
 }

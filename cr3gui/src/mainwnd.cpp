@@ -917,7 +917,7 @@ VIEWER_MENU_4ABOUT=About...
 
     menu_win->setAccelerators( getMenuAccelerators() );
 
-#ifndef KINDLE_TOUCH
+#if KINDLE_TOUCH!=1
     lString16 s(_("$1 - choose command\n$2, $3 - close"));
 #ifdef CR_POCKETBOOK
 	s.replaceParam(1, menu_win->getCommandKeyName( MCMD_SELECT ));

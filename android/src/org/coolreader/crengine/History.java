@@ -309,7 +309,7 @@ public class History extends FileInfoChangeSource {
 			coverpageData = new byte[] {};
 		if ( oldData==null || oldData.length!=coverpageData.length ) { 
 			coverPageCache.put(bookId, coverpageData);
-			db().saveBookCoverpage(bookId, coverpageData);
+			//db().saveBookCoverpage(bookId, coverpageData);
 		}
 	}
 
@@ -363,20 +363,6 @@ public class History extends FileInfoChangeSource {
 		if ( mRecentBooksFolder==null )
 			Log.v("cr3", "History.loadFromDB() : mRecentBooksFolder is null");
 		return true;
-	}
-
-	public boolean saveToDB()
-	{
-		Log.v("cr3", "History.saveToDB()");
-		// TODO:
-		return false;
-//		try {
-//			db().save(mBooks);
-//			return true;
-//		} catch ( Exception e ) {
-//			Log.e("cr3", "error while saving file history " + e.getMessage(), e);
-//			return false;
-//		}
 	}
 
 }

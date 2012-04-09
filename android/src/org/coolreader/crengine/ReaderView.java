@@ -3367,63 +3367,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return mBatteryState;
 	}
 	
-	static class VMRuntimeHack {
-		private Object runtime = null;
-		private Method trackAllocation = null;
-		private Method trackFree = null;
-		
-		public boolean trackAlloc(long size) {
-			if (runtime == null)
-				return false;
-			try {
-				Object res = trackAllocation.invoke(runtime, Long.valueOf(size));
-				return (res instanceof Boolean) ? (Boolean)res : true;
-			} catch (IllegalArgumentException e) {
-				return false;
-			} catch (IllegalAccessException e) {
-				return false;
-			} catch (InvocationTargetException e) {
-				return false;
-			}
-		}
-		public boolean trackFree(long size) {
-			if (runtime == null)
-				return false;
-			try {
-				Object res = trackFree.invoke(runtime, Long.valueOf(size));
-				return (res instanceof Boolean) ? (Boolean)res : true;
-			} catch (IllegalArgumentException e) {
-				return false;
-			} catch (IllegalAccessException e) {
-				return false;
-			} catch (InvocationTargetException e) {
-				return false;
-			}
-		}
-		public VMRuntimeHack() {
-			boolean success = false;
-			try {
-				Class cl = Class.forName("dalvik.system.VMRuntime");
-				Method getRt = cl.getMethod("getRuntime", new Class[0]);
-				runtime = getRt.invoke(null, new Object[0]);
-				trackAllocation = cl.getMethod("trackExternalAllocation", new Class[] {long.class});
-				trackFree = cl.getMethod("trackExternalFree", new Class[] {long.class});
-				success = true;
-			} catch (ClassNotFoundException e) {
-			} catch (SecurityException e) {
-			} catch (NoSuchMethodException e) {
-			} catch (IllegalArgumentException e) {
-			} catch (IllegalAccessException e) {
-			} catch (InvocationTargetException e) {
-			}
-			if (!success) {
-				log.i("VMRuntime hack does not work!");
-				runtime = null;
-				trackAllocation = null;
-				trackFree = null;
-			}
-		}
-	}
 	private static final VMRuntimeHack runtime = new VMRuntimeHack();
 	
 	private static class BitmapFactory {
@@ -4940,7 +4883,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.d("LoadDocumentTask, GUI thread is finished successfully");
 			if ( mActivity.getHistory()!=null ) {
 	    		mActivity.getHistory().updateBookAccess(mBookInfo);
-	    		mActivity.getHistory().saveToDB();
+	    		mActivity.getDB().saveBookInfo(mBookInfo);
 		        if (mBookInfo.getFileInfo().id!=null && coverPageBytes!=null && coverPageDrawable!=null && mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
 		        	if (mBookInfo.getFileInfo().format.needCoverPageCaching())
 		        		mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
@@ -5203,7 +5146,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
                 mBookInfo.setLastPosition(bmk);
             if ( saveToDB ) {
                 mActivity.getHistory().updateRecentDir();
-                mActivity.getHistory().saveToDB();
+                mActivity.getDB().saveBookInfo(mBookInfo);
                 mActivity.getDB().flush();
             }
         }
@@ -5221,7 +5164,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    		bmk.setType(Bookmark.TYPE_LAST_POSITION);
 	    		mBookInfo.setLastPosition(bmk);
 	    		mActivity.getHistory().updateRecentDir();
-	    		mActivity.getHistory().saveToDB();
+	    		mActivity.getDB().saveBookInfo(mBookInfo);
                 log.i("SavePositionTask.done()");
 	    	}
 		}

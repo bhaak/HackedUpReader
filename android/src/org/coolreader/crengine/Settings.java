@@ -93,6 +93,7 @@ public interface Settings {
     public static final String PROP_APP_FULLSCREEN          ="app.fullscreen";
     public static final String PROP_APP_BOOK_PROPERTY_SCAN_ENABLED ="app.browser.fileprops.scan.enabled";
     public static final String PROP_APP_SHOW_COVERPAGES     ="app.browser.coverpages";
+    public static final String PROP_APP_COVERPAGE_SIZE     ="app.browser.coverpage.size"; // 0==small, 2==BIG
     public static final String PROP_APP_SCREEN_ORIENTATION  ="app.screen.orientation";
     public static final String PROP_APP_SCREEN_BACKLIGHT    ="app.screen.backlight";
     public static final String PROP_APP_SCREEN_BACKLIGHT_DAY   ="app.screen.backlight.day";
@@ -162,6 +163,7 @@ public interface Settings {
     	EN("en", R.string.options_app_locale_en, R.raw.help_template_en),
     	DE("de", R.string.options_app_locale_de, 0),
     	ES("es", R.string.options_app_locale_es, 0),
+    	FR("fr", R.string.options_app_locale_fr, 0),
     	RU("ru", R.string.options_app_locale_ru, R.raw.help_template_ru),
     	UK("uk", R.string.options_app_locale_uk, R.raw.help_template_ru),
     	BG("bg", R.string.options_app_locale_bg, 0),

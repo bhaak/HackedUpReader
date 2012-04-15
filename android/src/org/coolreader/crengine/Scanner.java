@@ -2,7 +2,6 @@ package org.coolreader.crengine;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -11,8 +10,6 @@ import java.util.zip.ZipEntry;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
-import org.coolreader.crengine.Engine.EngineTask;
-import org.coolreader.db.CRDB;
 import org.coolreader.db.CRDBService;
 
 import android.util.Log;
@@ -31,40 +28,6 @@ public class Scanner extends FileInfoChangeSource {
 		mHideEmptyDirs = flgHide;
 	}
 
-//	private boolean scanDirectories( FileInfo baseDir )
-//	{
-//		try {
-//			File dir = new File(baseDir.pathname);
-//			File[] items = dir.listFiles();
-//			// process normal files
-//			for ( File f : items ) {
-//				if ( !f.isDirectory() ) {
-//					FileInfo item = new FileInfo( f );
-//					if ( item.format!=null ) {
-//						item.parent = baseDir;
-//						baseDir.addFile(item);
-//						mFileList.add(item);
-//					}
-//				}
-//			}
-//			// process directories 
-//			for ( File f : items ) {
-//				if ( f.isDirectory() ) {
-//					FileInfo item = new FileInfo( f );
-//					item.parent = baseDir;
-//					scanDirectories(item);
-//					if ( !item.isEmpty() ) {
-//						baseDir.addDir(item);					
-//					}
-//				}
-//			}
-//			return !baseDir.isEmpty();
-//		} catch ( Exception e ) {
-//			L.e("Exception while scanning directory " + baseDir.pathname, e);
-//			return false;
-//		}
-//	}
-	
 	private boolean dirScanEnabled = true;
 	public boolean getDirScanEnabled()
 	{
@@ -134,7 +97,7 @@ public class Scanner extends FileInfoChangeSource {
 	 * @param baseDir is directory to list files and dirs for
 	 * @return true if successful.
 	 */
-	public boolean listDirectory( FileInfo baseDir )
+	public boolean listDirectory(FileInfo baseDir)
 	{
 		Set<String> knownItems = null;
 		if ( baseDir.isListed ) {
@@ -155,12 +118,22 @@ public class Scanner extends FileInfoChangeSource {
 			// process normal files
 			if ( items!=null ) {
 				for ( File f : items ) {
-					if ( !f.isDirectory() ) {
+					// check whether file is a link
+					if (Engine.isLink(f.getAbsolutePath()) != null) {
+						log.w("skipping " + f + " because it's a link");
+						continue;
+					}
+					if (!f.isDirectory()) {
+						// regular file
 						if ( f.getName().startsWith(".") )
 							continue; // treat files beginning with '.' as hidden
 						String pathName = f.getAbsolutePath();
 						if ( knownItems!=null && knownItems.contains(pathName) )
 							continue;
+						if (engine.isRootsMountPoint(pathName)) {
+							// skip mount root
+							continue;
+						}
 						boolean isZip = pathName.toLowerCase().endsWith(".zip");
 						FileInfo item = mFileList.get(pathName);
 						boolean isNew = false;
@@ -248,9 +221,16 @@ public class Scanner extends FileInfoChangeSource {
 		ArrayList<String> pathNames = new ArrayList<String>();
 		for (int i=0; i < baseDir.fileCount(); i++)
 			pathNames.add(baseDir.getFile(i).getPathName());
+
 		if (pathNames.size() == 0) {
 			readyCallback.run();
 			return;
+		}
+
+		for (int i=0; i < baseDir.dirCount(); i++) {
+			if (control.isStopped())
+				break;
+			listDirectory(baseDir.getDir(i));
 		}
 			
 		db().loadFileInfos(pathNames, new CRDBService.FileInfoLoadingCallback() {
@@ -335,8 +315,7 @@ public class Scanner extends FileInfoChangeSource {
 	 * @param baseDir is directory to scan
 	 * @param readyCallback is called on completion
 	 */
-	public void scanDirectory( final FileInfo baseDir, final Runnable readyCallback, final boolean recursiveScan, final ScanControl scanControl )
-	{
+	public void scanDirectory(final FileInfo baseDir, final Runnable readyCallback, final boolean recursiveScan, final ScanControl scanControl) {
 		// Call in GUI thread only!
 		BackgroundThread.ensureGUI();
 		listDirectory(baseDir);
@@ -364,7 +343,9 @@ public class Scanner extends FileInfoChangeSource {
 								return;
 							final ArrayList<FileInfo> dirsToScan = new ArrayList<FileInfo>(); 
 							for ( int i=baseDir.dirCount()-1; i>=0; i-- ) {
-								dirsToScan.add(baseDir.getDir(i));
+								File dir = new File(baseDir.getDir(i).getPathName());
+								if (!engine.getPathCorrector().isRecursivePath(dir))
+									dirsToScan.add(baseDir.getDir(i));
 							}
 							Runnable dirIterator = new Runnable() {
 								@Override
@@ -391,68 +372,41 @@ public class Scanner extends FileInfoChangeSource {
 			}
 		});
 	}
-
-//	private int lastPercent = 0;
-//	private long lastProgressUpdate = 0;
-//	private final int PROGRESS_UPDATE_INTERVAL = 2000; // 2 seconds
-//	private void updateProgress( int percent )
-//	{
-//		long ts = System.currentTimeMillis();
-//		if ( percent!=lastPercent && ts>lastProgressUpdate+PROGRESS_UPDATE_INTERVAL ) {
-//			engine.showProgress(percent, "Scanning directories...");
-//			lastPercent = percent;
-//			lastProgressUpdate = ts;
-//		}
-//	}
 	
-//	private void lookupDB()
-//	{
-//		int count = mFileList.size();
-//		for ( int i=0; i<count; i++ ) {
-//			FileInfo item = mFileList.get(i);
-//			boolean found = db().findByPathname(item);
-//			if ( found )
-//				Log.v("cr3db", "File " + item.pathname + " is found in DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
-//
-//			boolean saveToDB = true;
-//			if ( !found && item.format==DocumentFormat.FB2 ) {
-//				mFilesForParsing.add(item);
-//				saveToDB = false;
-//			}
-//
-//			if ( !found && saveToDB ) {
-//				db().save(item);
-//				Log.v("cr3db", "File " + item.pathname + " is added to DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
-//			}
-//			updateProgress( 1000 + 4000 * i / count );
-//		}
-//	}
-//	
-//	private void parseBookProperties()
-//	{
-//		int count = mFilesForParsing.size();
-//		for ( int i=0; i<count; i++ ) {
-//			FileInfo item = mFilesForParsing.get(i);
-//			engine.scanBookProperties(item);
-//			db().save(item);
-//			Log.v("cr3db", "File " + item.pathname + " is added to DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
-//			updateProgress( 5000 + 5000 * i / count );
-//		}
-//	}
-	
-	private boolean addRoot( String pathname, int resourceId, boolean listIt)
-	{
+	private boolean addRoot( String pathname, int resourceId, boolean listIt) {
 		return addRoot( pathname, coolReader.getResources().getString(resourceId), listIt);
 	}
-	private boolean addRoot( String pathname, String filename, boolean listIt)
-	{
+
+	private FileInfo findRoot(String pathname) {
+		String normalized = engine.getPathCorrector().normalizeIfPossible(pathname);
+		for (int i = 0; i<mRoot.dirCount(); i++) {
+			FileInfo dir = mRoot.getDir(i);
+			if (normalized.equals(engine.getPathCorrector().normalizeIfPossible(dir.getPathName())))
+				return dir;
+		}
+		return null;
+	}
+
+	private boolean addRoot( String pathname, String filename, boolean listIt) {
 		FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = pathname;
 		dir.filename = filename;
-		if ( mRoot.findItemByPathName(pathname)!=null )
+		if (findRoot(pathname) != null) {
+			log.w("skipping duplicate root " + pathname);
 			return false; // exclude duplicates
-		if ( listIt && !listDirectory(dir) )
+		}
+		if (listIt) {
+			if (!dir.isWritableDirectory()) {
+				log.w("Skipping " + pathname + " - it's not a writable directory");
+				return false;
+			}
+			if (!listDirectory(dir)) {
+				log.w("Skipping " + pathname + " - listing failed");
+				return false;
+			}
+		}
+		if (listIt && !listDirectory(dir))
 			return false;
 		mRoot.addDir(dir);
 		dir.parent = mRoot;
@@ -524,8 +478,7 @@ public class Scanner extends FileInfoChangeSource {
 	 * @param root
 	 * @return
 	 */
-	private FileInfo findParentInternal( FileInfo file, FileInfo root )
-	{
+	private FileInfo findParentInternal(FileInfo file, FileInfo root)	{
 		if ( root==null || file==null || root.isRecentDir() )
 			return null;
 		if ( !root.isRootDir() && !file.getPathName().startsWith( root.getPathName() ) )
@@ -555,8 +508,7 @@ public class Scanner extends FileInfoChangeSource {
 	 * @param root
 	 * @return
 	 */
-	public FileInfo findParent( FileInfo file, FileInfo root )
-	{
+	public FileInfo findParent(FileInfo file, FileInfo root) {
 		FileInfo parent = findParentInternal(file, root);
 		if ( parent==null ) {
 			autoAddRootForFile(new File(file.pathname) );
@@ -578,8 +530,7 @@ public class Scanner extends FileInfoChangeSource {
 	 * @param limitTs is limit for android.os.SystemClock.uptimeMillis()
 	 * @return true if completed, false if stopped by limit. 
 	 */
-	private boolean listSubtree( FileInfo root, int maxDepth, long limitTs )
-	{
+	private boolean listSubtree(FileInfo root, int maxDepth, long limitTs) {
 		long ts = android.os.SystemClock.uptimeMillis();
 		if ( ts>limitTs || maxDepth<=0 )
 			return false;
@@ -601,8 +552,7 @@ public class Scanner extends FileInfoChangeSource {
 	 * @param limitTs is limit for android.os.SystemClock.uptimeMillis()
 	 * @return true if completed, false if stopped by limit. 
 	 */
-	public boolean listSubtrees( FileInfo root, int maxDepth, long limitTs )
-	{
+	public boolean listSubtrees(FileInfo root, int maxDepth, long limitTs) {
 		for ( int depth = 1; depth<=maxDepth; depth++ ) {
 			boolean res = listSubtree( root, depth, limitTs );
 			if ( res )
@@ -640,43 +590,8 @@ public class Scanner extends FileInfoChangeSource {
 			existingResults.addFile(item);
 		return existingResults;
 	}
-
-	private void autoAddRoots( String rootPath, String[] pathsToExclude )
-	{
-		try {
-			File root = new File(rootPath);
-			File[] files = root.listFiles();
-			if ( files!=null ) {
-				for ( File f : files ) {
-					if ( !f.isDirectory() )
-						continue;
-					String fullPath = f.getAbsolutePath();
-					if ( engine.isLink(fullPath) ) {
-						L.d("skipping symlink " + fullPath);
-						continue;
-					}
-					boolean skip = false;
-					for ( String path : pathsToExclude ) {
-						if ( fullPath.startsWith(path) ) {
-							skip = true;
-							break;
-						}
-					}
-					if ( skip )
-						continue;
-					if ( !f.canWrite() )
-						continue;
-					L.i("Found possible mount point " + f.getAbsolutePath());
-					addRoot(f.getAbsolutePath(), f.getAbsolutePath(), true);
-				}
-			}
-		} catch ( Exception e ) {
-			L.w("Exception while trying to auto add roots");
-		}
-	}
 	
-	public void initRoots(Map<String, String> fsRoots)
-	{
+	public void initRoots(Map<String, String> fsRoots) {
 		Log.d("cr3", "Scanner.initRoots(" + fsRoots + ")");
 		mRoot.clear();
 		// create recent books dir
@@ -817,7 +732,7 @@ public class Scanner extends FileInfoChangeSource {
 	private CRDBService.LocalBinder db() {
 		return coolReader.getDB();
 	}
-
+	
 	private final Engine engine;
 	private final CoolReader coolReader;
 }

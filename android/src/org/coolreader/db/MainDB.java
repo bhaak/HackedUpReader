@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.Bookmark;
@@ -13,8 +14,8 @@ import org.coolreader.crengine.DocumentFormat;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
+import org.coolreader.crengine.MountPathCorrector;
 import org.coolreader.crengine.Utils;
-import org.coolreader.db.CRDB.QueryHelper;
 
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -24,8 +25,10 @@ import android.util.Log;
 
 public class MainDB extends BaseDB {
 	public static final Logger log = L.create("mdb");
+	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
-	public final int DB_VERSION = 8;
+	private boolean pathCorrectionRequired = false;
+	public final int DB_VERSION = 13;
 	@Override
 	protected boolean upgradeSchema() {
 		if (mDB.needUpgrade(DB_VERSION)) {
@@ -61,7 +64,8 @@ public class MainDB extends BaseDB {
 					"arcsize INTEGER," +
 					"create_time INTEGER," +
 					"last_access_time INTEGER, " +
-					"flags INTEGER DEFAULT 0" +
+					"flags INTEGER DEFAULT 0, " +
+					"language VARCHAR DEFAULT NULL" +
 					")");
 			execSQL("CREATE INDEX IF NOT EXISTS " +
 					"book_folder_index ON book (folder_fk) ");
@@ -109,15 +113,19 @@ public class MainDB extends BaseDB {
 						"name VARCHAR NOT NULL COLLATE NOCASE, " +
 						"url VARCHAR NOT NULL COLLATE NOCASE" +
 						")");
-			if ( currentVersion<7 ) {
+			if (currentVersion < 7) {
 				addOPDSCatalogs(DEF_OPDS_URLS1);
 				if (!DeviceInfo.NOFLIBUSTA)
 					addOPDSCatalogs(DEF_OPDS_URLS1A);
 			}
-			if ( currentVersion<8 )
+			if (currentVersion < 8)
 				addOPDSCatalogs(DEF_OPDS_URLS2);
+			if (currentVersion < 12)
+				pathCorrectionRequired = true;
+			if ( currentVersion<13 )
+			    execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN language VARCHAR DEFAULT NULL");
+			// add more updates above this line
 			//==============================================================
-			// add more updates here
 				
 			// set current version
 			if (currentVersion < DB_VERSION)
@@ -151,11 +159,6 @@ public class MainDB extends BaseDB {
 	}
 
 	public void flush() {
-		ArrayList<FileInfo> unsavedFiles = fileInfoCache.getUnsaved();
-		if (unsavedFiles != null) {
-			// TODO: save
-		}
-		
         super.flush();
         if (seriesStmt != null) {
             seriesStmt.close();
@@ -240,14 +243,14 @@ public class MainDB extends BaseDB {
 			}
 				
 		} catch (Exception e) {
-			Log.e("cr3", "exception while saving OPDS catalog item", e);
+			log.e("exception while saving OPDS catalog item", e);
 			return false;
 		}
 		return true;
 	}
 
 	public boolean loadOPDSCatalogs(ArrayList<FileInfo> list) {
-		Log.i("cr3", "loadOPDSCatalogs()");
+		log.i("loadOPDSCatalogs()");
 		boolean found = false;
 		Cursor rs = null;
 		try {
@@ -730,8 +733,7 @@ public class MainDB extends BaseDB {
 		if (existing != null)
 			return existing;
 		FileInfo fileInfo = new FileInfo(); 
-		if (findBy(fileInfo, "pathname", fileInfo.getPathName())) {
-			fileInfoCache.put(fileInfo);
+		if (findBy(fileInfo, "pathname", path)) {
 			return fileInfo;
 		}
 		return null;
@@ -746,7 +748,6 @@ public class MainDB extends BaseDB {
 			return existing;
 		FileInfo fileInfo = new FileInfo(); 
 		if (findBy( fileInfo, "b.id", fileInfo.id)) {
-			fileInfoCache.put(fileInfo);
 			return fileInfo;
 		}
 		return null;
@@ -828,50 +829,67 @@ public class MainDB extends BaseDB {
 		if (bookInfo == null || bookInfo.getFileInfo() == null)
 			return;
 		save(bookInfo.getFileInfo());
+		fileInfoCache.put(bookInfo.getFileInfo());
 		HashMap<String, Bookmark> bookmarks = loadBookmarks(bookInfo.getFileInfo());
+		int changed = 0;
+		int removed = 0;
+		int added = 0;
 		for (Bookmark bmk : bookInfo.getAllBookmarks()) {
 			 Bookmark existing = bookmarks.get(bmk.getUniqueKey());
 			 if (existing != null) {
 				 bmk.setId(existing.getId());
-				 if (!bmk.equals(existing))
+				 if (!bmk.equals(existing)) {
 					 save(bmk, bookInfo.getFileInfo().id);
+					 changed++;
+				 }
 				 bookmarks.remove(existing.getUniqueKey());
 			 } else {
 				 // create new
 			 	 save(bmk, bookInfo.getFileInfo().id);
+			 	 added++;
 			 }
 		}
 		if (bookmarks.size() > 0) {
 			// remove bookmarks not found in new object
-			for (Bookmark bmk : bookmarks.values())
+			for (Bookmark bmk : bookmarks.values()) {
 				deleteBookmark(bmk);
+				removed++;
+			}
 		}
+		if (added + changed + removed > 0)
+			vlog.i("bookmarks added:" + added + ", updated: " + changed + ", removed:" + removed);
 	}
 
 	private boolean save(FileInfo fileInfo)	{
-		beginChanges();
 		boolean authorsChanged = true;
 		try {
 			FileInfo oldValue = findFileInfoByPathname(fileInfo.getPathName());
-			if (oldValue == null)
+			if (oldValue == null && fileInfo.id != null)
 				oldValue = findFileInfoById(fileInfo.id);
 			if (oldValue != null && fileInfo.id == null && oldValue.id != null)
 				fileInfo.id = oldValue.id;
 			if (oldValue != null) {
 				// found, updating
-				QueryHelper h = new QueryHelper(fileInfo, oldValue);
-				h.update(fileInfo.id);
-				authorsChanged = !eq(fileInfo.authors, oldValue.authors);
+				if (!fileInfo.equals(oldValue)) {
+					vlog.d("updating file " + fileInfo.getPathName());
+					beginChanges();
+					QueryHelper h = new QueryHelper(fileInfo, oldValue);
+					h.update(fileInfo.id);
+					authorsChanged = !eq(fileInfo.authors, oldValue.authors);
+				}
 			} else {
 				// inserting
-				QueryHelper h = new QueryHelper(fileInfo, oldValue);
+				vlog.d("inserting new file " + fileInfo.getPathName());
+				beginChanges();
+				QueryHelper h = new QueryHelper(fileInfo, new FileInfo());
 				fileInfo.id = h.insert();
 			}
 			
-			fileInfo.setModified(false);
 			fileInfoCache.put(fileInfo);
 			if (fileInfo.id != null) {
 				if ( authorsChanged ) {
+					vlog.d("updating authors for file " + fileInfo.getPathName());
+					beginChanges();
 					Long[] authorIds = getAuthorIds(fileInfo.authors);
 					saveBookAuthors(fileInfo.id, authorIds);
 				}
@@ -937,6 +955,7 @@ public class MainDB extends BaseDB {
 					if ( !fileInfo.fileExists() )
 						continue;
 					list.add(fileInfo);
+					fileInfoCache.put(fileInfo);
 					found = true;
 					if ( list.size()>maxCount )
 						break;
@@ -1088,6 +1107,7 @@ public class MainDB extends BaseDB {
 			add("last_access_time", (long)newValue.lastAccessTime, (long)oldValue.lastAccessTime);
 			add("create_time", (long)newValue.createTime, (long)oldValue.createTime);
 			add("flags", (long)newValue.flags, (long)oldValue.flags);
+			add("language", newValue.language, oldValue.language);
 		}
 		QueryHelper( Bookmark newValue, Bookmark oldValue, long bookId )
 		{
@@ -1113,7 +1133,7 @@ public class MainDB extends BaseDB {
 		"s.name as series_name, " +
 		"series_number, " +
 		"format, filesize, arcsize, " +
-		"create_time, last_access_time, flags ";
+		"create_time, last_access_time, flags, language ";
 	
 	private static final String READ_FILEINFO_SQL = 
 		"SELECT " +
@@ -1141,6 +1161,7 @@ public class MainDB extends BaseDB {
 		fileInfo.createTime = rs.getInt(i++);
 		fileInfo.lastAccessTime = rs.getInt(i++);
 		fileInfo.flags = rs.getInt(i++);
+	    fileInfo.language = rs.getString(i++);
 		fileInfo.isArchive = fileInfo.arcname!=null; 
 	}
 
@@ -1156,6 +1177,7 @@ public class MainDB extends BaseDB {
 					if ( !fileInfo.fileExists() )
 						continue;
 					list.add(fileInfo);
+					fileInfoCache.put(fileInfo);
 					found = true;
 				} while (rs.moveToNext());
 			}
@@ -1246,6 +1268,7 @@ public class MainDB extends BaseDB {
 					FileInfo fi = new FileInfo(); 
 					readFileInfoFromCursor( fi, rs );
 					list.add(fi);
+					fileInfoCache.put(fi);
 					count++;
 				} while ( count<maxCount && rs.moveToNext() );
 			}
@@ -1320,6 +1343,7 @@ public class MainDB extends BaseDB {
 			}
 			FileInfo fileInfo = new FileInfo(pathName);
 			if (loadByPathname(fileInfo)) {
+				fileInfoCache.put(fileInfo);
 				return fileInfo;
 			}
 		} catch (Exception e) {
@@ -1329,12 +1353,16 @@ public class MainDB extends BaseDB {
 	}
 	
 	private boolean loadByPathname(FileInfo fileInfo) {
-		return findBy(fileInfo, "pathname", fileInfo.getPathName());
+		if (findBy(fileInfo, "pathname", fileInfo.getPathName())) {
+			fileInfoCache.put(fileInfo);
+			return true;
+		}
+		return false;
 	}
 
-	private boolean loadById( FileInfo fileInfo ) {
-		return findBy(fileInfo, "b.id", fileInfo.id);
-	}
+//	private boolean loadById( FileInfo fileInfo ) {
+//		return findBy(fileInfo, "b.id", fileInfo.id);
+//	}
 
 	private Long getBookId(FileInfo fileInfo) {
 		Long bookId = null;
@@ -1351,18 +1379,74 @@ public class MainDB extends BaseDB {
 			loadByPathname(fileInfo);
 		return bookId;
 	}
-	public void deleteBook(FileInfo fileInfo)
+	public Long deleteBook(FileInfo fileInfo)
 	{
 		if (fileInfo == null)
-			return;
-		fileInfoCache.remove(fileInfo);
+			return null;
 		Long bookId = getBookId(fileInfo);
+		fileInfoCache.remove(fileInfo);
 		if (bookId == null)
-			return;
+			return null;
 		execSQLIgnoreErrors("DELETE FROM bookmark WHERE book_fk=" + bookId);
-		//execSQLIgnoreErrors("DELETE FROM coverpage WHERE book_fk=" + bookId);
 		execSQLIgnoreErrors("DELETE FROM book WHERE id=" + bookId);
+		return bookId;
+	}
+
+	public void correctFilePaths() {
+		Log.i("cr3", "checking data for path correction");
+		beginReading();
+		int rowCount = 0;
+		Map<String, Long> map = new HashMap<String, Long>();
+		Cursor rs = null;
+		try {
+			String sql = "SELECT id, pathname FROM book";
+			rs = mDB.rawQuery(sql, null);
+			if ( rs.moveToFirst() ) {
+				// read DB
+				do {
+					Long id = rs.getLong(0);
+					String pathname = rs.getString(1);
+					String corrected = pathCorrector.normalize(pathname);
+					if (pathname == null)
+						continue;
+					rowCount++;
+					if (corrected == null) {
+						Log.w("cr3", "DB contains unknown path " + pathname);
+					} else if (!pathname.equals(corrected)) {
+						map.put(pathname, id);
+					}
+				} while (rs.moveToNext());
+			}
+		} catch (Exception e) {
+			Log.e("cr3", "exception while loading list books to correct paths", e);
+		} finally {
+			if ( rs!=null )
+				rs.close();
+		}
+		Log.i("cr3", "Total rows: " + rowCount + ", " + (map.size() > 0 ? "need to correct " + map.size() + " items" : "no corrections required"));
+		if (map.size() > 0) {
+			beginChanges();
+			int count = 0;
+			for (Map.Entry<String, Long> entry : map.entrySet()) {
+				String pathname = entry.getKey();
+				String corrected = pathCorrector.normalize(pathname);
+				if (corrected != null && !corrected.equals(pathname)) {
+					count++;
+					execSQLIgnoreErrors("update book set pathname=" + quoteSqlString(corrected) + " WHERE id=" + entry.getValue());
+				}
+			}
+			flush();
+			log.i("Finished. Rows corrected: " + count);
+		}
 	}
 	
+	private MountPathCorrector pathCorrector;
+	public void setPathCorrector(MountPathCorrector corrector) {
+		this.pathCorrector = corrector;
+		if (pathCorrectionRequired) {
+			correctFilePaths();
+			pathCorrectionRequired = false;
+		}
+	}
 
 }

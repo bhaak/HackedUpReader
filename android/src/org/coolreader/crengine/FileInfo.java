@@ -41,6 +41,7 @@ public class FileInfo {
 	public String filename; // file name w/o path for normal file, with optional path for file inside archive 
 	public String pathname; // full path+arcname+filename
 	public String arcname; // archive file name w/o path
+	public String language; // document language
 	public DocumentFormat format;
 	public int size;
 	public int arcsize;
@@ -49,7 +50,6 @@ public class FileInfo {
 	public int flags;
 	public boolean isArchive;
 	public boolean isDirectory;
-	public boolean isModified;
 	public boolean isListed;
 	public boolean isScanned;
 	public FileInfo parent; // parent item
@@ -57,10 +57,63 @@ public class FileInfo {
 	
 	private ArrayList<FileInfo> files;// files
 	private ArrayList<FileInfo> dirs; // directories
-	
+
+	// 16 lower bits reserved for document flags
 	public static final int DONT_USE_DOCUMENT_STYLES_FLAG = 1;
 	public static final int DONT_REFLOW_TXT_FILES_FLAG = 2;
 	public static final int USE_DOCUMENT_FONTS_FLAG = 4;
+	
+	// bits 16..19 - reading state (0..15 max)
+	public static final int READING_STATE_SHIFT = 16;
+	public static final int READING_STATE_MASK = 0x0F;
+	public static final int STATE_NEW = 0;
+	public static final int STATE_TO_READ = 1;
+	public static final int STATE_TO_READING = 2;
+	public static final int STATE_FINISHED = 3;
+
+	// bits 20..23 - rate (0..15 max, 0..5 currently)
+	public static final int RATE_SHIFT = 20;
+	public static final int RATE_MASK = 0x0F;
+	public static final int RATE_VALUE_NOT_RATED = 0;
+	public static final int RATE_VALUE_1 = 1;
+	public static final int RATE_VALUE_2 = 2;
+	public static final int RATE_VALUE_3 = 3;
+	public static final int RATE_VALUE_4 = 4;
+	public static final int RATE_VALUE_5 = 5;
+	
+	/**
+	 * Get book reading state. 
+	 * @return reading state (one of STATE_XXX constants)
+	 */
+	public int getReadingState() {
+		return (flags >> READING_STATE_SHIFT) & READING_STATE_MASK;
+	}
+
+	/**
+	 * Set new reading state.
+	 * @param state is new reading state (one of STATE_XXX constants)
+	 */
+	public void setReadingState(int state) {
+		flags = (flags & ~(READING_STATE_MASK << READING_STATE_SHIFT))
+		 | ((state & READING_STATE_MASK) << READING_STATE_SHIFT);
+	}
+
+	/**
+	 * Get book reading state. 
+	 * @return reading state (one of STATE_XXX constants)
+	 */
+	public int getRate() {
+		return (flags >> READING_STATE_SHIFT) & READING_STATE_MASK;
+	}
+
+	/**
+	 * Set new reading state.
+	 * @param state is new reading state (one of STATE_XXX constants)
+	 */
+	public void setRate(int rate) {
+		flags = (flags & ~(RATE_MASK << RATE_SHIFT))
+		 | ((rate & RATE_MASK) << RATE_SHIFT);
+	}
 
 	/**
 	 * To separate archive name from file name inside archive.
@@ -85,6 +138,16 @@ public class FileInfo {
 	
 	public void setProfileId(int id) {
 		flags = (flags & ~(PROFILE_ID_MASK << PROFILE_ID_SHIFT)) | ((id & PROFILE_ID_MASK) << PROFILE_ID_SHIFT); 
+	}
+	
+	public String getTitleOrFileName() {
+		if (title != null && title.length() > 0)
+			return title;
+		if (authors != null && authors.length() > 0)
+			return "";
+		if (series != null && series.length() > 0)
+			return "";
+		return filename;
 	}
 	
 	/**
@@ -187,12 +250,14 @@ public class FileInfo {
 		pathname = v.pathname;
 		arcname = v.arcname;
 		format = v.format;
+		flags = v.flags;
 		size = v.size;
 		arcsize = v.arcsize;
 		isArchive = v.isArchive;
 		isDirectory = v.isDirectory;
 		createTime = v.createTime;
 		lastAccessTime = v.lastAccessTime;
+		language = v.language;
 	}
 	
 	/**
@@ -598,20 +663,27 @@ public class FileInfo {
 		return f.exists();
 	}
 	
-	public boolean isModified() {
-		return isModified || id==null;
+	/**
+	 * @return true if item is a directory, which exists and can be written to
+	 */
+	public boolean isWritableDirectory()
+	{
+		if (!isDirectory || isArchive || isSpecialDir())
+			return false;
+		File f = new File(pathname);
+		return f.isDirectory() && f.canWrite();
 	}
-
-	public void setModified(boolean isModified) {
-		this.isModified = isModified;
-	}
-
+	
 	public String getAuthors() {
 		return authors;
 	}
 	
 	public String getTitle() {
 		return title;
+	}
+	
+	public String getLanguage() {
+		return language;
 	}
 
 	public void clear()
@@ -707,7 +779,9 @@ public class FileInfo {
 				return -1;
 			if ( str2==null )
 				return 1;
-			
+		
+			str1 = str1.toLowerCase();
+			str2 = str2.toLowerCase();
 			int p1 = 0;
 			int p2 = 0;
 			for ( ;; ) {

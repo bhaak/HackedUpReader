@@ -777,7 +777,7 @@ public:
                         cnv.rev(&hdrLen);
                         cnv.rev(&recCount);
                     }
-                    LVArray<lUInt8> buf;
+                    LVArray<lUInt8> buf2;
                     for (lUInt32 i=0; i<recCount; i++) {
                         lUInt32 recType = 0;
                         lUInt32 recLen = 0;
@@ -787,7 +787,7 @@ public:
                             cnv.rev(&recType);
                             cnv.rev(&recLen);
                         }
-                        buf.reset();
+                        buf2.reset();
                         if (recLen > 8) {
                             lvpos_t nextPos = stream->GetPos() + recLen - 8;
                             //================================
@@ -798,15 +798,15 @@ public:
                                 stream->Read(&thumbOffset);
                                 cnv.msf(&thumbOffset);
                             } else {
-                                buf.addSpace(recLen);
-                                if (stream->Read(buf.get(), recLen - 8, NULL) != LVERR_OK)
+                                buf2.addSpace(recLen);
+                                if (stream->Read(buf2.get(), recLen - 8, NULL) != LVERR_OK)
                                     break;
                                 if (recType == 100) {
-                                    lString8 author((const char *)buf.get());
+                                    lString8 author((const char *)buf2.get());
                                     CRLog::trace("MOBI author: %s", author.c_str());
                                     m_doc_props->setString(DOC_PROP_AUTHORS, Utf8ToUnicode(author));
                                 } else if (recType == 105) {
-                                    lString8 s((const char *)buf.get());
+                                    lString8 s((const char *)buf2.get());
                                     CRLog::trace("MOBI subject: %s", s.c_str());
                                     m_doc_props->setString(DOC_PROP_TITLE, Utf8ToUnicode(s));
                                 }

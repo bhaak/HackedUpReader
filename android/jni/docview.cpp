@@ -429,7 +429,10 @@ DocViewNative::DocViewNative()
 
 static DocViewNative * getNative(JNIEnv * env, jobject _this)
 {
-    return (DocViewNative *)env->GetIntField(_this, gNativeObjectID);
+	DocViewNative * res = (DocViewNative *)env->GetIntField(_this, gNativeObjectID);
+	if (res == NULL)
+		CRLog::warn("Native DocView is NULL");
+	return res;
 }
 
 bool DocViewNative::loadDocument( lString16 filename )
@@ -972,7 +975,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_isRenderedIntern
 {
 	CRJNIEnv env(_env);
     DocViewNative * p = getNative(_env, _this);
-	if ( !p->_docview->isDocumentOpened() )
+	if (p == NULL || !p->_docview->isDocumentOpened())
 		return JNI_FALSE;
 	return p->_docview->IsRendered() ? JNI_TRUE : JNI_FALSE;
 }
@@ -987,7 +990,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getCurrentPageBoo
 {
 	CRJNIEnv env(_env);
     DocViewNative * p = getNative(_env, _this);
-	if ( !p->_docview->isDocumentOpened() )
+	if (p == NULL || !p->_docview->isDocumentOpened())
 		return NULL;
 	DocViewCallback callback( _env, p->_docview, _this );
 	
@@ -1048,6 +1051,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateBookInfoIntern
     CRStringField(fileinfo,"title").set(p->_docview->getTitle());
     CRStringField(fileinfo,"authors").set(p->_docview->getAuthors());
     CRStringField(fileinfo,"series").set(p->_docview->getSeries());
+    CRStringField(fileinfo,"language").set(p->_docview->getLanguage());
 }
 
 /*

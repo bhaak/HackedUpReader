@@ -22,6 +22,7 @@ import org.koekak.android.ebookdownloader.SonyBookSelector;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
+import android.graphics.drawable.Drawable;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -81,6 +82,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					//openContextMenu(_this);
 					//mActivity.loadDocument(item);
 					selectedItem = item;
+					
+					boolean bookInfoDialogEnabled = true; // TODO: it's for debug
+					if (!item.isDirectory && !item.isOPDSBook() && bookInfoDialogEnabled) {
+						BookInfo book = new BookInfo(item);
+						BookInfoEditDialog dlg = new BookInfoEditDialog(mActivity, mActivity.getReaderView(), book);
+						dlg.show();
+						return true;
+					}
+					
 					showContextMenu();
 					return true;
 				}
@@ -190,12 +200,16 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 
 		this.mCoverpageManager.setCoverpageReadyListener(new CoverpageReadyListener() {
 			@Override
-			public void onCoverpageReady(FileInfo file) {
+			public void onCoverpagesReady(ArrayList<FileInfo> files) {
 				if (currDirectory == null)
 					return;
-				if (currDirectory.findItemByPathName(file.getPathName()) == null)
-					return;
-				currentListAdapter.notifyDataSetChanged();
+				boolean found = false;
+				for (FileInfo file : files) {
+					if (currDirectory.findItemByPathName(file.getPathName()) != null)
+						found = true;
+				}
+				if (found)
+					currentListAdapter.notifyInvalidated();
 			}
 		});
 	}
@@ -218,6 +232,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			currentListAdapter.notifyDataSetChanged();
 		}
 		mListView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+		mListView.setCacheColorHint(0);
+		//mListView.setBackgroundResource(R.drawable.background_tiled_light);
 		removeAllViews();
 		addView(mListView);
 		mListView.setVisibility(VISIBLE);
@@ -376,23 +392,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	}
 	
 	boolean mInitStarted = false;
-//	boolean mInitialized = false;
 	public void init()
 	{
 		if ( mInitStarted )
 			return;
 		log.e("FileBrowser.init() called");
 		mInitStarted = true;
-		//mEngine.showProgress(1000, R.string.progress_scanning);
 		
-		BackgroundThread.instance().postGUI(new Runnable() {
-			@Override
-			public void run() {
-				mHistory.loadFromDB(mScanner, 100);
-				showDirectory( mScanner.mRoot, null );
-				mListView.setSelection(0);
-			}
-		});
+		showDirectory( mScanner.mRoot, null );
+		mListView.setSelection(0);
 	}
 	
 	public static String formatAuthors( String authors ) {
@@ -567,49 +575,49 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	public void setSortOrder(String orderName) {
 		setSortOrder(FileInfo.SortOrder.fromName(orderName));
 	}
-	public void showSortOrderMenu() {
-		final Properties properties = new Properties();
-		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, mActivity.getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
-		final String oldValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
-		int[] optionLabels = {
-			FileInfo.SortOrder.FILENAME.resourceId,	
-			FileInfo.SortOrder.FILENAME_DESC.resourceId,	
-			FileInfo.SortOrder.AUTHOR_TITLE.resourceId,	
-			FileInfo.SortOrder.AUTHOR_TITLE_DESC.resourceId,	
-			FileInfo.SortOrder.TITLE_AUTHOR.resourceId,	
-			FileInfo.SortOrder.TITLE_AUTHOR_DESC.resourceId,	
-			FileInfo.SortOrder.TIMESTAMP.resourceId,	
-			FileInfo.SortOrder.TIMESTAMP_DESC.resourceId,	
-		};
-		String[] optionValues = {
-			FileInfo.SortOrder.FILENAME.name(),	
-			FileInfo.SortOrder.FILENAME_DESC.name(),	
-			FileInfo.SortOrder.AUTHOR_TITLE.name(),	
-			FileInfo.SortOrder.AUTHOR_TITLE_DESC.name(),	
-			FileInfo.SortOrder.TITLE_AUTHOR.name(),	
-			FileInfo.SortOrder.TITLE_AUTHOR_DESC.name(),	
-			FileInfo.SortOrder.TIMESTAMP.name(),	
-			FileInfo.SortOrder.TIMESTAMP_DESC.name(),	
-		};
-		OptionsDialog.ListOption dlg = new OptionsDialog.ListOption(
-			new OptionOwner() {
-				public CoolReader getActivity() { return mActivity; }
-				public Properties getProperties() { return properties; }
-				public LayoutInflater getInflater() { return mInflater; }
-			}, 
-			mActivity.getString(R.string.mi_book_sort_order), 
-			ReaderView.PROP_APP_BOOK_SORT_ORDER).add(optionValues, optionLabels); 
-		dlg.setOnChangeHandler(new Runnable() {
-			public void run() {
-				final String newValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
-				if ( newValue!=null && oldValue!=null && !newValue.equals(oldValue) ) {
-					log.d("New sort order: " + newValue);
-					setSortOrder(newValue);
-				}
-			}
-		});
-		dlg.onSelect();
-	}
+//	public void showSortOrderMenu() {
+//		final Properties properties = new Properties();
+//		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, mActivity.getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
+//		final String oldValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
+//		int[] optionLabels = {
+//			FileInfo.SortOrder.FILENAME.resourceId,	
+//			FileInfo.SortOrder.FILENAME_DESC.resourceId,	
+//			FileInfo.SortOrder.AUTHOR_TITLE.resourceId,	
+//			FileInfo.SortOrder.AUTHOR_TITLE_DESC.resourceId,	
+//			FileInfo.SortOrder.TITLE_AUTHOR.resourceId,	
+//			FileInfo.SortOrder.TITLE_AUTHOR_DESC.resourceId,	
+//			FileInfo.SortOrder.TIMESTAMP.resourceId,	
+//			FileInfo.SortOrder.TIMESTAMP_DESC.resourceId,	
+//		};
+//		String[] optionValues = {
+//			FileInfo.SortOrder.FILENAME.name(),	
+//			FileInfo.SortOrder.FILENAME_DESC.name(),	
+//			FileInfo.SortOrder.AUTHOR_TITLE.name(),	
+//			FileInfo.SortOrder.AUTHOR_TITLE_DESC.name(),	
+//			FileInfo.SortOrder.TITLE_AUTHOR.name(),	
+//			FileInfo.SortOrder.TITLE_AUTHOR_DESC.name(),	
+//			FileInfo.SortOrder.TIMESTAMP.name(),	
+//			FileInfo.SortOrder.TIMESTAMP_DESC.name(),	
+//		};
+//		OptionsDialog.ListOption dlg = new OptionsDialog.ListOption(
+//			new OptionOwner() {
+//				public CoolReader getActivity() { return mActivity; }
+//				public Properties getProperties() { return properties; }
+//				public LayoutInflater getInflater() { return mInflater; }
+//			}, 
+//			mActivity.getString(R.string.mi_book_sort_order), 
+//			ReaderView.PROP_APP_BOOK_SORT_ORDER).add(optionValues, optionLabels); 
+//		dlg.setOnChangeHandler(new Runnable() {
+//			public void run() {
+//				final String newValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
+//				if ( newValue!=null && oldValue!=null && !newValue.equals(oldValue) ) {
+//					log.d("New sort order: " + newValue);
+//					setSortOrder(newValue);
+//				}
+//			}
+//		});
+//		dlg.onSelect();
+//	}
 	
 	private void showOPDSDir( final FileInfo fileOrDir, final FileInfo itemToSelect ) {
 		
@@ -1054,19 +1062,19 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						if ( isSimple ) {
 							image.setImageResource(item.format.getIconResourceId());
 						} else {
-							image.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(item));
-							image.setMinimumHeight(120);
-							image.setMinimumWidth(90);
-//							Drawable drawable = null;
-//							if ( item.id!=null )
-//								drawable = mHistory.getBookCoverpageImage(null, item);
-//							if ( drawable!=null ) {
-//								image.setImageDrawable(drawable);
-//							} else {
-//								int resId = item.format!=null ? item.format.getIconResourceId() : 0;
-//								if ( resId!=0 )
-//									image.setImageResource(item.format.getIconResourceId());
-//							}
+							if (coverPagesEnabled) {
+								image.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(item));
+								image.setMinimumHeight(coverPageHeight);
+								image.setMinimumWidth(coverPageWidth);
+								image.setMaxHeight(coverPageHeight);
+								image.setMaxWidth(coverPageWidth);
+							} else {
+								image.setImageDrawable(null);
+								image.setMinimumHeight(0);
+								image.setMinimumWidth(0);
+								image.setMaxHeight(0);
+								image.setMaxWidth(0);
+							}
 						}
 					}
 					if ( isSimple ) {
@@ -1258,4 +1266,61 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
     	return currDirectory;
     }
 
+    private boolean coverPagesEnabled = true;
+    private int coverPageHeight = 120;
+    private int coverPageWidth = 90;
+    private int coverPageSizeOption = 1; // 0==small, 2==BIG
+    private int screenWidth = 480;
+    private int screenHeight = 320;
+    private void setCoverSizes(int screenWidth, int screenHeight) {
+    	this.screenWidth = screenWidth;
+    	this.screenHeight = screenHeight;
+    	int minScreenSize = screenWidth < screenHeight ? screenWidth : screenHeight;
+    	int minh = 80;
+    	int maxh = minScreenSize / 3;
+    	int avgh = (minh + maxh) / 2;  
+    	int h = avgh; // medium
+    	if (coverPageSizeOption == 2)
+    		h = maxh; // big
+    	else if (coverPageSizeOption == 0)
+    		h = minh; // small
+    	int w = h * 3 / 4;
+    	if (coverPageHeight != h) {
+	    	coverPageHeight = h;
+	    	coverPageWidth = w;
+	    	if (mCoverpageManager.setCoverpageSize(coverPageWidth, coverPageHeight))
+	    		currentListAdapter.notifyDataSetChanged();
+    	}
+    }
+
+    @Override
+	protected void onSizeChanged(final int w, final int h, int oldw, int oldh) {
+    	setCoverSizes(w, h);
+	}
+    
+    public void setCoverPageSizeOption(int coverPageSizeOption) {
+    	if (this.coverPageSizeOption == coverPageSizeOption)
+    		return;
+    	this.coverPageSizeOption = coverPageSizeOption;
+    	setCoverSizes(screenWidth, screenHeight);
+    }
+
+    public void setCoverPageFontFace(String face) {
+    	if (mCoverpageManager.setFontFace(face))
+    		currentListAdapter.notifyDataSetChanged();
+    }
+
+	public void setCoverPagesEnabled(boolean coverPagesEnabled)
+	{
+		this.coverPagesEnabled = coverPagesEnabled;
+		if ( !coverPagesEnabled ) {
+			mCoverpageManager.clear();
+		}
+		currentListAdapter.notifyDataSetChanged();
+	}
+
+	public void setCoverpageData(FileInfo fileInfo, byte[] data) {
+		mCoverpageManager.setCoverpageData(fileInfo, data);
+		currentListAdapter.notifyInvalidated();
+	}
 }

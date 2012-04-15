@@ -711,8 +711,8 @@ void V3DocViewWin::showBooksDialog() {
     //_props->set( _docview->propsGetCurrent() );
     _props = _docview->propsGetCurrent() | _props;
     _newProps = LVClonePropsContainer( _props );
-    lvRect rc = _wm->getScreen()->getRect();
-    CRMenu * mainMenu = new CRBooksDialogMenu( _wm, _newProps, MCMD_MAIN_MENU, menuFont, getMenuAccelerators(), rc, _docview );
+    CRMenu *mainMenu = createBooksDialogMenu("/mnt/us/documents", _wm, menuFont, _newProps, getMenuAccelerators(), _docview);
+	
     _wm->activateWindow( mainMenu );
 }
 

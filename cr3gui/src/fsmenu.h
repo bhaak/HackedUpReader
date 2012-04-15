@@ -18,6 +18,7 @@
 class CRFullScreenMenu : public CRMenu
 {
 public:
+    CRFullScreenMenu(CRGUIWindowManager * wm, CRMenu * parentMenu, int id, const char * label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props);
     CRFullScreenMenu(CRGUIWindowManager * wm, int id, const lString16 & caption, int numItems, lvRect & rc);
 
     virtual const lvRect & getRect();

@@ -14,6 +14,9 @@
 #include "mainwnd.h"
 #include "fsmenu.h"
 
+CRFullScreenMenu::CRFullScreenMenu(CRGUIWindowManager * wm, CRMenu * parentMenu, int id, const char * label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props)
+	: CRMenu(wm, parentMenu, id, label, image, defFont, valueFont, props)
+	{}
 
 CRFullScreenMenu::CRFullScreenMenu(CRGUIWindowManager * wm, int id, const lString16 & caption, int numItems, lvRect & rc)
     : CRMenu( wm, NULL, id, caption, LVImageSourceRef(), LVFontRef(), LVFontRef() )

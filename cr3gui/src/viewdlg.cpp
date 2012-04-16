@@ -478,7 +478,7 @@ const char * getKeyName( int keyCode )
 	case XK_Down:
         return _("Down");
 	case XK_Escape:
-        return _("C");
+        return _("");
 	case XK_Left:
         return _("Left");
 	case XK_Right:

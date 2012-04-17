@@ -172,9 +172,14 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
     }
     src_text_fragment_t * pline = &pbuffer->srctext[ pbuffer->srctextlen++ ];
     pline->t.font = font;
-    if (font == NULL && ((flags & LTEXT_WORD_IS_OBJECT) == 0)) {
-        CRLog::fatal("No font specified for text");
-    }
+//    if (font) {
+//        // DEBUG: check for crash
+//        CRLog::trace("c font = %08x  txt = %08x", (lUInt32)font, (lUInt32)text);
+//        ((LVFont*)font)->getVisualAligmentWidth();
+//    }
+//    if (font == NULL && ((flags & LTEXT_WORD_IS_OBJECT) == 0)) {
+//        CRLog::fatal("No font specified for text");
+//    }
     if (!len) for (len=0; text[len]; len++) ;
     if (flags & LTEXT_FLAG_OWNTEXT)
     {
@@ -913,8 +918,8 @@ public:
         if ( visualAlignmentEnabled ) {
             LVFont * font = NULL;
             for ( int i=start; i<end; i++ ) {
-                if ( !(m_srcs[i]->flags & LTEXT_SRC_IS_OBJECT) ) {
-                    font = (LVFont*)m_srcs[i]->t.font;
+                if ( !(m_pbuffer->srctext[i].flags & LTEXT_SRC_IS_OBJECT) ) {
+                    font = (LVFont*)m_pbuffer->srctext[i].t.font;
                     if (font) {
                         int dx = font->getVisualAligmentWidth();
                         if ( dx>visialAlignmentWidth )

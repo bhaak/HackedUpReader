@@ -345,12 +345,7 @@ class CRXCBScreen : public CRGUIScreenBase
             }
         }
         virtual void update( const lvRect & a_rc, bool full )
-        {
-            bool main_win_visible = main_win == main_win->getWindowManager()->getTopVisibleWindow();
-            if (main_win_visible && checkFullUpdateCounter() && system("eips -c -f") != -1){
-                CRLog::error("Unable to execute eips -c -f command");
-            }
-			
+        {	
             lvRect rc(a_rc);
             CRLog::debug("update screen, bpp=%d width=%d, height=%d, rect={%d, %d, %d, %d} full=%d", (int)im->bpp,im->width,im->height, (int)rc.left, (int)rc.top, (int)rc.right, (int)rc.bottom, full?1:0 );
             if ( _forceNextUpdate && !_forceUpdateRect.isEmpty() ) {
@@ -1428,8 +1423,8 @@ int main(int argc, char **argv)
         };
         loadKeymaps( winman, keymap_locations );
 
-        if ( !winman.loadSkin(  homecrengine + L"skin" ) )
 			#if KINDLE_TOUCH!=1
+			if ( !winman.loadSkin(  homecrengine + L"skin" ) )
             if ( !winman.loadSkin(  lString16("/media/sd/crengine/skin") ) )
                 winman.loadSkin( lString16("/usr/share/cr3/skins/default") );
 			#else

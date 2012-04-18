@@ -11,7 +11,7 @@
 *******************************************************/
 
 #include <stdlib.h>
-//include <unistd.h>      /* pause() */
+#include <unistd.h>      /* sleep() */
 #include "../include/crgui.h"
 #include "../include/crtrace.h"
 
@@ -521,6 +521,14 @@ void CRGUIScreenBase::flush( bool full )
     if ( full )
         _updateRect = getRect();
     update( _updateRect, full );
+#if KINDLE_TOUCH==1
+    if (checkFullUpdateCounter()) {
+        sleep(1);
+        if (system("eips -f ''") == -1) {
+            CRLog::error("Unable to execute eips -f '' command");
+        }
+    }
+#endif
     _updateRect.clear();
 }
 

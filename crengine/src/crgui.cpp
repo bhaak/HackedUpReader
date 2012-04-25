@@ -764,8 +764,8 @@ void CRGUIWindowBase::drawStatusBar()
         }
         drawStatusText( buf, statusRc, statusSkin );
     }
-#endif
     drawInputBox();
+#endif
 }
 
 // draws frame, title, status and client

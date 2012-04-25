@@ -13,6 +13,41 @@
 #include "tocdlg.h"
 #include <cri18n.h>
 
+#if KINDLE_TOUCH==1
+bool CRTOCDialog::onKeyPressed( int key, int flags ) {
+
+    const int yPos = _wm->getPosY(); 
+	
+	int count = _items.length() - _topItem;
+	if (count > _pageItems) {
+		count = _pageItems;
+	}
+	
+	lvRect tocRect;
+	getClientRect( tocRect );
+	CRRectSkinRef clientSkin = _skin->getClientSkin();
+	lvRect borders = clientSkin->getBorderWidths();
+	tocRect.shrinkBy(borders);
+		
+	if (yPos >= tocRect.top && yPos <= tocRect.top + _itemHeight*count) {
+	
+		const int itemIndex =  (yPos - tocRect.top) / _itemHeight;
+		LVTocItem *item = _items[ itemIndex + _topItem];
+			
+		int pageNum = item->getPage() + 1;
+		if ( pageNum > 0 && pageNum <= _docview->getPageCount()) {
+                _wm->postCommand( _resultCmd, pageNum );
+                _wm->closeWindow( this );
+                return true;
+		}
+			
+		return true;
+	}
+	
+    return CRGUIWindowBase::onKeyPressed( key, flags );
+}
+#endif
+
 lString16 limitTextWidth( lString16 s, int width, LVFontRef font )
 {
 
@@ -33,7 +68,8 @@ lString16 limitTextWidth( lString16 s, int width, LVFontRef font )
 void CRTOCDialog::draw()
 {
     CRGUIWindowBase::draw();
-    CRRectSkinRef clientSkin = _skin->getClientSkin();
+   
+   CRRectSkinRef clientSkin = _skin->getClientSkin();
     CRRectSkinRef normalItemSkin = _skin->getItemSkin();
     CRRectSkinRef valueSkin = _skin->getValueSkin();
     CRRectSkinRef selItemSkin = _skin->getSelItemSkin();
@@ -108,10 +144,37 @@ void CRTOCDialog::draw()
 
         }
     }
+//draw arrows in the bottom
+#if KINDLE_TOUCH==1	
+    lvRect statusRc;
+    if (getStatusRect(statusRc)) {
+        LVDrawBuf & buf = *_wm->getScreen()->getCanvas();
+
+        lvRect stRc(statusRc);
+        stRc.left = 17;
+        stRc.right = stRc.left + 16;
+        stRc.top += 10;
+        stRc.bottom = stRc.top + 31;
+
+        int btnLeftState = _page <= 1 ? 0 : CRButtonSkin::ENABLED;
+        int btnRightState = _page < _pages ? CRButtonSkin::ENABLED : 0;
+
+        CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+        CRScrollSkinRef sskin = skin->getScrollSkin();
+	
+        CRButtonSkinRef leftBtnSkin = sskin->getLeftButton();
+        leftBtnSkin->drawButton( buf, stRc, btnLeftState );
+
+        stRc.left = statusRc.right -= 37;
+        stRc.right = stRc.left + 16;
+        CRButtonSkinRef rightBtnSkin = sskin->getRightButton();
+        rightBtnSkin->drawButton( buf, stRc, btnRightState );
+    }
+#endif
 }
 
 CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCmd, int pageCount, LVDocView * docview )
-: CRNumberEditDialog( wm, title, lString16::empty_str, resultCmd, 1, pageCount )
+: CRGUIWindowBase( wm ), _title(title), _value(lString16::empty_str), _minvalue(1), _maxvalue(pageCount), _resultCmd(resultCmd)
 ,_docview(docview)
 {
     docview->getFlatToc( _items );
@@ -154,6 +217,8 @@ CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCm
     _inputText = "_";
 }
 
+#if KINDLE_TOUCH==1
+#else
 bool CRTOCDialog::digitEntered( lChar16 c )
 {
     lString16 v = _value;
@@ -167,6 +232,7 @@ bool CRTOCDialog::digitEntered( lChar16 c )
     }
     return false;
 }
+#endif
 
 /// returns index of first item for current page, -1 if not found
 int CRTOCDialog::getCurItemIndex()
@@ -190,7 +256,7 @@ int CRTOCDialog::getCurItemIndex()
 
 /// returns true if command is processed
 bool CRTOCDialog::onCommand( int command, int params )
-{
+{	
     if ( _value.empty() ) {
         if ( command == MCMD_SELECT_0 )
             command = MCMD_SCROLL_FORWARD;
@@ -218,6 +284,7 @@ bool CRTOCDialog::onCommand( int command, int params )
             _wm->closeWindow( this );
             return true;
         }
+		
     case MCMD_SCROLL_FORWARD:
     case MCMD_SCROLL_FORWARD_LONG:
         {
@@ -235,6 +302,9 @@ bool CRTOCDialog::onCommand( int command, int params )
         break;
     case MCMD_SCROLL_BACK:
     case MCMD_SCROLL_BACK_LONG:
+#if KINDLE_TOUCH==1
+	case MCMD_SELECT_9:
+#endif
         {
             int step = command == MCMD_SCROLL_BACK_LONG ? 10 : 1;
             _topItem = _topItem - _pageItems * step;
@@ -248,6 +318,7 @@ bool CRTOCDialog::onCommand( int command, int params )
             setDirty();
         }
         break;
+#if KINDLE_TOUCH!=1 
     case MCMD_SELECT_0:
     case MCMD_SELECT_1:
     case MCMD_SELECT_2:
@@ -260,6 +331,7 @@ bool CRTOCDialog::onCommand( int command, int params )
     case MCMD_SELECT_9:
         digitEntered( '0' + (command - MCMD_SELECT_0) );
         break;
+#endif
     default:
         return true;
     }

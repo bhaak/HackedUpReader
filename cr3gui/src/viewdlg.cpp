@@ -25,6 +25,10 @@
 #include <cri18n.h>
 #include "selnavig.h"
 
+#if KINDLE_TOUCH==1
+#include "KTnumedit.h"
+#endif
+
 #ifdef CR_POCKETBOOK
 #include "cr3pocketbook.h"
 #include "inkview.h"
@@ -44,7 +48,7 @@
 #endif
 
 
-#define USE_SEPARATE_GO_TO_PAGE_DIALOG 0
+#define USE_SEPARATE_GO_TO_PAGE_DIALOG 1
 
 LVRef<CRDictionary> CRViewDialog::_dict;
 
@@ -170,7 +174,7 @@ bool CRViewDialog::hasDictionaries()
 void CRViewDialog::showGoToPageDialog()
 {
     LVTocItem * toc = _docview->getToc();
-    CRNumberEditDialog * dlg;
+    CRGUIWindowBase * dlg;
 #if USE_SEPARATE_GO_TO_PAGE_DIALOG==1
     if ( toc && toc->getChildCount()>0 ) {
 #endif
@@ -179,11 +183,30 @@ void CRViewDialog::showGoToPageDialog()
             MCMD_GO_PAGE_APPLY,  _docview->getPageCount(), _docview );
 #if USE_SEPARATE_GO_TO_PAGE_DIALOG==1
     } else {
+#if KINDLE_TOUCH!=1
         dlg = new CRNumberEditDialog( _wm,
             lString16( _("Enter page number") ),
             lString16::empty_str,
             MCMD_GO_PAGE_APPLY, 1, _docview->getPageCount() );
-    }
+#else
+
+    lvRect rc = _wm->getScreen()->getRect();
+    int h_margin = rc.width() / 12;
+
+    rc.left += h_margin;
+    rc.right -= h_margin;
+    rc.bottom = 420;
+    rc.top = 280;
+
+    dlg = new KTNumedit(_wm, 
+        lString16( _("Enter page number") ), 
+        lString16::empty_str, 
+        MCMD_GO_PAGE_APPLY, 
+        1, 
+        _docview->getPageCount(),
+        rc);
+}
+#endif
 #endif
     dlg->setAccelerators( getDialogAccelerators() );
     _wm->activateWindow( dlg );

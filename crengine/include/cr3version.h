@@ -1,2 +1,2 @@
-#define CR_ENGINE_VERSION "3.0.56-17"
+#define CR_ENGINE_VERSION "3.0.57-1"
 #define CR_ENGINE_BUILD_DATE __DATE__

@@ -21,6 +21,7 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
+import android.text.TextUtils.SimpleStringSplitter;
 import android.util.Log;
 
 public class MainDB extends BaseDB {
@@ -310,7 +311,6 @@ public class MainDB extends BaseDB {
 		v.setTitleText( rs.getString(i++) );
 		v.setPosText( rs.getString(i++) );
 		v.setCommentText( rs.getString(i++) );
-		v.setModified(false);
 	}
 
 	public boolean findBy( Bookmark v, String condition ) {
@@ -567,7 +567,7 @@ public class MainDB extends BaseDB {
 	{
 		if (!isOpened())
 			return false;
-		String sql = READ_FILEINFO_SQL + " INNER JOIN series ON series.id = b.series_fk WHERE series.id = " + seriesId + " ORDER BY b.title";
+		String sql = READ_FILEINFO_SQL + " INNER JOIN series ON series.id = b.series_fk WHERE series.id = " + seriesId + " ORDER BY b.series_number, b.title";
 		return findBooks(sql, list);
 	}
 	
@@ -785,10 +785,18 @@ public class MainDB extends BaseDB {
 	private HashMap<String, Bookmark> loadBookmarks(FileInfo fileInfo) {
 		HashMap<String, Bookmark> map = new HashMap<String, Bookmark>();
 		if (fileInfo.id != null) {
-			ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>(); 
+			ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>();
 			if (load(bookmarks, "book_fk=" + fileInfo.id + " ORDER BY type")) {
-				for (Bookmark b : bookmarks)
-					map.put(b.getUniqueKey(), b);		
+				for (Bookmark b : bookmarks) {
+					// delete non-unique bookmarks
+					String key = b.getUniqueKey();
+					if (!map.containsKey(key))
+						map.put(key, b);
+					else {
+						log.w("Removing non-unique bookmark " + b + " for " + fileInfo.getPathName());
+						deleteBookmark(b);
+					}
+				}
 			}
 		}
 		return map;
@@ -796,8 +804,6 @@ public class MainDB extends BaseDB {
 
 	private boolean save( Bookmark v, long bookId )
 	{
-		if ( !v.isModified() )
-			return false;
 		Log.d("cr3db", "saving bookmark id=" + v.getId() + ", bookId=" + bookId + ", pos=" + v.getStartPos());
 		if ( v.getId()!=null ) {
 			// update
@@ -817,7 +823,6 @@ public class MainDB extends BaseDB {
 			QueryHelper h = new QueryHelper(v, oldValue, bookId);
 			v.setId( h.insert() );
 		}
-		v.setModified(false);
 		return true;
 	}
 
@@ -828,30 +833,34 @@ public class MainDB extends BaseDB {
 		}
 		if (bookInfo == null || bookInfo.getFileInfo() == null)
 			return;
+		
+		// save main data
 		save(bookInfo.getFileInfo());
 		fileInfoCache.put(bookInfo.getFileInfo());
-		HashMap<String, Bookmark> bookmarks = loadBookmarks(bookInfo.getFileInfo());
+		
+		// save bookmarks
+		HashMap<String, Bookmark> existingBookmarks = loadBookmarks(bookInfo.getFileInfo());
 		int changed = 0;
 		int removed = 0;
 		int added = 0;
 		for (Bookmark bmk : bookInfo.getAllBookmarks()) {
-			 Bookmark existing = bookmarks.get(bmk.getUniqueKey());
+			 Bookmark existing = existingBookmarks.get(bmk.getUniqueKey());
 			 if (existing != null) {
 				 bmk.setId(existing.getId());
 				 if (!bmk.equals(existing)) {
 					 save(bmk, bookInfo.getFileInfo().id);
 					 changed++;
 				 }
-				 bookmarks.remove(existing.getUniqueKey());
+				 existingBookmarks.remove(bmk.getUniqueKey()); // saved
 			 } else {
 				 // create new
 			 	 save(bmk, bookInfo.getFileInfo().id);
 			 	 added++;
 			 }
 		}
-		if (bookmarks.size() > 0) {
+		if (existingBookmarks.size() > 0) {
 			// remove bookmarks not found in new object
-			for (Bookmark bmk : bookmarks.values()) {
+			for (Bookmark bmk : existingBookmarks.values()) {
 				deleteBookmark(bmk);
 				removed++;
 			}
@@ -875,14 +884,15 @@ public class MainDB extends BaseDB {
 					beginChanges();
 					QueryHelper h = new QueryHelper(fileInfo, oldValue);
 					h.update(fileInfo.id);
-					authorsChanged = !eq(fileInfo.authors, oldValue.authors);
 				}
+				authorsChanged = !eq(fileInfo.authors, oldValue.authors);
 			} else {
 				// inserting
 				vlog.d("inserting new file " + fileInfo.getPathName());
 				beginChanges();
 				QueryHelper h = new QueryHelper(fileInfo, new FileInfo());
 				fileInfo.id = h.insert();
+				authorsChanged = true;
 			}
 			
 			fileInfoCache.put(fileInfo);
@@ -933,7 +943,7 @@ public class MainDB extends BaseDB {
 				file = f;
 				fileInfoCache.put(file);
 			}
-			BookInfo item = new BookInfo( file );
+			BookInfo item = new BookInfo(new FileInfo(file));
 			loadBookmarks(item);
 			res.add(item);
 		}
@@ -1082,6 +1092,7 @@ public class MainDB extends BaseDB {
 				first = false;
 			}
 			buf.append(" WHERE id=" + id );
+			vlog.v("executing " + buf);
 			mDB.execSQL(buf.toString(), values.toArray());
 			return true;
 		}
@@ -1108,6 +1119,8 @@ public class MainDB extends BaseDB {
 			add("create_time", (long)newValue.createTime, (long)oldValue.createTime);
 			add("flags", (long)newValue.flags, (long)oldValue.flags);
 			add("language", newValue.language, oldValue.language);
+			if (fields.size() == 0)
+				vlog.v("QueryHelper: no fields to update");
 		}
 		QueryHelper( Bookmark newValue, Bookmark oldValue, long bookId )
 		{
@@ -1176,8 +1189,8 @@ public class MainDB extends BaseDB {
 					readFileInfoFromCursor( fileInfo, rs );
 					if ( !fileInfo.fileExists() )
 						continue;
-					list.add(fileInfo);
 					fileInfoCache.put(fileInfo);
+					list.add(new FileInfo(fileInfo));
 					found = true;
 				} while (rs.moveToNext());
 			}
@@ -1289,7 +1302,7 @@ public class MainDB extends BaseDB {
 			for (String path : pathNames) {
 				FileInfo file = findFileInfoByPathname(path);
 				if (file != null)
-					list.add(file);
+					list.add(new FileInfo(file));
 			}
 			endReading();
 		} catch (Exception e) {
@@ -1306,8 +1319,8 @@ public class MainDB extends BaseDB {
 		execSQLIgnoreErrors("UPDATE book SET last_access_time=0 WHERE id=" + bookId);
 	}
 	
-	public void deleteBookmark( Bookmark bm ) {
-		if ( bm.getId()==null )
+	public void deleteBookmark(Bookmark bm) {
+		if (bm.getId() == null)
 			return;
 		execSQLIgnoreErrors("DELETE FROM bookmark WHERE id=" + bm.getId());
 	}
@@ -1318,12 +1331,12 @@ public class MainDB extends BaseDB {
 		try {
 			FileInfo cached = fileInfoCache.get(fileInfo.getPathName());
 			if (cached != null) {
-				BookInfo book = new BookInfo(cached);
+				BookInfo book = new BookInfo(new FileInfo(cached));
 				loadBookmarks(book);
 				return book;
 			}
 			if (loadByPathname(fileInfo)) {
-				BookInfo book = new BookInfo(fileInfo);
+				BookInfo book = new BookInfo(new FileInfo(fileInfo));
 				loadBookmarks(book);
 				return book;
 			}
@@ -1339,12 +1352,12 @@ public class MainDB extends BaseDB {
 		try {
 			FileInfo cached = fileInfoCache.get(pathName);
 			if (cached != null) {
-				return cached;
+				return new FileInfo(cached);
 			}
 			FileInfo fileInfo = new FileInfo(pathName);
 			if (loadByPathname(fileInfo)) {
 				fileInfoCache.put(fileInfo);
-				return fileInfo;
+				return new FileInfo(fileInfo);
 			}
 		} catch (Exception e) {
 			// ignore

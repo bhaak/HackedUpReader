@@ -152,6 +152,10 @@ protected:
     LVRtfParser & m_parser;
     LVRtfValueStack & m_stack;
     LVXMLParserCallback * m_callback;
+	LVRtfDestination & operator = (LVRtfDestination&) {
+		// no assignment
+        return *this;
+    }
 public:
     enum rtf_actions {
         RA_PARA,

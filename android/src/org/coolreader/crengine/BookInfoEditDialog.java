@@ -28,17 +28,18 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.RatingBar;
-import android.widget.TableLayout;
 
 public class BookInfoEditDialog extends BaseDialog {
 	private CoolReader mActivity;
 	private BookInfo mBookInfo;
+	private FileInfo mParentDir;
 	private LayoutInflater mInflater;
 	private int mWindowSize;
 	private boolean mIsRecentBooksItem;
-	public BookInfoEditDialog(CoolReader activity, BookInfo book, int windowSize, boolean isRecentBooksItem)
+	public BookInfoEditDialog(CoolReader activity, FileInfo baseDir, BookInfo book, int windowSize, boolean isRecentBooksItem)
 	{
 		super(activity, null, false, false);
+		this.mParentDir = baseDir;
 		this.mWindowSize = windowSize;
 		this.mActivity = activity;
 		this.mBookInfo = book;
@@ -312,16 +313,17 @@ public class BookInfoEditDialog extends BaseDialog {
         authors = new AuthorList(llBookAuthorsList, file.authors);
         rbBookRating.setRating(file.getRate());
         
-        TableLayout buttonTable = (TableLayout)view.findViewById(R.id.buttons_table);
+    	ImageButton btnRemoveRecent = ((ImageButton)view.findViewById(R.id.book_recent_delete));
+    	ImageButton btnOpenFolder = ((ImageButton)view.findViewById(R.id.book_folder_open));
         if (mIsRecentBooksItem) {
-        	((Button)buttonTable.findViewById(R.id.btn_remove_from_recent)).setOnClickListener(new View.OnClickListener() {
+        	btnRemoveRecent.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					mActivity.getBrowser().askDeleteRecent(mBookInfo.getFileInfo());
 					dismiss();
 				}
 			});
-        	((Button)buttonTable.findViewById(R.id.btn_goto_folder)).setOnClickListener(new View.OnClickListener() {
+        	btnOpenFolder.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					mActivity.getBrowser().showDirectory(mBookInfo.getFileInfo(), mBookInfo.getFileInfo());
@@ -329,13 +331,17 @@ public class BookInfoEditDialog extends BaseDialog {
 				}
 			});
         } else {
-        	buttonTable.removeAllViews();
+        	ViewGroup parent = ((ViewGroup)btnRemoveRecent.getParent());
+        	parent.removeView(btnRemoveRecent);
+        	parent.removeView(btnOpenFolder);
         }
         
         setView(view);
 	}
 	
 	private void save() {
+		L.d("BokoInfoEditDialog.save()");
+		
         FileInfo file = mBookInfo.getFileInfo();
         boolean modified = false;
         modified = file.setTitle(edTitle.getText().toString().trim()) || modified;
@@ -367,9 +373,12 @@ public class BookInfoEditDialog extends BaseDialog {
         modified = file.setReadingState(state) || modified;
         if (modified) {
         	mActivity.getDB().saveBookInfo(mBookInfo);
-        	BookInfo bi = mActivity.getHistory().getBookInfo(mBookInfo.getFileInfo());
+        	mActivity.getDB().flush();
+        	BookInfo bi = mActivity.getHistory().getBookInfo(file);
         	if (bi != null)
-        		bi.getFileInfo().setFileProperties(mBookInfo.getFileInfo());
+        		bi.getFileInfo().setFileProperties(file);
+        	mParentDir.setFile(file);
+        	mActivity.getBrowser().onChange(file, true);
         }
 	}
 

@@ -123,6 +123,10 @@ class LVDocImageHolder
 private:
     LVRef<LVDrawBuf> _drawbuf;
     LVMutex & _mutex;
+	LVDocImageHolder & operator = (LVDocImageHolder&) {
+		// no assignment
+        return *this;
+    }
 public:
     LVDrawBuf * getDrawBuf() { return _drawbuf.get(); }
     LVRef<LVDrawBuf> getDrawBufRef() { return _drawbuf; }

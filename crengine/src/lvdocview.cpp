@@ -963,7 +963,7 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
 		txform.AddSourceLine(series.c_str(), series.length(), 0xFFFFFFFF,
 				0xFFFFFFFF, series_fnt.get(), LTEXT_ALIGN_CENTER, 18);
 	int title_w = rc.width() - rc.width() / 4;
-	int h = txform.Format(title_w, rc.height());
+	int h = txform.Format((lUInt16)title_w, (lUInt16)rc.height());
 
 	lvRect imgrc = rc;
 
@@ -1217,7 +1217,7 @@ lString16 LVDocView::getTimeString() {
 
 /// draw battery state to buffer
 void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc,
-		bool isVertical) {
+		bool /*isVertical*/) {
 	if (m_battery_state == CR_BATTERY_STATE_NO_BATTERY)
 		return;
 	LVDrawStateSaver saver(*drawbuf);
@@ -1902,6 +1902,7 @@ int LVDocView::getPageCount() {
 
 /// get position of view inside document
 void LVDocView::GetPos(lvRect & rc) {
+    checkPos();
 	rc.left = 0;
 	rc.right = GetWidth();
 	if (isPageMode() && _page >= 0 && _page < m_pages.length()) {
@@ -1922,7 +1923,8 @@ int LVDocView::getPageHeight(int pageIndex)
 
 /// get vertical position of view inside document
 int LVDocView::GetPos() {
-	if (isPageMode() && _page >= 0 && _page < m_pages.length())
+    checkPos();
+    if (isPageMode() && _page >= 0 && _page < m_pages.length())
 		return m_pages[_page]->start;
 	return _pos;
 }
@@ -4835,9 +4837,9 @@ bool LVDocView::exportBookmarks(lString16 filename) {
 		//	continue;
 		//}
 		if (newContent.empty()) {
-			newContent.append(1, (char) 0xef);
-			newContent.append(1, (char) 0xbb);
-			newContent.append(1, (char) 0xbf);
+			newContent.append(1, (lChar8)0xef);
+			newContent.append(1, (lChar8)0xbb);
+			newContent.append(1, (lChar8)0xbf);
 			newContent << "# Cool Reader 3 - exported bookmarks\r\n";
 			newContent << "# file name: " << UnicodeToUtf8(rec->getFileName())
 					<< "\r\n";

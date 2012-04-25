@@ -855,6 +855,15 @@ public:
         xcb_change_property(connection,
                 XCB_PROP_MODE_REPLACE,
                 window,
+                XCB_ATOM_WM_NAME,
+                atoms[0].atom,
+                8,
+                strlen("CoolReader3"),
+                "CoolReader3");
+
+        xcb_change_property(connection,
+                XCB_PROP_MODE_REPLACE,
+                window,
                 XCB_ATOM_WM_CLASS,
                 XCB_ATOM_STRING,
                 8,

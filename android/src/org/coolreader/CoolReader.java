@@ -63,9 +63,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
-import android.graphics.Paint;
 import android.graphics.PixelFormat;
-import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -100,8 +98,6 @@ public class CoolReader extends Activity
 	//View startupView;
 	History mHistory;
 	//CRDB mDB;
-	private BackgroundThread mBackgroundThread;
-	
 	
 	public CoolReader() {
 	    brightnessHackError = false; //DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
@@ -559,9 +555,11 @@ public class CoolReader extends Activity
 		log.i("CoolReader version : " + getVersion());
 		
 		// testing background thread
-    	mBackgroundThread = BackgroundThread.instance();
-		mEngine = new Engine(this, mBackgroundThread);
+		mEngine = Engine.getInstance(this);
 		
+       	mScanner = new Scanner(this, mEngine);
+       	mScanner.initRoots(mEngine.getMountedRootsMap());
+
 		mSyncService = new SyncServiceAccessor(this);
 		mSyncService.bind(new Runnable() {
 			@Override
@@ -570,7 +568,9 @@ public class CoolReader extends Activity
 				BackgroundThread.instance().postGUI(new Runnable() {
 					@Override
 					public void run() {
-			        	mSyncService.setSyncDirectory(new File(mScanner.getDownloadDirectory().getPathName()));
+						FileInfo downloadDirectory = mScanner.getDownloadDirectory();
+						if (downloadDirectory != null)
+			        	mSyncService.setSyncDirectory(new File(downloadDirectory.getPathName()));
 					}
 				});
 			}
@@ -592,7 +592,7 @@ public class CoolReader extends Activity
 		DisplayMetrics m = new DisplayMetrics(); 
 		d.getMetrics(m);
 		try {
-			Field fld = d.getClass().getField("densityDpi");
+			Field fld = m.getClass().getField("densityDpi");
 			if ( fld!=null ) {
 				Object v = fld.get(m);
 				if ( v!=null && v instanceof Integer ) {
@@ -640,7 +640,7 @@ public class CoolReader extends Activity
 		setLanguage(lang);
     	
 		mFrame = new FrameLayout(this);
-		mBackgroundThread.setGUI(mFrame);
+		BackgroundThread.instance().setGUI(mFrame);
 
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
@@ -657,7 +657,7 @@ public class CoolReader extends Activity
         mEngine.showProgress( 0, R.string.progress_starting_cool_reader );
 
         // wait until all background tasks are executed
-        mBackgroundThread.syncWithBackground();
+        BackgroundThread.instance().syncWithBackground();
 
         String code = props.getProperty(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
         Engine.HyphDict dict = HyphDict.byCode(code);
@@ -681,9 +681,6 @@ public class CoolReader extends Activity
 		}
 		//mDB = new CRDB(dbfile);
 
-       	mScanner = new Scanner(this, mEngine);
-       	mScanner.initRoots(mEngine.getMountedRootsMap());
-		
        	mHistory = new History(this, mScanner);
 
 //		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
@@ -695,7 +692,7 @@ public class CoolReader extends Activity
 //			setTheme(R.style.Dialog_Fullscreen_Day);
 //		}
 		
-		mReaderView = new ReaderView(this, mEngine, mBackgroundThread, props);
+		mReaderView = new ReaderView(this, mEngine, props);
 
 		mScanner.setDirScanEnabled(props.getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
 		
@@ -786,14 +783,14 @@ public class CoolReader extends Activity
     
     private int screenBacklightBrightness = -1; // use default
     //private boolean brightnessHackError = false;
-    private boolean brightnessHackError = false;
+    private boolean brightnessHackError = DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
 
     private void turnOffKeyBacklight() {
     	if (!isStarted())
     		return;
     	// repeat again in short interval
     	if (!mEngine.setKeyBacklight(0)) {
-    		log.w("Cannot control key backlight directly");
+    		//log.w("Cannot control key backlight directly");
     		return;
     	}
     	// repeat again in short interval
@@ -802,12 +799,13 @@ public class CoolReader extends Activity
 			public void run() {
 		    	if (!isStarted())
 		    		return;
-		    	if (!mEngine.setKeyBacklight(0))
-		    		log.w("Cannot control key backlight directly (delayed)");
+		    	if (!mEngine.setKeyBacklight(0)) {
+		    		//log.w("Cannot control key backlight directly (delayed)");
+		    	}
 			}
 		};
 		BackgroundThread.instance().postGUI(task, 1);
-		BackgroundThread.instance().postGUI(task, 10);
+		//BackgroundThread.instance().postGUI(task, 10);
     }
     
     private void updateBacklightBrightness(float b) {
@@ -874,7 +872,7 @@ public class CoolReader extends Activity
       	    backlightControl.onUserActivity();
     	// Hack
     	//if ( backlightControl.isHeld() )
-    	BackgroundThread.guiExecutor.execute(new Runnable() {
+    	BackgroundThread.instance().executeGUI(new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -901,7 +899,7 @@ public class CoolReader extends Activity
 		        		b = -1.0f; //BRIGHTNESS_OVERRIDE_NONE
 		        	}
 		        	mReaderView.setDimmingAlpha(dimmingAlpha);
-			    	log.d("Brightness: " + b + ", dim: " + dimmingAlpha);
+			    	//log.v("Brightness: " + b + ", dim: " + dimmingAlpha);
 			    	updateBacklightBrightness(b);
 			    	updateButtonsBrightness(keyBacklightOff ? 0.0f : -1.0f);
 				} catch ( Exception e ) {
@@ -947,24 +945,32 @@ public class CoolReader extends Activity
 		}
 
 		mCRDBService.unbind();
-//		if ( mBackgroundThread!=null ) {
-//			mBackgroundThread.quit();
+//		if ( BackgroundThread.instance()!=null ) {
+//			BackgroundThread.instance().quit();
 //		}
 			
 		mReaderView = null;
 		//mEngine = null;
-		mBackgroundThread = null;
 		
 		//===========================
 		// Donations support code
-		if (billingSupported) {
+		//if (billingSupported) {
 			mBillingService.unbind();
 			//mPurchaseDatabase.close();
-		}
+		//}
 		
 		log.i("CoolReader.onDestroy() exiting");
 		super.onDestroy();
 		mSyncService.unbind();
+		BackgroundThread.instance().postBackground(new Runnable() {
+			@Override
+			public void run() {
+				log.i("Stopping background thread");
+				mEngine.uninit();
+				BackgroundThread.instance().quit();
+				mEngine = null;
+			}
+		});
 	}
 
 	private String extractFileName( Uri uri )
@@ -1070,6 +1076,7 @@ public class CoolReader extends Activity
 		log.i("CoolReader.onResume()");
 		mPaused = false;
 		mIsStarted = true;
+		backlightControl.onUserActivity();
 		Properties props = mReaderView.getSettings();
 		
 		if (DeviceInfo.EINK_SCREEN) {
@@ -1106,7 +1113,7 @@ public class CoolReader extends Activity
 	
 	@Override
 	protected void onStart() {
-		log.i("CoolReader.onStart() fileToLoadOnStart=" + fileToLoadOnStart);
+		log.i("CoolReader.onStart() version=" + getVersion() + ", fileToLoadOnStart=" + fileToLoadOnStart);
 		super.onStart();
 		
 		mPaused = false;
@@ -1127,7 +1134,7 @@ public class CoolReader extends Activity
 		if (billingSupported)
 			ResponseHandler.register(mPurchaseObserver);
 
-		mBackgroundThread.postGUI(new Runnable() {
+		BackgroundThread.instance().postGUI(new Runnable() {
 			public void run() {
 				// fixing font settings
 				Properties settings = mReaderView.getSettings();
@@ -1166,7 +1173,7 @@ public class CoolReader extends Activity
 		stopped = false;
 		
 		final String fileName = fileToLoadOnStart;
-		mBackgroundThread.postGUI(new Runnable() {
+		BackgroundThread.instance().postGUI(new Runnable() {
 			public void run() {
 				log.i("onStart, scheduled runnable: submitting task");
 		        mEngine.execute(new LoadLastDocumentTask(fileName));
@@ -1244,14 +1251,15 @@ public class CoolReader extends Activity
 	private View currentView;
 	public void showView( View view )
 	{
+		mReaderView.setOnFront(view == mReaderView);
 		showView( view, true );
 	}
 	public void showView( View view, boolean hideProgress )
 	{
-		if ( mBackgroundThread==null )
+		if (!mIsStarted)
 			return;
 		if ( hideProgress )
-		mBackgroundThread.postGUI(new Runnable() {
+		BackgroundThread.instance().postGUI(new Runnable() {
 			public void run() {
 				mEngine.hideProgress();
 			}
@@ -1436,10 +1444,10 @@ public class CoolReader extends Activity
 	public void showOptionsDialog(final OptionsDialog.Mode mode)
 	{
 		final CoolReader _this = this;
-		mBackgroundThread.executeBackground(new Runnable() {
+		BackgroundThread.instance().postBackground(new Runnable() {
 			public void run() {
 				mFontFaces = mEngine.getFontFaceList();
-				mBackgroundThread.executeGUI(new Runnable() {
+				BackgroundThread.instance().executeGUI(new Runnable() {
 					public void run() {
 						OptionsDialog dlg = new OptionsDialog(_this, mReaderView, mFontFaces, mode);
 						dlg.show();
@@ -1590,6 +1598,10 @@ public class CoolReader extends Activity
 		new DefKeyAction(ReaderView.SONY_DPAD_DOWN_SCANCODE, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
 		new DefKeyAction(ReaderView.SONY_DPAD_UP_SCANCODE, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
 
+		new DefKeyAction(KeyEvent.KEYCODE_8, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(KeyEvent.KEYCODE_2, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+		new DefKeyAction(KeyEvent.KEYCODE_8, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
+		new DefKeyAction(KeyEvent.KEYCODE_2, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
 		
 		new DefKeyAction(ReaderView.KEYCODE_ESCAPE, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
 		new DefKeyAction(ReaderView.KEYCODE_ESCAPE, ReaderAction.LONG, ReaderAction.REPEAT),
@@ -2029,7 +2041,7 @@ public class CoolReader extends Activity
 			if ( s.length()>0 ) {
 				//
 				final String pattern = s;
-				BackgroundThread.instance().executeBackground(new Runnable() {
+				BackgroundThread.instance().postBackground(new Runnable() {
 					@Override
 					public void run() {
 						BackgroundThread.instance().postGUI(new Runnable() {

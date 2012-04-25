@@ -211,16 +211,7 @@ public class CRDBService extends Service {
 		execTask(new Task("saveBookCoverpage") {
 			@Override
 			public void work() {
-				Long bookId = fileInfo.id;
-				if (bookId == null) {
-					FileInfo found = mainDB.loadFileInfo(fileInfo.getPathName());
-					if (found != null && found.id != null)
-						bookId = found.id;
-				}
-				if (bookId != null)
-					coverDB.saveBookCoverpage(bookId, data);
-				else 
-					log.w("Cannot save cover: Id not found for book " + fileInfo);
+				coverDB.saveBookCoverpage(fileInfo.getPathName(), data);
 			}
 		});
 		flush();
@@ -231,13 +222,7 @@ public class CRDBService extends Service {
 		execTask(new Task("loadBookCoverpage") {
 			@Override
 			public void work() {
-				Long bookId = fileInfo.id;
-				if (bookId == null) {
-					FileInfo found = mainDB.loadFileInfo(fileInfo.getPathName());
-					if (found != null && found.id != null)
-						bookId = found.id;
-				}
-				final byte[] data = bookId != null ? coverDB.loadBookCoverpage(bookId) : null;
+				final byte[] data = coverDB.loadBookCoverpage(fileInfo.getPathName());
 				sendTask(handler, new Runnable() {
 					@Override
 					public void run() {
@@ -248,7 +233,7 @@ public class CRDBService extends Service {
 		});
 	}
 	
-	public void deleteCoverpage(final long bookId) {
+	public void deleteCoverpage(final String bookId) {
 		execTask(new Task("deleteCoverpage") {
 			@Override
 			public void work() {
@@ -452,9 +437,8 @@ public class CRDBService extends Service {
 		execTask(new Task("deleteBook") {
 			@Override
 			public void work() {
-				Long bookId = mainDB.deleteBook(fileInfo);
-				if (bookId != null)
-					coverDB.deleteCoverpage(bookId);
+				mainDB.deleteBook(fileInfo);
+				coverDB.deleteCoverpage(fileInfo.getPathName());
 			}
 		});
 		flush();
@@ -503,13 +487,13 @@ public class CRDBService extends Service {
 		@Override
 		public void run() {
 			long ts = Utils.timeStamp();
-			log.v(toString() + " started");
+			vlog.v(toString() + " started");
 			try {
 				work();
 			} catch (Exception e) {
 				log.e("Exception while running DB task in background", e);
 			}
-			log.v(toString() + " finished in " + Utils.timeInterval(ts) + " ms");
+			vlog.v(toString() + " finished in " + Utils.timeInterval(ts) + " ms");
 		}
 		
 		public abstract void work();
@@ -570,10 +554,6 @@ public class CRDBService extends Service {
     		getService().saveBookCoverpage(fileInfo, data);
     	}
     	
-    	public void deleteBookCoverpage(long bookId) {
-    		getService().deleteCoverpage(bookId);
-    	}
-
     	public void loadBookCoverpage(final FileInfo fileInfo, final CoverpageLoadingCallback callback) {
     		getService().loadBookCoverpage(new FileInfo(fileInfo), callback, new Handler());
     	}

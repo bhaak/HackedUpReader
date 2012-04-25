@@ -42,7 +42,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	String[] mFontFaces;
 	int[] mFontSizes = new int[] {
 		12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-		32, 34, 36, 38, 40, 42, 44, 48, 52, 56, 60, 64, 68, 72
+		31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 44, 48, 52, 56, 60, 64, 68, 72
 	};
 	int[] mStatusFontSizes = new int[] {
 			10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24, 25, 26, 27, 28, 29, 30,
@@ -602,6 +602,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				
 				addKey(listView, KeyEvent.KEYCODE_HOME, "Home");
 				
+				addKey(listView, KeyEvent.KEYCODE_2, "Up");
+				addKey(listView, KeyEvent.KEYCODE_8, "Down");
 			} else if ( DeviceInfo.SONY_NAVIGATION_KEYS ) {
 //				addKey(listView, KeyEvent.KEYCODE_DPAD_UP, "Prev button");
 //				addKey(listView, KeyEvent.KEYCODE_DPAD_DOWN, "Next button");

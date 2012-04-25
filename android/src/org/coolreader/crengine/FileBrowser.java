@@ -23,7 +23,6 @@ import org.koekak.android.ebookdownloader.SonyBookSelector;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
-import android.graphics.drawable.Drawable;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -92,7 +91,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 							public void onBookInfoLoaded(BookInfo bookInfo) {
 								if (bookInfo == null)
 									bookInfo = new BookInfo(file);
-								BookInfoEditDialog dlg = new BookInfoEditDialog(mActivity, bookInfo, 
+								BookInfoEditDialog dlg = new BookInfoEditDialog(mActivity, currDirectory, bookInfo, 
 										screenHeight < screenWidth ? screenHeight : screenWidth, 
 										currDirectory.isRecentDir());
 								dlg.show();
@@ -801,13 +800,16 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	};
 	
 	@Override
-	public void onChange(FileInfo object) {
+	public void onChange(FileInfo object, boolean filePropsOnly) {
 		if (currDirectory == null)
 			return;
 		if (!currDirectory.pathNameEquals(object) && !currDirectory.hasItem(object))
 			return;
 		// refresh
-		showDirectoryInternal(currDirectory, null);
+		if (filePropsOnly)
+			currentListAdapter.notifyInvalidated();
+		else
+			showDirectoryInternal(currDirectory, null);
 	}
 
 	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )

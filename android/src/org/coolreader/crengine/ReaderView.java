@@ -25,6 +25,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.text.ClipboardManager;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -35,7 +36,8 @@ import android.view.SurfaceView;
 
 public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback, Settings {
 
-	public static final Logger log = L.create("rv");
+	public static final Logger log = L.create("rv", Log.VERBOSE);
+	public static final Logger alog = L.create("ra", Log.WARN);
 
 	private DocView doc;
 	
@@ -1616,7 +1618,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mEngine.execute(new Task() {
 			public void work() {
 				BackgroundThread.ensureBackground();
-				doc.goToPosition(pos);
+				doc.goToPosition(pos, true);
 			}
 			public void done() {
 				BackgroundThread.ensureGUI();
@@ -1743,21 +1745,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return mSettings.getProperty(name);
 	}
 
-	private int lastSaveSettingsRequestId = 0;
-	
+	DelayedExecutor saveSettingsTask = DelayedExecutor.createBackground("saveSettings"); 
 	public void scheduleSaveSettings(int delayMillis) {
-		final int mySaveSettingsRequestId = ++lastSaveSettingsRequestId;
-    	BackgroundThread.instance().postBackground(new Runnable() {
+		saveSettingsTask.postDelayed(new Runnable() {
     		public void run() {
     			BackgroundThread.instance().postGUI(new Runnable() {
     				@Override
     				public void run() {
-    					if (mySaveSettingsRequestId == lastSaveSettingsRequestId)
-    						saveSettings(mSettings);
+   						saveSettings(mSettings);
     				}
     			});
     		}
-    	});
+    	}, delayMillis);
 	}
 	
 	public void setSetting(String name, String value, boolean invalidateImages, boolean save, boolean apply) {
@@ -2129,7 +2128,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		private boolean onTimer() {
 			int newProgress = calcProgressPercent();
-			if (DEBUG_ANIMATION) log.v("onTimer(progress = " + newProgress + ")");
+			alog.v("onTimer(progress = " + newProgress + ")");
 			mActivity.onUserActivity();
 			progress = newProgress;
 			if (progress == 0 || progress >= startAnimationProgress) {
@@ -2340,7 +2339,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void draw(Canvas canvas) {
 			if (currentAutoScrollAnimation != this)
 				return;
-			if (DEBUG_ANIMATION) log.v("AutoScrollAnimation.draw(" + progress + ")");
+			alog.v("AutoScrollAnimation.draw(" + progress + ")");
 			if (progress!=0 && progress<startAnimationProgress)
 				return; // don't draw page w/o started animation
 			int scrollPercent = 10000 * (progress - startAnimationProgress) / (MAX_PROGRESS - startAnimationProgress);
@@ -2859,7 +2858,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        		if (saveDelayed)
 	        			scheduleSaveSettings(5000);
 	        		else {
-	        			++lastSaveSettingsRequestId;
+	        			saveSettingsTask.cancel();
 	        			saveSettings(currSettings);
 	        		}
 	        	}
@@ -3170,6 +3169,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     				mSettings = currSettings;
     		}
     	});
+    	scheduleSaveSettings(60000);
 //        }
 	}
 
@@ -3318,6 +3318,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mEngine.hideProgress();
 			errorHandler.run();
 			return false;
+		} else if (!normalized.equals(fileName)) {
+			log.w("Filename normalized to " + normalized);
+			fileName = normalized;
 		}
 		if (fileName.equals(getManualFileName())) {
 			// ensure manual file is up to date
@@ -3877,7 +3880,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	private void hiliteTapZone( final boolean hilite, final int startX, final int startY, final int maxX, final int maxY )
 	{
-		if (DEBUG_ANIMATION) log.d("highliteTapZone("+startX + ", " + startY+")");
+		alog.d("highliteTapZone("+startX + ", " + startY+")");
 		final int myHiliteId = ++nextHiliteId;
 		int txcolor = mSettings.getColor(PROP_FONT_COLOR, Color.BLACK);
 		final int color = (txcolor & 0xFFFFFF) | (HILITE_RECT_ALPHA<<24);
@@ -3980,7 +3983,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private void startAnimation( final int startX, final int startY, final int maxX, final int maxY, final int newX, final int newY )
 	{
-		if (DEBUG_ANIMATION) log.d("startAnimation("+startX + ", " + startY+")");
+		alog.d("startAnimation("+startX + ", " + startY+")");
 		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
 			public void run() {
@@ -4005,22 +4008,52 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 
-	private final static boolean DEBUG_ANIMATION = false;
 	private volatile int updateSerialNumber = 0;
-	private void updateAnimation( final int x, final int y )
-	{
-		if (DEBUG_ANIMATION) log.d("updateAnimation("+x + ", " + y+")");
-		final int serial = ++updateSerialNumber;
-		BackgroundThread.instance().executeBackground(new Runnable() {
-			@Override
-			public void run() {
-				if ( currentAnimation!=null ) {
-					currentAnimation.update(x, y);
-					if ( serial==updateSerialNumber ) //|| serial==updateSerialNumber-1 
+	private class AnimationUpdate {
+		private int x;
+		private int y;
+		ViewAnimationControl myAnimation;
+		public void set(int x, int y) {
+			this.x = x;
+			this.y = y;
+		}
+		public AnimationUpdate(int x, int y) {
+			this.x = x;
+			this.y = y;
+			this.myAnimation = currentAnimation;
+			scheduleUpdate();
+		}
+		private void scheduleUpdate() {
+			BackgroundThread.instance().postBackground(new Runnable() {
+				@Override
+				public void run() {
+					alog.d("updating("+x + ", " + y+")");
+					boolean animate = false;
+					synchronized (AnimationUpdate.class) {
+						
+						if (/*currentAnimation == myAnimation && */currentAnimationUpdate == AnimationUpdate.this) {
+							currentAnimationUpdate = null;
+							currentAnimation.update(x, y);
+							animate = true;
+						}
+					}
+					if (animate)
 						currentAnimation.animate();
 				}
-			}
-		});
+			});
+		}
+		
+	}
+	private AnimationUpdate currentAnimationUpdate;
+	private void updateAnimation( final int x, final int y )
+	{
+		alog.d("updateAnimation("+x + ", " + y+")");
+		synchronized(AnimationUpdate.class) {
+			if (currentAnimationUpdate != null)
+				currentAnimationUpdate.set(x, y);
+			else
+				currentAnimationUpdate = new AnimationUpdate(x, y);
+		}
 		try {
 			// give a chance to background thread to process event faster
 			Thread.sleep(0);
@@ -4031,7 +4064,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	private void stopAnimation( final int x, final int y )
 	{
-		if (DEBUG_ANIMATION) log.d("stopAnimation("+x+", "+y+")");
+		alog.d("stopAnimation("+x+", "+y+")");
 		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
 			public void run() {
@@ -4043,16 +4076,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 
-	private int animationSerialNumber = 0;
+	DelayedExecutor animationScheduler = DelayedExecutor.createBackground("animation");
 	private void scheduleAnimation()
 	{
-		final int serial = ++animationSerialNumber; 
-		BackgroundThread.instance().executeBackground(new Runnable() {
+		animationScheduler.post(new Runnable() {
 			@Override
 			public void run() {
-				if ( serial!=animationSerialNumber )
-					return;
-				if ( currentAnimation!=null ) {
+				if (currentAnimation != null) {
 					currentAnimation.animate();
 				}
 			}
@@ -4142,19 +4172,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		{
 			return started;
 		}
+
 		ViewAnimationBase()
 		{
 			//startTimeStamp = android.os.SystemClock.uptimeMillis();
 			cancelGc();
 		}
+
 		public void close()
 		{
+			animationScheduler.cancel();
 			currentAnimation = null;
 			scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
 			scheduleGc();
 		}
-
-		
 
 		public void draw()
 		{
@@ -4580,7 +4611,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		@Override
 		public void stop(int x, int y) {
-			if (DEBUG_ANIMATION) log.v("PageViewAnimation.stop(" + x + ", " + y + ")");
+			alog.v("PageViewAnimation.stop(" + x + ", " + y + ")");
 			//if ( started ) {
 				boolean moved = false;
 				if ( x!=-1 ) {
@@ -4621,7 +4652,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		@Override
 		public void update(int x, int y) {
-			if (DEBUG_ANIMATION) log.v("PageViewAnimation.update(" + x + ", " + y + ")");
+			alog.v("PageViewAnimation.update(" + x + ", " + y + ")");
 			int delta = direction>0 ? startX - x : x - startX;
 			if ( delta<=0 )
 				destShift = 0;
@@ -4633,7 +4664,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		public void animate()
 		{
-			if (DEBUG_ANIMATION) log.v("PageViewAnimation.animate("+currShift + " => " + destShift + ") speed=" + pageFlipAnimationSpeedMs);
+			alog.v("PageViewAnimation.animate("+currShift + " => " + destShift + ") speed=" + pageFlipAnimationSpeedMs);
 			//log.d("animate() is called");
 			if ( currShift != destShift ) {
 				started = true;
@@ -4655,7 +4686,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						currShift+=step;
 					else if ( currShift > destShift )
 						currShift-=step;
-					if (DEBUG_ANIMATION) log.v("PageViewAnimation.animate("+currShift + " => " + destShift + "  step=" + step + ")");
+					alog.v("PageViewAnimation.animate("+currShift + " => " + destShift + "  step=" + step + ")");
 				}
 				//pointerCurrPos = pointerDestPos;
 				draw();
@@ -4666,7 +4697,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		public void draw(Canvas canvas)
 		{
-			if (DEBUG_ANIMATION) log.v("PageViewAnimation.draw("+currShift + ")");
+			alog.v("PageViewAnimation.draw("+currShift + ")");
 //			BitmapInfo image1 = mCurrentPageInfo;
 //			BitmapInfo image2 = mNextPageInfo;
 			if (image1.isReleased() || image2.isReleased())
@@ -5149,9 +5180,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private void restorePositionBackground( String pos )
     {
 		BackgroundThread.ensureBackground();
-    	if ( pos!=null ) {
+    	if (pos != null) {
 			BackgroundThread.ensureBackground();
-			doc.goToPosition( pos );
+			doc.goToPosition(pos, false);
     		preparePageImage(0);
     	}
     }
@@ -5256,8 +5287,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
 		if (isBookLoaded() && mBookInfo != null) {
 			log.v("saving last immediately");
+			log.d("bookmark count 1 = " + mBookInfo.getBookmarkCount());
            	mActivity.getHistory().updateBookAccess(mBookInfo);
+			log.d("bookmark count 2 = " + mBookInfo.getBookmarkCount());
             mActivity.getDB().saveBookInfo(mBookInfo);
+			log.d("bookmark count 3 = " + mBookInfo.getBookmarkCount());
             mActivity.getDB().flush();
 		}
 		//scheduleSaveCurrentPositionBookmark(0);
@@ -5718,30 +5752,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
     
-    private static volatile int gcCounter = 0;
-    private static final int GC_INTERVAL = 5000; // 5 ms
-    private static class GcScheduleTask implements Runnable {
-    	public static void scheduleGc() {
-    		BackgroundThread.instance().postGUI(new GcScheduleTask(), GC_INTERVAL);
-    	}
-    	private final int myCounter;
-    	private GcScheduleTask() {
-    		myCounter = ++gcCounter;
-    	}
-		@Override
-		public void run() {
-			if (myCounter == gcCounter) {
+    private static final int GC_INTERVAL = 15000; // 15 seconds
+    DelayedExecutor gcTask = DelayedExecutor.createGUI("gc");
+    public void scheduleGc() {
+    	gcTask.postDelayed(new Runnable() {
+			@Override
+			public void run() {
 				log.v("Initiating garbage collection");
 				System.gc();
-				++gcCounter;
 			}
-		}
+		}, GC_INTERVAL);
     }
-    public static void scheduleGc() {
-    	GcScheduleTask.scheduleGc();
-    }
-    public static void cancelGc() {
-    	++gcCounter;
+    public void cancelGc() {
+    	gcTask.cancel();
     }
 
 	public ReaderView(CoolReader activity, Engine engine, Properties props) 

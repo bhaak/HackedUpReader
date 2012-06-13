@@ -64,6 +64,7 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.PixelFormat;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -208,21 +209,27 @@ public class CoolReader extends Activity
 	}
 
 	public void setCurrentTheme(InterfaceTheme theme) {
+		log.i("setCurrentTheme(" + theme + ")");
 		currentTheme = theme;
 		getApplication().setTheme(theme.getThemeId());
 		setTheme(theme.getThemeId());
-		if (mFrame != null) {
-			TypedArray a = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowBackground, android.R.attr.background, android.R.attr.textColor, android.R.attr.colorBackground, android.R.attr.colorForeground});
-			int bgRes = a.getResourceId(0, 0);
-			//int clText = a.getColor(1, 0);
-			int clBackground = a.getColor(2, 0);
-			//int clForeground = a.getColor(3, 0);
-			a.recycle();
-			if (clBackground != 0)
-				mFrame.setBackgroundColor(clBackground);
-			if (bgRes != 0)
-				mFrame.setBackgroundResource(bgRes);
-		}
+//		TypedArray a = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowBackground, android.R.attr.background, android.R.attr.textColor, android.R.attr.colorBackground, android.R.attr.colorForeground});
+//		int bgRes = a.getResourceId(0, 0);
+//		//int clText = a.getColor(1, 0);
+//		int clBackground = a.getColor(2, 0);
+		//int clForeground = a.getColor(3, 0);
+//		if (mFrame != null) {
+//			if (bgRes != 0) {
+//				Drawable d = getResources().getDrawable(bgRes);
+//				log.v("Setting background resource " + d.getIntrinsicWidth() + "x" + d.getIntrinsicHeight());
+//				mFrame.setBackgroundResource(bgRes);
+//				getWindow().setBackgroundDrawable(d);
+//			} else if (clBackground != 0)
+//				mFrame.setBackgroundColor(clBackground);
+//		}
+//		if (bgRes != 0)
+//			getWindow().setBackgroundDrawableResource(bgRes);
+//		a.recycle();
 		if (mBrowser != null)
 			mBrowser.onThemeChanged();
 	}
@@ -636,10 +643,10 @@ public class CoolReader extends Activity
 		Properties props = loadSettings();
 		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
 		String lang = props.getProperty(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
-		setCurrentTheme(theme);
 		setLanguage(lang);
     	
 		mFrame = new FrameLayout(this);
+		setCurrentTheme(theme);
 		BackgroundThread.instance().setGUI(mFrame);
 
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -813,7 +820,7 @@ public class CoolReader extends Activity
         if (wnd != null) {
 	    	LayoutParams attrs =  wnd.getAttributes();
 	    	boolean changed = false;
-	    	if (b < 0) {
+	    	if (b < 0 && b > -0.99999f) {
 	    		log.d("dimming screen by " + (int)((1 + b)*100) + "%");
 	    		b = -b * attrs.screenBrightness;
 	    		if (b < 0.15)
@@ -843,9 +850,9 @@ public class CoolReader extends Activity
 	    	if (!brightnessHackError)
 	    	try {
 	        	Field bb = attrs.getClass().getField("buttonBrightness");
-	        	if ( bb!=null ) {
+	        	if (bb != null) {
 	        		Float oldValue = (Float)bb.get(attrs);
-	        		if ( oldValue==null || oldValue.floatValue()!=0 ) {
+	        		if (oldValue == null || oldValue.floatValue() != buttonBrightness) {
 	        			bb.set(attrs, buttonBrightness);
 		        		changed = true;
 	        		}
@@ -855,7 +862,7 @@ public class CoolReader extends Activity
 	    		brightnessHackError = true;
 	    	}
 	    	//attrs.buttonBrightness = 0;
-	    	if ( changed ) {
+	    	if (changed) {
 	    		log.d("Window attribute changed: " + attrs);
 	    		wnd.setAttributes(attrs);
 	    	}
@@ -1171,11 +1178,11 @@ public class CoolReader extends Activity
         //engine.waitTasksCompletion();
 //		restarted = false;
 		stopped = false;
-		
+
 		final String fileName = fileToLoadOnStart;
 		BackgroundThread.instance().postGUI(new Runnable() {
 			public void run() {
-				log.i("onStart, scheduled runnable: submitting task");
+				log.i("onStart, scheduled runnable: load document");
 		        mEngine.execute(new LoadLastDocumentTask(fileName));
 			}
 		});
@@ -1298,10 +1305,14 @@ public class CoolReader extends Activity
 	public void showBrowser( final FileInfo fileToShow )
 	{
 		log.v("showBrowser() is called");
-		if ( currentView == mReaderView )
+		if (currentView != null && currentView == mReaderView) {
 			mReaderView.save();
+			backlightControl.release();
+		}
 		mEngine.runInGUI( new Runnable() {
 			public void run() {
+				if (mBrowser == null)
+					return;
 				showView(mBrowser);
 		        if (fileToShow == null || mBrowser.isBookShownInRecentList(fileToShow))
 		        	mBrowser.showLastDirectory();

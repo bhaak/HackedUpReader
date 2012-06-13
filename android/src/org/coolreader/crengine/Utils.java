@@ -6,6 +6,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 public class Utils {
@@ -221,5 +224,63 @@ public class Utils {
 			return s2 == null;
 		}
 		return s1.equals(s2);
+	}
+	
+	public static String formatAuthors( String authors ) {
+		if ( authors==null || authors.length()==0 )
+			return null;
+		String[] list = authors.split("\\|");
+		StringBuilder buf = new StringBuilder(authors.length());
+		for ( String a : list ) {
+			if ( buf.length()>0 )
+				buf.append(", ");
+			buf.append(Utils.authorNameFileAs(a));
+//			String[] items = a.split(" ");
+//			if ( items.length==3 && items[1]!=null && items[1].length()>=1 )
+//				buf.append(items[0] + " " + items[1].charAt(0) + ". " + items[2]);
+//			else
+//				buf.append(a);
+		}
+		return buf.toString();
+	}
+
+	public static String ntrim(String str) {
+		if (str == null)
+			return null;
+		str = str.trim();
+		if (str.length() == 0)
+			return null;
+		return str;
+	}
+
+	public static boolean empty(String str) {
+		if (str == null || str.length() == 0)
+			return true;
+		if (str.trim().length() == 0)
+			return true;
+		return false;
+		
+	}
+	
+	public static Drawable solidColorDrawable(int color) {
+		return new Drawable() {
+			@Override
+			public void setColorFilter(ColorFilter cf) {
+			}
+			
+			@Override
+			public void setAlpha(int alpha) {
+			}
+			
+			@Override
+			public int getOpacity() {
+				return 0;
+			}
+			
+			@Override
+			public void draw(Canvas canvas) {
+				canvas.drawColor(0xFF000000);
+			}
+		};
 	}
 }

@@ -279,6 +279,10 @@ static lChar16 getReplacementChar( lUInt16 code ) {
         return '>';
     case 0x2044:
         return '/';
+    case 0x2022: // css_lst_disc:
+        return '*';
+    case 0x26AA: // css_lst_disc:
+    case 0x25E6: // css_lst_disc:
     case 0x25CF: // css_lst_disc:
         return 'o';
     case 0x25CB: // css_lst_circle:
@@ -808,9 +812,9 @@ public:
             return false;
         if ( _fileName.endsWith(".pfb") || _fileName.endsWith(".pfa") ) {
             lString8 kernFile = _fileName.substr(0, _fileName.length()-4);
-            if ( LVFileExists(lString16(kernFile.c_str())+L".afm" ) ) {
+            if ( LVFileExists(Utf8ToUnicode(kernFile) + ".afm" ) ) {
                 kernFile += ".afm";
-            } else if ( LVFileExists(lString16(kernFile.c_str())+L".pfm" ) ) {
+            } else if ( LVFileExists(Utf8ToUnicode(kernFile) + ".pfm" ) ) {
                 kernFile += ".pfm";
             } else {
                 kernFile.clear();
@@ -875,9 +879,9 @@ public:
             return false;
         if ( _fileName.endsWith(".pfb") || _fileName.endsWith(".pfa") ) {
         	lString8 kernFile = _fileName.substr(0, _fileName.length()-4);
-        	if ( LVFileExists(lString16(kernFile.c_str())+L".afm" ) ) {
+            if ( LVFileExists(Utf8ToUnicode(kernFile) + ".afm") ) {
         		kernFile += ".afm";
-        	} else if ( LVFileExists(lString16(kernFile.c_str())+L".pfm" ) ) {
+            } else if ( LVFileExists(Utf8ToUnicode(kernFile) + ".pfm" ) ) {
         		kernFile += ".pfm";
         	} else {
         		kernFile.clear();
@@ -1464,7 +1468,7 @@ public:
                         letter_spacing
                      );
         int w = 0;
-        for ( unsigned i=0; i<res; i++ ) {
+        for ( int i=0; i<res; i++ ) {
             w += _hShift;
             widths[i] += w;
         }
@@ -1768,10 +1772,12 @@ public:
 //    }
 //}
 
+#if (DEBUG_FONT_SYNTHESIS==1)
 static LVFontRef dumpFontRef( LVFontRef fnt ) {
     CRLog::trace("%s %d (%d) w=%d %s", fnt->getTypeFace().c_str(), fnt->getSize(), fnt->getHeight(), fnt->getWeight(), fnt->getItalic()?"italic":"" );
     return fnt;
-};
+}
+#endif
 
 class LVFreeTypeFontManager : public LVFontManager
 {
@@ -1901,12 +1907,12 @@ public:
         #if (DEBUG_FONT_SYNTHESIS==1)
             fontMan->RegisterFont(lString8("/usr/share/fonts/liberation/LiberationSans-Regular.ttf"));
             CRLog::debug("fonts:");
-            LVFontRef fnt4 = dumpFontRef( fontMan->GetFont(24, 200, true, css_ff_sans_serif, lString8("Arial, Helvetica") ) );
-            LVFontRef fnt1 = dumpFontRef( fontMan->GetFont(18, 200, false, css_ff_sans_serif, lString8("Arial, Helvetica") ) );
-            LVFontRef fnt2 = dumpFontRef( fontMan->GetFont(20, 400, false, css_ff_sans_serif, lString8("Arial, Helvetica") ) );
-            LVFontRef fnt3 = dumpFontRef( fontMan->GetFont(22, 600, false, css_ff_sans_serif, lString8("Arial, Helvetica") ) );
-            LVFontRef fnt5 = dumpFontRef( fontMan->GetFont(26, 400, true, css_ff_sans_serif, lString8("Arial, Helvetica") ) );
-            LVFontRef fnt6 = dumpFontRef( fontMan->GetFont(28, 600, true, css_ff_sans_serif, lString8("Arial, Helvetica") ) );
+            LVFontRef fnt4 = dumpFontRef( fontMan->GetFont(24, 200, true, css_ff_sans_serif, cs8("Arial, Helvetica") ) );
+            LVFontRef fnt1 = dumpFontRef( fontMan->GetFont(18, 200, false, css_ff_sans_serif, cs8("Arial, Helvetica") ) );
+            LVFontRef fnt2 = dumpFontRef( fontMan->GetFont(20, 400, false, css_ff_sans_serif, cs8("Arial, Helvetica") ) );
+            LVFontRef fnt3 = dumpFontRef( fontMan->GetFont(22, 600, false, css_ff_sans_serif, cs8("Arial, Helvetica") ) );
+            LVFontRef fnt5 = dumpFontRef( fontMan->GetFont(26, 400, true, css_ff_sans_serif, cs8("Arial, Helvetica") ) );
+            LVFontRef fnt6 = dumpFontRef( fontMan->GetFont(28, 600, true, css_ff_sans_serif, cs8("Arial, Helvetica") ) );
             CRLog::debug("end of font testing");
         #elif (USE_FONTCONFIG==1)
         {
@@ -2046,9 +2052,9 @@ public:
                 face16.lowercase();
                 if ( spacing==FC_MONO )
                     fontFamily = css_ff_monospace;
-                else if ( face16.pos(L"sans")>=0 )
+                else if (face16.pos("sans") >= 0)
                     fontFamily = css_ff_sans_serif;
-                else if ( face16.pos(L"serif")>=0 )
+                else if (face16.pos("serif") >= 0)
                     fontFamily = css_ff_serif;
                 
                 //css_ff_inherit,
@@ -2062,9 +2068,9 @@ public:
                 lString8 face((const char*)family);
                 lString16 style16((const char*)style);
                 style16.lowercase();
-                if ( style16.pos(L"condensed")>=0 )
+                if (style16.pos("condensed") >= 0)
                     face << " Condensed";
-                else if ( style16.pos(L"extralight")>=0 )
+                else if (style16.pos("extralight") >= 0)
                     face << " Extra Light";
                 
                 LVFontDef def(
@@ -2302,7 +2308,7 @@ public:
         // TODO: check existance of required characters (e.g. cyrillic)
         if (face==NULL)
             return false; // invalid face
-        for ( unsigned i=0; i<_requiredChars.length(); i++ ) {
+        for ( int i=0; i<_requiredChars.length(); i++ ) {
             lChar16 ch = _requiredChars[i];
             FT_UInt ch_glyph_index = FT_Get_Char_Index( face, ch );
             if ( ch_glyph_index==0 ) {
@@ -2357,7 +2363,7 @@ public:
         LVStreamRef stream = container->OpenStream(name.c_str(), LVOM_READ);
         if (stream.isNull())
             return false;
-        int size = (int)stream->GetSize();
+        lUInt32 size = (lUInt32)stream->GetSize();
         if (size < 100 || size > 5000000)
             return false;
         LVByteArrayRef buf(new LVByteArray(size, 0));
@@ -2458,7 +2464,7 @@ public:
     virtual bool RegisterFont( lString8 name )
     {
 #ifdef LOAD_TTF_FONTS_ONLY
-        if ( name.pos( lString8(".ttf") ) < 0 && name.pos( lString8(".TTF") ) < 0 )
+        if ( name.pos( cs8(".ttf") ) < 0 && name.pos( cs8(".TTF") ) < 0 )
             return false; // load ttf fonts only
 #endif
         //CRLog::trace("RegisterFont(%s)", name.c_str());
@@ -2598,7 +2604,7 @@ public:
     virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface, int documentId)
     {
         LVFontDef * def = new LVFontDef( 
-            lString8(),
+            lString8::empty_str,
             size,
             weight,
             italic,
@@ -2723,7 +2729,7 @@ public:
             size = 52;
         
         LVFontDef def( 
-            lString8(),
+            lString8::empty_str,
             size,
             weight,
             italic,
@@ -2974,8 +2980,8 @@ void LVBaseFont::DrawTextString( LVDrawBuf * buf, int x, int y,
                    const lChar16 * text, int len, 
                    lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 , int )
 {
-    static lUInt8 glyph_buf[16384];
-    LVFont::glyph_info_t info;
+    //static lUInt8 glyph_buf[16384];
+    //LVFont::glyph_info_t info;
     int baseline = getBaseline();
     while (len>=(addHyphen?0:1))
     {
@@ -3173,12 +3179,12 @@ LVFontCacheItem * LVFontCache::find( const LVFontDef * fntdef )
     LVFontDef def(*fntdef);
     lString8Collection list;
     splitPropertyValueList( fntdef->getTypeFace().c_str(), list );
-    for (unsigned nindex=0; nindex==0 || nindex<list.length(); nindex++)
+    for (int nindex=0; nindex==0 || nindex<list.length(); nindex++)
     {
         if ( nindex<list.length() )
             def.setTypeFace( list[nindex] );
         else
-            def.setTypeFace( lString8() );
+            def.setTypeFace(lString8::empty_str);
         for (i=0; i<_instance_list.length(); i++)
         {
             int match = _instance_list[i]->_def.CalcMatch( def );

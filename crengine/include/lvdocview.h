@@ -79,6 +79,9 @@
 #define PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  "crengine.cache.forced.filesize.min"
 #define PROP_PROGRESS_SHOW_FIRST_PAGE  "crengine.progress.show.first.page"
 #define PROP_HIGHLIGHT_COMMENT_BOOKMARKS "crengine.highlight.bookmarks"
+#define PROP_HIGHLIGHT_SELECTION_COLOR "crengine.highlight.selection.color"
+#define PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT "crengine.highlight.bookmarks.color.comment"
+#define PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION "crengine.highlight.bookmarks.color.correction"
 // image scaling settings
 // mode: 0=disabled, 1=integer scaling factors, 2=free scaling
 // scale: 0=auto based on font size, 1=no zoom, 2=scale up to *2, 3=scale up to *3
@@ -120,6 +123,10 @@ class LVDocImageHolder
 private:
     LVRef<LVDrawBuf> _drawbuf;
     LVMutex & _mutex;
+	LVDocImageHolder & operator = (LVDocImageHolder&) {
+		// no assignment
+        return *this;
+    }
 public:
     LVDrawBuf * getDrawBuf() { return _drawbuf.get(); }
     LVRef<LVDrawBuf> getDrawBufRef() { return _drawbuf; }
@@ -315,7 +322,7 @@ enum LVDocCmd
     DCMD_EDIT_HOME,
     DCMD_EDIT_END,
     DCMD_EDIT_INSERT_CHAR,
-    DCMD_EDIT_REPLACE_CHAR,
+    DCMD_EDIT_REPLACE_CHAR
 };
 #define LVDOCVIEW_COMMANDS_END DCMD_TOGGLE_BOLD
 
@@ -323,7 +330,7 @@ enum LVDocCmd
 enum LVDocViewMode
 {
     DVM_SCROLL,
-    DVM_PAGES,
+    DVM_PAGES
 };
 
 /// document scroll position info
@@ -351,7 +358,7 @@ enum {
     PGHDR_CLOCK=16,
     PGHDR_BATTERY=32,
     PGHDR_CHAPTER_MARKS=64,
-    PGHDR_PERCENT=128,
+    PGHDR_PERCENT=128
 };
 
 
@@ -418,7 +425,7 @@ private:
     LVImageSourceRef m_backgroundImage;
     LVRef<LVColorDrawBuf> m_backgroundImageScaled;
     bool m_backgroundTiled;
-    bool m_highlightBookmarks;
+    int m_highlightBookmarks;
     LVPtrVector<LVBookMarkPercentInfo> m_bookmarksPercents;
 
 protected:
@@ -838,6 +845,8 @@ public:
     CRPropRef getDocProps() { return m_doc_props; }
     /// returns book title
     lString16 getTitle() { return m_doc_props->getStringDef(DOC_PROP_TITLE); }
+    /// returns book language
+    lString16 getLanguage() { return m_doc_props->getStringDef(DOC_PROP_LANGUAGE); }
     /// returns book author(s)
     lString16 getAuthors() { return m_doc_props->getStringDef(DOC_PROP_AUTHORS); }
     /// returns book series name and number (series name #1)
@@ -846,8 +855,23 @@ public:
         lString16 name = m_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
         lString16 number = m_doc_props->getStringDef(DOC_PROP_SERIES_NUMBER);
         if ( !name.empty() && !number.empty() )
-            name << L" #" << number;
+            name << " #" << number;
         return name;
+    }
+    /// returns book series name and number (series name #1)
+    lString16 getSeriesName()
+    {
+        lString16 name = m_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
+        return name;
+    }
+    /// returns book series name and number (series name #1)
+    int getSeriesNumber()
+    {
+        lString16 name = m_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
+        lString16 number = m_doc_props->getStringDef(DOC_PROP_SERIES_NUMBER);
+        if (!name.empty() && !number.empty())
+            return number.atoi();
+        return 0;
     }
 
     /// export to WOL format
@@ -979,5 +1003,7 @@ public:
     virtual ~LVDocView();
 };
 
+/// draw book cover, either from image, or generated from title/authors
+void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace, lString16 title, lString16 authors, lString16 seriesName, int seriesNumber);
 
 #endif

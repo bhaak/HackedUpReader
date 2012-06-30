@@ -6,21 +6,76 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
+import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.content.Context;
 import android.util.Log;
 
 public class HelpFileGenerator {
+
+	private static final int MANUAL_VERSION = 4;
+	
 	private final Context context;
 	private final Engine engine;
 	private final String langCode;
 	private final Properties settings;
-	public HelpFileGenerator(Context context, Engine engine, Properties props, String langCode) {
+	private final String version;
+	public HelpFileGenerator(CoolReader context, Engine engine, Properties props, String langCode) {
 		this.context = context;
 		this.engine = engine;
 		this.langCode = langCode;
 		this.settings = props;
+		this.version = context.getVersion();
+	}
+	
+	private static final String[] settingsUsedInManual = {
+		"app.tapzone.action.tap.long.1",
+		"app.tapzone.action.tap.long.2",
+		"app.tapzone.action.tap.long.3",
+		"app.tapzone.action.tap.long.4",
+		"app.tapzone.action.tap.long.5",
+		"app.tapzone.action.tap.long.6",
+		"app.tapzone.action.tap.long.7",
+		"app.tapzone.action.tap.long.8",
+		"app.tapzone.action.tap.long.9",
+	    Settings.PROP_APP_DOUBLE_TAP_SELECTION,
+	    Settings.PROP_APP_TAP_ZONE_ACTIONS_TAP,
+	    Settings.PROP_APP_KEY_ACTIONS_PRESS,
+	    Settings.PROP_APP_TRACKBALL_DISABLED,
+	    Settings.PROP_APP_FLICK_BACKLIGHT_CONTROL,
+	    Settings.PROP_APP_SELECTION_ACTION,
+	    Settings.PROP_APP_MULTI_SELECTION_ACTION,
+	    Settings.PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS,
+	    Settings.PROP_APP_FILE_BROWSER_SIMPLE_MODE,
+	    Settings.PROP_APP_SECONDARY_TAP_ACTION_TYPE,
+	    Settings.PROP_APP_GESTURE_PAGE_FLIPPING,
+	    Settings.PROP_APP_HIGHLIGHT_BOOKMARKS,
+	};
+	
+	private int getSettingHash(String name) {
+		String value = settings.getProperty(name);
+		return value == null ? 0 : value.hashCode();
+	}
+	
+	/**
+	 * Calculate hash for current values of settings which may be affect help file content generation.
+	 * @return hash value
+	 */
+	public int getSettingsHash() {
+		int res = MANUAL_VERSION;
+		for (String setting : settingsUsedInManual)
+			res = res * 31 + getSettingHash(setting);
+		return res;
+	}
+	
+	public static File getHelpFileName(File dir, String lang) {
+		File fn = new File(dir, "cr3_manual_" + lang + ".fb2");
+		return fn;
+	}
+	
+	public File getHelpFileName(File dir) {
+		return getHelpFileName(dir, langCode);
 	}
 	
 	public File generateHelpFile(File dir) {
@@ -34,7 +89,7 @@ public class HelpFileGenerator {
 		} catch (UnsupportedEncodingException e1) {
 			return null;
 		}
-		File fn = new File(dir, "cr3_manual_" + langCode + ".fb2");
+		File fn = getHelpFileName(dir);
 		try {
 			FileOutputStream os = new FileOutputStream(fn);
 			os.write(data);
@@ -229,6 +284,8 @@ public class HelpFileGenerator {
 	}
 	
 	private String getSettingValueName(String name) {
+		if ("version".equals(name))
+			return version;
 		String v = settings.getProperty(name);
 		if (v == null || v.length() == 0)
 			return null;

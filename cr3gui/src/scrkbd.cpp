@@ -182,6 +182,50 @@ bool CRScreenKeyboard::digitEntered( lChar16 c )
     return true;
 }
 
+void CRScreenKeyboard::setLayout( CRKeyboardLayoutRef layout )
+{
+	_keymap.clear();
+    int maxcols = 0;
+	if ( !layout.isNull() ) {
+        for ( int i=1; i<layout->vKeyboard->getItems().length(); i++ ) {
+			lString16 s = layout->vKeyboard->get( i );
+			if ( !s.empty() )
+				_keymap.add( s );
+			if ( s.length() > maxcols )
+				maxcols = s.length();
+		}
+	}
+    _rows = _keymap.length();
+	_cols = maxcols<10 ? maxcols : 10;
+	if ( _cols<=0 || _rows<=0 )
+		setDefaultLayout();
+	setDirty();
+}
+
+void CRScreenKeyboard::setDefaultLayout()
+{
+    _keymap.add("1234567890");
+    _keymap.add("abcdefghij");
+    _keymap.add("klmnopqrst");
+    _keymap.add("uvwxyz.,!?");
+    _keymap.add("+-'\":;   ");
+    _rows = _keymap.length();
+}
+
+CRScreenKeyboard::CRScreenKeyboard(CRGUIWindowManager * wm, int id, const lString16 & caption, lString16 & buffer, lvRect & rc)
+: CRGUIWindowBase( wm ), _buffer( buffer ), _value( buffer ), _title( caption ), _resultCmd(id), _lastDigit(0)
+{
+    _passKeysToParent = false;
+    _passCommandsToParent = false;
+    _rect = rc;
+    _fullscreen = false;
+    _skin = _wm->getSkin()->getMenuSkin( L"#vkeyboard" );
+    //_skin = _wm->getSkin()->getWindowSkin( getSkinName().c_str() );
+    setAccelerators( _wm->getAccTables().get("vkeyboard") );
+    _cols = 10;
+	setLayout( wm->getKeyboardLayouts().getCurrentLayout() );
+}
+
 void CRScreenKeyboard::draw()
 {
     CRRectSkinRef titleSkin = _skin->getTitleSkin();
@@ -218,7 +262,7 @@ void CRScreenKeyboard::draw()
                 if ( x-1 < (int)s.length() )
                     txt = lString16(&s[ x - 1 ], 1);
                 else
-                    txt = L" ";
+                    txt = " ";
             }
             lvRect rc = kbdRect;
             rc.top += dy * y;
@@ -241,7 +285,7 @@ void CRScreenKeyboard::draw()
     }
     // draw input area
     clientSkin->draw( *drawbuf, inputRect );
-    clientSkin->drawText( *drawbuf, inputRect, lString16(" ") + _value+L"_" );
+    clientSkin->drawText(*drawbuf, inputRect, lString16(" ") << _value << "_");
 }
 #endif
 

@@ -13,7 +13,7 @@
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
 // increment to force complete reload/reparsing of old file
-#define CACHE_FILE_FORMAT_VERSION "3.04.33"
+#define CACHE_FILE_FORMAT_VERSION "3.04.36"
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0003
 
@@ -126,7 +126,7 @@ enum CacheFileBlockType {
     CBT_STYLE_DATA,
     CBT_BLOB_INDEX, //15
     CBT_BLOB_DATA,
-    CBT_FONT_DATA, //17
+    CBT_FONT_DATA  //17
 };
 
 
@@ -292,10 +292,10 @@ static void dumpRendMethods( ldomNode * node, lString16 prefix )
     if ( node->isText() )
         name << node->getText();
     else
-        name << L"<" << node->getNodeName() << L">   " << lString16::itoa(node->getRendMethod());
+        name << "<" << node->getNodeName() << ">   " << fmt::decimal(node->getRendMethod());
     CRLog::trace( "%s ",LCSTR(name) );
-    for ( unsigned i=0; i<node->getChildCount(); i++ ) {
-        dumpRendMethods( node->getChildNode(i), prefix + L"   ");
+    for ( int i=0; i<node->getChildCount(); i++ ) {
+        dumpRendMethods( node->getChildNode(i), prefix + "   ");
     }
 }
 
@@ -602,7 +602,7 @@ bool CacheFile::readIndex()
         CRLog::error("CacheFile::readIndex: index block info doesn't match header");
         return false;
     }
-    _dirty = hdr._dirty;
+    _dirty = hdr._dirty ? true : false;
     return true;
 }
 
@@ -719,11 +719,11 @@ CacheFileItem * CacheFile::allocBlock( lUInt16 type, lUInt16 index, int size )
     }
     // search for existing free block of proper size
     int bestSize = -1;
-    int bestIndex = -1;
+    //int bestIndex = -1;
     for ( int i=0; i<_freeIndex.length(); i++ ) {
         if ( _freeIndex[i] && (_freeIndex[i]->_blockSize>=size) && (bestSize==-1 || _freeIndex[i]->_blockSize<bestSize) ) {
             bestSize = _freeIndex[i]->_blockSize;
-            bestIndex = -1;
+            //bestIndex = -1;
             existing = _freeIndex[i];
         }
     }
@@ -754,7 +754,7 @@ CacheFileItem * CacheFile::allocBlock( lUInt16 type, lUInt16 index, int size )
 bool CacheFile::validate( CacheFileItem * block )
 {
     lUInt8 * buf = NULL;
-    int size = 0;
+    unsigned size = 0;
 
     if ( (int)_stream->SetPos( block->_blockFilePos )!=block->_blockFilePos ) {
         CRLog::error("CacheFile::validate: Cannot set position for block %d:%d of size %d", block->_dataType, block->_dataIndex, (int)size);
@@ -1675,25 +1675,25 @@ lUInt16 tinyNodeCollection::getNodeFontIndex( lUInt32 dataIndex )
     return info._fontIndex;
 }
 
-bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int nodecount )
+bool tinyNodeCollection::loadNodeData(lUInt16 type, ldomNode ** list, int nodecount)
 {
-    int count = ((nodecount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
-    for ( int i=0; i<count; i++ ) {
+    int count = ((nodecount + TNC_PART_LEN - 1) >> TNC_PART_SHIFT);
+    for (lUInt16 i=0; i<count; i++) {
         int offs = i*TNC_PART_LEN;
         int sz = TNC_PART_LEN;
-        if ( offs + sz > nodecount ) {
+        if (offs + sz > nodecount) {
             sz = nodecount - offs;
         }
 
         lUInt8 * p;
         int buflen;
-        if ( !_cacheFile->read( type, i, p, buflen ) )
+        if (!_cacheFile->read( type, i, p, buflen ))
             return false;
         ldomNode * buf = (ldomNode *)p;
-        if ( !buf || (int)buflen != sizeof(ldomNode)*sz )
+        if (!buf || (unsigned)buflen != sizeof(ldomNode) * sz)
             return false;
         list[i] = buf;
-        for ( int j=0; j<sz; j++ ) {
+        for (int j=0; j<sz; j++) {
             buf[j].setDocumentIndex( _docIndex );
             if ( buf[j].isElement() ) {
                 // will be set by loadStyles/updateStyles
@@ -1709,19 +1709,19 @@ bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int nodec
 bool tinyNodeCollection::saveNodeData( lUInt16 type, ldomNode ** list, int nodecount )
 {
     int count = ((nodecount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
-    for ( int i=0; i<count; i++ ) {
-        if ( !list[i] )
+    for (lUInt16 i=0; i<count; i++) {
+        if (!list[i])
             continue;
         int offs = i*TNC_PART_LEN;
         int sz = TNC_PART_LEN;
-        if ( offs + sz > nodecount ) {
+        if (offs + sz > nodecount) {
             sz = nodecount - offs;
         }
         ldomNode buf[TNC_PART_LEN];
-        memcpy( buf, list[i], sizeof(ldomNode)*sz );
-        for ( int j=0; j<sz; j++ )
-            buf[j].setDocumentIndex( _docIndex );
-        if ( !_cacheFile->write( type, i, (lUInt8*)buf, sizeof(ldomNode)*sz, COMPRESS_NODE_DATA ) )
+        memcpy(buf, list[i], sizeof(ldomNode) * sz);
+        for (int j = 0; j < sz; j++)
+            buf[j].setDocumentIndex(_docIndex);
+        if (!_cacheFile->write(type, i, (lUInt8*)buf, sizeof(ldomNode) * sz, COMPRESS_NODE_DATA))
             crFatalError(-1, "Cannot write node data");
     }
     return true;
@@ -2026,7 +2026,7 @@ bool ldomDataStorageManager::load()
     _chunks.clear();
     lUInt32 compsize = 0;
     lUInt32 uncompsize = 0;
-    for ( unsigned i=0; i<n; i++ ) {
+    for (lUInt32 i=0; i<n; i++ ) {
         buf >> uncompsize;
         if ( buf.error() ) {
             _chunks.clear();
@@ -2050,7 +2050,7 @@ ldomTextStorageChunk * ldomDataStorageManager::getChunk( lUInt32 address )
         if ( chunk->_nextRecent )
             chunk->_nextRecent->_prevRecent = chunk->_prevRecent;
         chunk->_prevRecent = NULL;
-        if ( (chunk->_nextRecent = _recentChunk) )
+        if (((chunk->_nextRecent = _recentChunk)))
             _recentChunk->_prevRecent = chunk;
         _recentChunk = chunk;
     }
@@ -2289,45 +2289,45 @@ ldomDataStorageManager::~ldomDataStorageManager()
 }
 
 /// create chunk to be read from cache file
-ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, int index, int compsize, int uncompsize )
-: _manager(manager)
-, _buf(NULL)   /// buffer for uncompressed data
-, _bufsize(0)    /// _buf (uncompressed) area size, bytes
-, _bufpos(uncompsize)     /// _buf (uncompressed) data write position (for appending of new data)
-, _index(index)      /// ? index of chunk in storage
-, _type( manager->_type )
-, _nextRecent(NULL)
-, _prevRecent(NULL)
-, _saved(true)
+ldomTextStorageChunk::ldomTextStorageChunk(ldomDataStorageManager * manager, lUInt16 index, int compsize, int uncompsize)
+	: _manager(manager)
+	, _nextRecent(NULL)
+	, _prevRecent(NULL)
+	, _buf(NULL)   /// buffer for uncompressed data
+	, _bufsize(0)    /// _buf (uncompressed) area size, bytes
+	, _bufpos(uncompsize)     /// _buf (uncompressed) data write position (for appending of new data)
+	, _index(index)      /// ? index of chunk in storage
+	, _type( manager->_type )
+	, _saved(true)
 {
 }
 
-ldomTextStorageChunk::ldomTextStorageChunk( int preAllocSize, ldomDataStorageManager * manager, int index )
-: _manager(manager)
-, _buf(NULL)   /// buffer for uncompressed data
-, _bufsize(preAllocSize)    /// _buf (uncompressed) area size, bytes
-, _bufpos(preAllocSize)     /// _buf (uncompressed) data write position (for appending of new data)
-, _index(index)      /// ? index of chunk in storage
-, _type( manager->_type )
-, _nextRecent(NULL)
-, _prevRecent(NULL)
-, _saved(false)
+ldomTextStorageChunk::ldomTextStorageChunk(int preAllocSize, ldomDataStorageManager * manager, lUInt16 index)
+	: _manager(manager)
+	, _nextRecent(NULL)
+	, _prevRecent(NULL)
+	, _buf(NULL)   /// buffer for uncompressed data
+	, _bufsize(preAllocSize)    /// _buf (uncompressed) area size, bytes
+	, _bufpos(preAllocSize)     /// _buf (uncompressed) data write position (for appending of new data)
+	, _index(index)      /// ? index of chunk in storage
+	, _type( manager->_type )
+	, _saved(false)
 {
     _buf = (lUInt8*)malloc(preAllocSize);
     memset(_buf, 0, preAllocSize);
     _manager->_uncompressedSize += _bufsize;
 }
 
-ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, int index )
-: _manager(manager)
-, _buf(NULL)   /// buffer for uncompressed data
-, _bufsize(0)    /// _buf (uncompressed) area size, bytes
-, _bufpos(0)     /// _buf (uncompressed) data write position (for appending of new data)
-, _index(index)      /// ? index of chunk in storage
-, _type( manager->_type )
-, _nextRecent(NULL)
-, _prevRecent(NULL)
-, _saved(false)
+ldomTextStorageChunk::ldomTextStorageChunk(ldomDataStorageManager * manager, lUInt16 index)
+	: _manager(manager)
+	, _nextRecent(NULL)
+	, _prevRecent(NULL)
+	, _buf(NULL)   /// buffer for uncompressed data
+	, _bufsize(0)    /// _buf (uncompressed) area size, bytes
+	, _bufpos(0)     /// _buf (uncompressed) data write position (for appending of new data)
+	, _index(index)      /// ? index of chunk in storage
+	, _type( manager->_type )
+	, _saved(false)
 {
 }
 
@@ -2437,11 +2437,11 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
     if ( (int)_bufsize - (int)_bufpos < itemsize )
         return -1;
     TextDataStorageItem * p = (TextDataStorageItem*)(_buf + _bufpos);
-    p->sizeDiv16 = itemsize>>4;
+    p->sizeDiv16 = (lUInt16)(itemsize >> 4);
     p->dataIndex = dataIndex;
     p->parentIndex = parentIndex;
     p->type = LXML_TEXT_NODE;
-    p->length = text.length();
+    p->length = (lUInt16)text.length();
     memcpy(p->text, text.c_str(), p->length);
     int res = _bufpos >> 4;
     _bufpos += itemsize;
@@ -2449,7 +2449,7 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
 }
 
 /// adds new element item to buffer, returns offset inside chunk of stored data
-int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount )
+int ldomTextStorageChunk::addElem(lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount)
 {
     int itemsize = (sizeof(ElementDataStorageItem) + attrCount*sizeof(lUInt16)*3 + childCount*sizeof(lUInt32) - sizeof(lUInt32) + 15) & 0xFFFFFFF0;
     if ( !_buf ) {
@@ -2464,12 +2464,12 @@ int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int c
         return -1;
     ElementDataStorageItem *item = (ElementDataStorageItem *)(_buf + _bufpos);
     if ( item ) {
-        item->sizeDiv16 = itemsize>>4;
+        item->sizeDiv16 = (lUInt16)(itemsize >> 4);
         item->dataIndex = dataIndex;
         item->parentIndex = parentIndex;
         item->type = LXML_ELEMENT_NODE;
         item->parentIndex = parentIndex;
-        item->attrCount = attrCount;
+        item->attrCount = (lUInt16)attrCount;
         item->childCount = childCount;
     }
     int res = _bufpos >> 4;
@@ -2553,7 +2553,7 @@ lString8 ldomTextStorageChunk::getText( int offset )
         TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
         return item->getText8();
     }
-    return lString8();
+    return lString8::empty_str;
 }
 #endif
 
@@ -2768,7 +2768,7 @@ simpleLogFile logfile("logfile.log");
 /// lxmlDocument
 
 
-lxmlDocBase::lxmlDocBase( int dataBufSize )
+lxmlDocBase::lxmlDocBase( int /*dataBufSize*/ )
 : _elementNameTable(MAX_ELEMENT_TYPE_ID)
 , _attrNameTable(MAX_ATTRIBUTE_TYPE_ID)
 , _nsNameTable(MAX_NAMESPACE_TYPE_ID)
@@ -2807,12 +2807,21 @@ void lxmlDocBase::onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * no
         _idNodeMap.set( valueId, node->getDataIndex() );
     } else if ( attrId==_nameAttrId ) {
         lString16 nodeName = node->getNodeName();
-        if ( nodeName==L"a" )
+        if (nodeName == "a")
             _idNodeMap.set( valueId, node->getDataIndex() );
     }
 }
 
 lUInt16 lxmlDocBase::getNsNameIndex( const lChar16 * name )
+{
+    const LDOMNameIdMapItem * item = _nsNameTable.findItem( name );
+    if (item)
+        return item->id;
+    _nsNameTable.AddItem( _nextUnknownNsId, lString16(name), NULL );
+    return _nextUnknownNsId++;
+}
+
+lUInt16 lxmlDocBase::getNsNameIndex( const lChar8 * name )
 {
     const LDOMNameIdMapItem * item = _nsNameTable.findItem( name );
     if (item)
@@ -2830,6 +2839,15 @@ lUInt16 lxmlDocBase::getAttrNameIndex( const lChar16 * name )
     return _nextUnknownAttrId++;
 }
 
+lUInt16 lxmlDocBase::getAttrNameIndex( const lChar8 * name )
+{
+    const LDOMNameIdMapItem * item = _attrNameTable.findItem( name );
+    if (item)
+        return item->id;
+    _attrNameTable.AddItem( _nextUnknownAttrId, lString16(name), NULL );
+    return _nextUnknownAttrId++;
+}
+
 lUInt16 lxmlDocBase::getElementNameIndex( const lChar16 * name )
 {
     const LDOMNameIdMapItem * item = _elementNameTable.findItem( name );
@@ -2839,6 +2857,22 @@ lUInt16 lxmlDocBase::getElementNameIndex( const lChar16 * name )
     return _nextUnknownElementId++;
 }
 
+lUInt16 lxmlDocBase::findElementNameIndex( const lChar8 * name )
+{
+    const LDOMNameIdMapItem * item = _elementNameTable.findItem( name );
+    if (item)
+        return item->id;
+    return 0;
+}
+
+lUInt16 lxmlDocBase::getElementNameIndex( const lChar8 * name )
+{
+    const LDOMNameIdMapItem * item = _elementNameTable.findItem( name );
+    if (item)
+        return item->id;
+    _elementNameTable.AddItem( _nextUnknownElementId, lString16(name), NULL );
+    return _nextUnknownElementId++;
+}
 
 /// create formatted text object with options set
 LFormattedText * lxmlDocBase::createFormattedText()
@@ -2846,6 +2880,7 @@ LFormattedText * lxmlDocBase::createFormattedText()
     LFormattedText * p = new LFormattedText();
     p->setImageScalingOptions(&_imgScalingOptions);
     p->setMinSpaceCondensingPercent(_minSpaceCondensingPercent);
+    p->setHighlightOptions(&_highlightOptions);
     return p;
 }
 
@@ -2894,6 +2929,7 @@ lxmlDocBase::lxmlDocBase( lxmlDocBase & doc )
 /// creates empty document which is ready to be copy target of doc partial contents
 ldomDocument::ldomDocument( ldomDocument & doc )
 : lxmlDocBase(doc)
+, m_toc(this)
 #if BUILD_LITE!=1
 , _def_font(doc._def_font) // default font
 , _def_style(doc._def_style)
@@ -2903,7 +2939,6 @@ ldomDocument::ldomDocument( ldomDocument & doc )
 #endif
 , _container(doc._container)
 , lists(100)
-, m_toc(this)
 {
 }
 
@@ -3008,7 +3043,7 @@ bool ldomDocument::saveToStream( LVStreamRef stream, const char *, bool treeLayo
     if (!stream || !getRootNode()->getChildCount())
         return false;
 
-    *stream.get() << UnicodeToLocal(lString16(L"\xFEFF"));
+    *stream.get() << UnicodeToLocal(cs16(L"\xFEFF"));
     writeNode( stream.get(), getRootNode(), treeLayout );
     return true;
 }
@@ -3024,7 +3059,7 @@ ldomDocument::~ldomDocument()
 #if BUILD_LITE!=1
 
 /// renders (formats) document in memory
-bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space, CRPropRef props )
+bool ldomDocument::setRenderProps( int width, int dy, bool /*showCover*/, int /*y0*/, font_ref_t def_font, int def_interline_space, CRPropRef props )
 {
     bool changed = false;
     _renderedBlockCache.clear();
@@ -3166,7 +3201,7 @@ void ldomDocument::applyDocumentStyleSheet()
         }
         CRLog::error("applyDocumentStyleSheet() : cannot load link/stylesheet from %s", LCSTR(_docStylesheetFileName));
     } else {
-        ldomXPointer ss = createXPointer(lString16(L"/FictionBook/stylesheet"));
+        ldomXPointer ss = createXPointer(cs16("/FictionBook/stylesheet"));
         if ( !ss.isNull() ) {
             lString16 css = ss.getText('\n');
             if ( !css.empty() ) {
@@ -3235,7 +3270,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         updateRenderContext();
 
         // DEBUG dump of render methods
-        //dumpRendMethods( getRootNode(), lString16(" - ") );
+        //dumpRendMethods( getRootNode(), cs16(" - ") );
 //        lUInt32 styleHash = calcStyleHash();
 //        styleHash = styleHash * 31 + calcGlobalSettingsHash();
 //        CRLog::debug("Style hash: %x", styleHash);
@@ -3355,6 +3390,21 @@ static const char * attr_value_map_magic = "ATTV";
 static const char * ns_id_map_magic =   "NMSP";
 static const char * node_by_id_map_magic = "NIDM";
 
+typedef struct {
+    lUInt16 key;
+    lUInt32 value;
+} id_node_map_item;
+
+int compare_id_node_map_items(const void * item1, const void * item2) {
+    id_node_map_item * v1 = (id_node_map_item*)item1;
+    id_node_map_item * v2 = (id_node_map_item*)item2;
+    if (v1->key > v2->key)
+        return 1;
+    if (v1->key < v2->key)
+        return -1;
+    return 0;
+}
+
 /// serialize to byte array (pointer will be incremented by number of bytes written)
 void lxmlDocBase::serializeMaps( SerialBuf & buf )
 {
@@ -3387,11 +3437,21 @@ void lxmlDocBase::serializeMaps( SerialBuf & buf )
     if ( (int)cnt!=_idNodeMap.length() )
         CRLog::error("_idNodeMap.length=%d doesn't match real item count %d", _idNodeMap.length(), cnt);
     buf << cnt;
+    if (cnt > 0)
     {
+        // sort items before serializing!
+        id_node_map_item * array = new id_node_map_item[cnt];
+        int i = 0;
         LVHashTable<lUInt16,lInt32>::iterator ii = _idNodeMap.forwardIterator();
         for ( LVHashTable<lUInt16,lInt32>::pair * p = ii.next(); p!=NULL; p = ii.next() ) {
-            buf << (lUInt16)p->key << (lUInt32)p->value;
+            array[i].key = (lUInt16)p->key;
+            array[i].value = (lUInt32)p->value;
+            i++;
         }
+        qsort(array, cnt, sizeof(id_node_map_item), &compare_id_node_map_items);
+        for (i = 0; i < (int)cnt; i++)
+            buf << array[i].key << array[i].value;
+        delete[] array;
     }
     buf.putMagic( node_by_id_map_magic );
     buf.putCRC( buf.pos() - start );
@@ -3581,7 +3641,7 @@ lString16 ldomElementWriter::getPath()
 {
     if ( !_path.empty() || _element->isRoot() )
         return _path;
-    _path = _parent->getPath() + L"/" + _element->getXPathSegment();
+    _path = _parent->getPath() + "/" + _element->getXPathSegment();
     return _path;
 }
 
@@ -3823,7 +3883,7 @@ int initTableRendMethods( ldomNode * enode, int state )
         }
     }
 //    if ( state==0 ) {
-//        dumpRendMethods( enode, lString16(L"   ") );
+//        dumpRendMethods( enode, cs16("   ") );
 //    }
     return cellCount;
 }
@@ -3849,7 +3909,7 @@ void ldomNode::initNodeRendMethod()
 //    if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
 //        CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
 //    }
-//    if ( getNodeName()==L"image" ) {
+//    if ( getNodeName() == "image" ) {
 //        CRLog::trace("Init log for image");
 //    }
 
@@ -3990,9 +4050,10 @@ void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
     {
         // normal mode: store text copy
         // add text node, if not first empty space string of block node
-        if ( !_isBlock || _element->getChildCount()!=0 || !IsEmptySpace( text, len ) || (_flags&TXTFLG_PRE) )
-            _element->insertChildText(lString16(text, len));
-        else {
+        if ( !_isBlock || _element->getChildCount()!=0 || !IsEmptySpace( text, len ) || (_flags&TXTFLG_PRE) ) {
+            lString8 s8 = UnicodeToUtf8(text, len);
+            _element->insertChildText(s8);
+        } else {
             //CRLog::trace("ldomElementWriter::onText: Ignoring first empty space of block item");
         }
     }
@@ -4169,13 +4230,13 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
         //logfile << " !c-err!\n";
         return;
     }
-    if ( tagname[0]=='l' && _currNode && !lStr_cmp(tagname, L"link") ) {
+    if (tagname[0] == 'l' && _currNode && !lStr_cmp(tagname, "link") ) {
         // link node
-        if ( _currNode && _currNode->getElement() && _currNode->getElement()->getNodeName()==L"link" &&
-             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->getNodeName()==L"head" &&
-             _currNode->getElement()->getAttributeValue(L"rel")==L"stylesheet" &&
-             _currNode->getElement()->getAttributeValue(L"type")==L"text/css" ) {
-            lString16 href = _currNode->getElement()->getAttributeValue(L"href");
+        if ( _currNode && _currNode->getElement() && _currNode->getElement()->isNodeName("link") &&
+             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->isNodeName("head") &&
+             _currNode->getElement()->getAttributeValue("rel") == "stylesheet" &&
+             _currNode->getElement()->getAttributeValue("type") == "text/css" ) {
+            lString16 href = _currNode->getElement()->getAttributeValue("href");
             lString16 stylesheetFile = LVCombinePaths( _document->getCodeBase(), href );
             CRLog::debug("Internal stylesheet file: %s", LCSTR(stylesheetFile));
             _document->setDocStylesheetFileName(stylesheetFile);
@@ -4195,7 +4256,7 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
         _parser->Stop();
     }
 
-    if ( !lStr_cmp(tagname, L"stylesheet") ) {
+    if (!lStr_cmp(tagname, "stylesheet")) {
         //CRLog::trace("</stylesheet> found");
 #if BUILD_LITE!=1
         if ( !_popStyleOnFinish ) {
@@ -4582,7 +4643,7 @@ static bool updateScalingOption( img_scaling_option_t & v, CRPropRef props, int 
     }
     if ( currScale==1 )
         currMode = 0;
-    int updated = false;
+    bool updated = false;
     if ( v.max_scale!=currScale ) {
         updated = true;
         v.max_scale = currScale;
@@ -4660,7 +4721,7 @@ xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & inde
         }
         if (!s[pos] || s[pos]=='/' || s[pos]=='.') {
             path += pos;
-            return (name==L"text()") ? xpath_step_text : xpath_step_element; // OK!
+            return (name == "text()") ? xpath_step_text : xpath_step_element; // OK!
         }
         return xpath_step_error; // error
     }
@@ -4838,6 +4899,11 @@ bool ldomXPointer::getRect(lvRect & rect) const
     if ( finalNode!=NULL ) {
         lvRect rc;
         finalNode->getAbsRect( rc );
+        if (rc.height() == 0 && rc.width() > 0) {
+            rect = rc;
+            rect.bottom++;
+            return true;
+        }
         RenderRectAccessor r( finalNode );
         //if ( !r )
         //    return false;
@@ -4917,7 +4983,7 @@ bool ldomXPointer::getRect(lvRect & rect) const
             const formatted_line_t * frmline = txtform->GetLineInfo(l);
             for ( int w=0; w<(int)frmline->word_count; w++ ) {
                 const formatted_word_t * word = &frmline->words[w];
-                bool lastWord = (l==txtform->GetLineCount()-1 && w==frmline->word_count-1);
+                bool lastWord = (l == txtform->GetLineCount() - 1 && w == frmline->word_count - 1);
                 if ( word->src_text_index>=srcIndex || lastWord ) {
                     // found word from same src line
                     if ( word->src_text_index>srcIndex || offset<=word->t.start ) {
@@ -5038,7 +5104,7 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
             {
                 ldomNode * foundItem = NULL;
                 int foundCount = 0;
-                for (unsigned i=0; i<currNode->getChildCount(); i++) {
+                for (int i=0; i<currNode->getChildCount(); i++) {
                     ldomNode * p = currNode->getChildNode(i);
                     if ( p->isText() ) {
                         foundCount++;
@@ -5093,7 +5159,7 @@ lString16 ldomNode::getXPathSegment()
         for ( int i=0; i<cnt; i++ ) {
             ldomNode * node = parent->getChildNode(i);
             if ( node == this ) {
-                return getNodeName() + L"[" + lString16::itoa(index+1) + L"]";
+                return getNodeName() + "[" + fmt::decimal(index+1) + "]";
             }
             if ( node->isElement() && node->getNodeId()==id )
                 index++;
@@ -5102,7 +5168,7 @@ lString16 ldomNode::getXPathSegment()
         for ( int i=0; i<cnt; i++ ) {
             ldomNode * node = parent->getChildNode(i);
             if ( node == this ) {
-                return L"text()[" + lString16::itoa(index+1) + L"]";
+                return "text()[" + lString16::itoa(index+1) + "]";
             }
             if ( node->isText() )
                 index++;
@@ -5119,7 +5185,7 @@ lString16 ldomXPointer::toString()
     ldomNode * node = getNode();
     int offset = getOffset();
     if ( offset >= 0 ) {
-        path << L"." << lString16::itoa(offset);
+        path << "." << fmt::decimal(offset);
     }
     ldomNode * p = node;
     ldomNode * mainNode = node->getDocument()->getRootNode();
@@ -5128,12 +5194,12 @@ lString16 ldomXPointer::toString()
         if ( p->isElement() ) {
             // element
             lString16 name = p->getNodeName();
-            int id = p->getNodeId();
+            lUInt16 id = p->getNodeId();
             if ( !parent )
-                return lString16(L"/") + name + path;
+                return "/" + name + path;
             int index = -1;
             int count = 0;
-            for ( unsigned i=0; i<parent->getChildCount(); i++ ) {
+            for ( int i=0; i<parent->getChildCount(); i++ ) {
                 ldomNode * node = parent->getChildElementNode( i, id );
                 if ( node ) {
                     count++;
@@ -5142,16 +5208,16 @@ lString16 ldomXPointer::toString()
                 }
             }
             if ( count>1 )
-                path = lString16(L"/") + name + L"[" + lString16::itoa(index) + L"]" + path;
+                path = cs16("/") + name + "[" + fmt::decimal(index) + "]" + path;
             else
-                path = lString16(L"/") + name + path;
+                path = cs16("/") + name + path;
         } else {
             // text
             if ( !parent )
-                return lString16(L"/text()") + path;
+                return cs16("/text()") + path;
             int index = -1;
             int count = 0;
-            for ( unsigned i=0; i<parent->getChildCount(); i++ ) {
+            for ( int i=0; i<parent->getChildCount(); i++ ) {
                 ldomNode * node = parent->getChildNode( i );
                 if ( node->isText() ) {
                     count++;
@@ -5160,9 +5226,9 @@ lString16 ldomXPointer::toString()
                 }
             }
             if ( count>1 )
-                path = lString16(L"/text()") + L"[" + lString16::itoa(index) + L"]" + path;
+                path = cs16("/text()") + "[" + fmt::decimal(index) + "]" + path;
             else
-                path = lString16(L"/text()") + path;
+                path = "/text()" + path;
         }
         p = parent;
     }
@@ -5183,10 +5249,10 @@ int ldomDocument::getFullHeight()
 lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter, bool shortMiddleName )
 {
     if ( delimiter.empty() )
-        delimiter = L", ";
+        delimiter = ", ";
     lString16 authors;
     for ( int i=0; i<16; i++) {
-        lString16 path = lString16(L"/FictionBook/description/title-info/author[") + lString16::itoa(i+1) + L"]";
+        lString16 path = cs16("/FictionBook/description/title-info/author[") + fmt::decimal(i+1) + "]";
         ldomXPointer pauthor = doc->createXPointer(path);
         if ( !pauthor ) {
             //CRLog::trace( "xpath not found: %s", UnicodeToUtf8(path).c_str() );
@@ -5197,11 +5263,11 @@ lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter, bool short
         lString16 middleName = pauthor.relative( L"/middle-name" ).getText().trim();
         lString16 author = firstName;
         if ( !author.empty() )
-            author += L" ";
+            author += " ";
         if ( !middleName.empty() )
-            author += shortMiddleName ? lString16(middleName, 0, 1) + L"." : middleName;
+            author += shortMiddleName ? lString16(middleName, 0, 1) + "." : middleName;
         if ( !lastName.empty() && !author.empty() )
-            author += L" ";
+            author += " ";
         author += lastName;
         if ( !authors.empty() )
             authors += delimiter;
@@ -5213,6 +5279,11 @@ lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter, bool short
 lString16 extractDocTitle( ldomDocument * doc )
 {
     return doc->createXPointer(L"/FictionBook/description/title-info/book-title").getText().trim();
+}
+
+lString16 extractDocLanguage( ldomDocument * doc )
+{
+    return doc->createXPointer(L"/FictionBook/description/title-info/lang").getText();
 }
 
 lString16 extractDocSeries( ldomDocument * doc, int * pSeriesNumber )
@@ -5227,9 +5298,9 @@ lString16 extractDocSeries( ldomDocument * doc, int * pSeriesNumber )
                 *pSeriesNumber = snumber.atoi();
                 res = sname;
             } else {
-                res << L"(" << sname;
+                res << "(" << sname;
                 if ( !snumber.empty() )
-                    res << L" #" << snumber << L")";
+                    res << " #" << snumber << ")";
             }
         }
     }
@@ -6291,7 +6362,7 @@ bool ldomXPointerEx::nextVisibleWordEnd( bool thisBlockOnly )
     ldomNode * node = NULL;
     lString16 text;
     int textLen = 0;
-    bool moved = false;
+    //bool moved = false;
     for ( ;; ) {
         if ( !isText() || !isVisible() ) {
             // move to previous text
@@ -6301,7 +6372,7 @@ bool ldomXPointerEx::nextVisibleWordEnd( bool thisBlockOnly )
             text = node->getText();
             textLen = text.length();
             _data->setOffset( 0 );
-            moved = true;
+            //moved = true;
         } else {
             for (;;) {
                 node = getNode();
@@ -6327,7 +6398,7 @@ bool ldomXPointerEx::nextVisibleWordEnd( bool thisBlockOnly )
         // skip spaces
         while ( _data->getOffset()<textLen && IsUnicodeSpace(text[ _data->getOffset() ]) ) {
             _data->addOffset(1);
-            moved = true;
+            //moved = true;
         }
         // skip non-spaces
         while ( _data->getOffset()<textLen ) {
@@ -6354,7 +6425,7 @@ bool ldomXPointerEx::isVisibleWordStart()
     int i = _data->getOffset();
     lChar16 currCh = i<textLen ? text[i] : 0;
     lChar16 prevCh = i<textLen && i>0 ? text[i-1] : 0;
-    if ( canWrapWordBefore(currCh) || IsUnicodeSpaceOrNull(prevCh) && !IsUnicodeSpace(currCh) )
+    if (canWrapWordBefore(currCh) || (IsUnicodeSpaceOrNull(prevCh) && !IsUnicodeSpace(currCh)))
         return true;
     return false;
  }
@@ -6372,7 +6443,7 @@ bool ldomXPointerEx::isVisibleWordEnd()
     int i = _data->getOffset();
     lChar16 currCh = i>0 ? text[i-1] : 0;
     lChar16 nextCh = i<textLen ? text[i] : 0;
-    if ( canWrapWordAfter(currCh) || !IsUnicodeSpace(currCh) && IsUnicodeSpaceOrNull(nextCh) )
+    if (canWrapWordAfter(currCh) || (!IsUnicodeSpace(currCh) && IsUnicodeSpaceOrNull(nextCh)))
         return true;
     return false;
 }
@@ -6682,6 +6753,10 @@ void ldomXRange::forEach( ldomNodeCallback * callback )
 
 class ldomWordsCollector : public ldomNodeCallback {
     LVArray<ldomWord> & _list;
+	ldomWordsCollector & operator = (ldomWordsCollector&) {
+		// no assignment
+        return *this;
+    }
 public:
     ldomWordsCollector( LVArray<ldomWord> & list )
         : _list( list )
@@ -6726,7 +6801,7 @@ void ldomXRange::getRangeWords( LVArray<ldomWord> & list )
 }
 
 /// adds all visible words from range, returns number of added words
-int ldomWordExList::addRangeWords( ldomXRange & range, bool trimPunctuation ) {
+int ldomWordExList::addRangeWords( ldomXRange & range, bool /*trimPunctuation*/ ) {
     LVArray<ldomWord> list;
     range.getRangeWords( list );
     for ( int i=0; i<list.length(); i++ )
@@ -6757,6 +6832,8 @@ int ldomMarkedRange::calcDistance( int x, int y, MoveDirection dir ) {
     case DIR_UP:
     case DIR_DOWN:
         return dx + dy*100;
+    case DIR_ANY:
+        return dx + dy;
     }
 
 
@@ -6812,7 +6889,7 @@ ldomWordEx * ldomWordExList::findWordByPattern()
         lString16 text = item->getText();
         text.lowercase();
         bool flg = true;
-        for ( unsigned j=0; j<pattern.length(); j++ ) {
+        for ( int j=0; j<pattern.length(); j++ ) {
             if ( j>=text.length() ) {
                 flg = false;
                 break;
@@ -6820,7 +6897,7 @@ ldomWordEx * ldomWordExList::findWordByPattern()
             lString16 chars = pattern[j];
             chars.lowercase();
             bool charFound = false;
-            for ( unsigned k=0; k<chars.length(); k++ ) {
+            for ( int k=0; k<chars.length(); k++ ) {
                 if ( chars[k]==text[j] ) {
                     charFound = true;
                     break;
@@ -6915,6 +6992,11 @@ ldomWordEx * ldomWordExList::findNearestWord( int x, int y, MoveDirection dir ) 
                 if ( middle.x<=x )
                     continue;
                 break;
+            case DIR_UP:
+            case DIR_DOWN:
+            case DIR_ANY:
+                // none
+                break;
             }
             if ( middle.y!=thisLineY )
                 continue;
@@ -6976,7 +7058,7 @@ class ldomTextCollector : public ldomNodeCallback
 private:
     bool lastText;
     bool newBlock;
-    int  delimiter;
+    lChar16  delimiter;
     int  maxLen;
     lString16 text;
 public:
@@ -7057,16 +7139,16 @@ lString16 ldomXRange::getRangeText( lChar16 blockDelimiter, int maxTextLen )
 lString16 ldomXPointer::getHRef()
 {
     if ( isNull() )
-        return lString16();
+        return lString16::empty_str;
     ldomNode * node = getNode();
     while ( node && !node->isElement() )
         node = node->getParentNode();
     while ( node && node->getNodeId()!=el_a )
         node = node->getParentNode();
     if ( !node )
-        return lString16();
+        return lString16::empty_str;
     lString16 ref = node->getAttributeValue( LXML_NS_ANY, attr_href );
-    if ( !ref.empty() && ref[0]!='#' )
+    if (!ref.empty() && ref[0] != '#')
         ref = DecodeHTMLUrlString(ref);
     return ref;
 }
@@ -7076,7 +7158,7 @@ lString16 ldomXPointer::getHRef()
 lString16 ldomXRange::getHRef()
 {
     if ( isNull() )
-        return lString16();
+        return lString16::empty_str;
     return _start.getHRef();
 }
 
@@ -7148,7 +7230,7 @@ ldomDocument * LVParseHTMLStream( LVStreamRef stream,
 #if 0
 static lString16 escapeDocPath( lString16 path )
 {
-    for ( unsigned i=0; i<path.length(); i++ ) {
+    for ( int i=0; i<path.length(); i++ ) {
         lChar16 ch = path[i];
         if ( ch=='/' || ch=='\\')
             path[i] = '_';
@@ -7160,28 +7242,41 @@ static lString16 escapeDocPath( lString16 path )
 lString16 ldomDocumentFragmentWriter::convertId( lString16 id )
 {
     if ( !codeBasePrefix.empty() ) {
-        return codeBasePrefix + L"_" + id;
+        return codeBasePrefix + "_" + id;
     }
     return id;
 }
 
 lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
 {
-    if ( href.pos(L"://")>=0 )
+    if ( href.pos("://")>=0 )
         return href; // fully qualified href: no conversion
+
+    //CRLog::trace("convertHref(%s, codeBase=%s, filePathName=%s)", LCSTR(href), LCSTR(codeBase), LCSTR(filePathName));
+
+    if (href[0] == '#') {
+        lString16 replacement = pathSubstitutions.get(filePathName);
+        if (replacement.empty())
+            return href;
+        lString16 p = cs16("#") + replacement + "_" + href.substr(1);
+        //CRLog::trace("href %s -> %s", LCSTR(href), LCSTR(p));
+        return p;
+    }
 
     href = LVCombinePaths(codeBase, href);
 
     // resolve relative links
     lString16 p, id;
-    if ( !href.split2(lString16("#"), p, id) )
+    if ( !href.split2(cs16("#"), p, id) )
         p = href;
     if ( p.empty() ) {
+        //CRLog::trace("codebase = %s -> href = %s", LCSTR(codeBase), LCSTR(href));
         if ( codeBasePrefix.empty() )
             return href;
         p = codeBasePrefix;
     } else {
         lString16 replacement = pathSubstitutions.get(p);
+        //CRLog::trace("href %s -> %s", LCSTR(p), LCSTR(replacement));
         if ( !replacement.empty() )
             p = replacement;
         else
@@ -7191,9 +7286,9 @@ lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
         //p = LVCombinePaths( codeBase, p ); // relative to absolute path
     }
     if ( !id.empty() )
-        p = p + L"_" + id;
+        p = p + "_" + id;
 
-    p = lString16("#") + p;
+    p = cs16("#") + p;
 
     //CRLog::debug("converted href=%s to %s", LCSTR(href), LCSTR(p) );
 
@@ -7216,11 +7311,11 @@ void ldomDocumentFragmentWriter::setCodeBase( lString16 fileName )
 void ldomDocumentFragmentWriter::OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
 {
     if ( insideTag ) {
-        if ( !lStr_cmp(attrname, L"href") || !lStr_cmp(attrname, L"src") ) {
+        if ( !lStr_cmp(attrname, "href") || !lStr_cmp(attrname, "src") ) {
             parent->OnAttribute(nsname, attrname, convertHref(lString16(attrvalue)).c_str() );
-        } else if ( !lStr_cmp(attrname, L"id") ) {
+        } else if ( !lStr_cmp(attrname, "id") ) {
             parent->OnAttribute(nsname, attrname, convertId(lString16(attrvalue)).c_str() );
-        } else if ( !lStr_cmp(attrname, L"name") ) {
+        } else if ( !lStr_cmp(attrname, "name") ) {
             //CRLog::trace("name attribute = %s", LCSTR(lString16(attrvalue)));
             parent->OnAttribute(nsname, attrname, convertId(lString16(attrvalue)).c_str() );
         } else {
@@ -7228,16 +7323,16 @@ void ldomDocumentFragmentWriter::OnAttribute( const lChar16 * nsname, const lCha
         }
     } else {
         if ( styleDetectionState ) {
-            if ( !lStr_cmp(attrname, L"rel") && !lStr_cmp(attrvalue, L"stylesheet") )
+            if ( !lStr_cmp(attrname, "rel") && !lStr_cmp(attrvalue, "stylesheet") )
                 styleDetectionState |= 2;
-            else if ( !lStr_cmp(attrname, L"type") && !lStr_cmp(attrvalue, L"text/css") )
+            else if ( !lStr_cmp(attrname, "type") && !lStr_cmp(attrvalue, "text/css") )
                 styleDetectionState |= 4;
-            else if ( !lStr_cmp(attrname, L"href") ) {
+            else if ( !lStr_cmp(attrname, "href") ) {
                 styleDetectionState |= 8;
                 lString16 href = attrvalue;
                 tmpStylesheetFile = LVCombinePaths( codeBase, href );
             }
-            if ( styleDetectionState==15 ) {
+            if (styleDetectionState == 15) {
                 stylesheetFile = tmpStylesheetFile;
                 styleDetectionState = 0;
                 CRLog::trace("CSS file href: %s", LCSTR(stylesheetFile));
@@ -7252,9 +7347,9 @@ ldomNode * ldomDocumentFragmentWriter::OnTagOpen( const lChar16 * nsname, const 
     if ( insideTag ) {
         return parent->OnTagOpen(nsname, tagname);
     } else {
-        if ( !lStr_cmp(tagname, L"link") )
+        if ( !lStr_cmp(tagname, "link") )
             styleDetectionState = 1;
-        if ( !lStr_cmp(tagname, L"style") )
+        if ( !lStr_cmp(tagname, "style") )
             headStyleState = 1;
     }
     if ( !insideTag && baseTag==tagname ) {
@@ -7337,7 +7432,7 @@ void ldomDocumentWriterFilter::appendStyle( const lChar16 * style )
 
     lString16 oldStyle = node->getAttributeValue(_styleAttrId);
     if ( !oldStyle.empty() && oldStyle.at(oldStyle.length()-1)!=';' )
-        oldStyle << L"; ";
+        oldStyle << "; ";
     oldStyle << style;
     node->setAttributeValue(LXML_NS_NONE, _styleAttrId, oldStyle.c_str());
 }
@@ -7390,8 +7485,8 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lC
 //    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
 
     // Patch for bad LIB.RU books - BR delimited paragraphs in "Fine HTML" format
-    if ( (tagname[0]=='b' && tagname[1]=='r' && tagname[2]==0)
-        || tagname[0]=='d' && tagname[1]=='d' && tagname[2]==0 ) {
+    if ((tagname[0] == 'b' && tagname[1] == 'r' && tagname[2] == 0)
+        || (tagname[0] == 'd' && tagname[1] == 'd' && tagname[2] == 0)) {
         // substitute to P
         tagname = L"p";
         _libRuParagraphStart = true; // to trim leading &nbsp;
@@ -7427,7 +7522,7 @@ void ldomDocumentWriterFilter::ElementCloseHandler( ldomNode * node )
         if ( parent->getLastChild() != node )
             return;
         if ( id==el_table ) {
-            if ( node->getAttributeValue(attr_align)==L"right" && node->getAttributeValue(attr_width)==L"30%" ) {
+            if (node->getAttributeValue(attr_align) == "right" && node->getAttributeValue(attr_width) == "30%") {
                 // LIB.RU TOC detected: remove it
                 parent->removeLastChild();
             }
@@ -7441,7 +7536,7 @@ void ldomDocumentWriterFilter::ElementCloseHandler( ldomNode * node )
             else
                 node->setNodeId( el_div );
         } else if ( id==el_div ) {
-            if ( node->getAttributeValue(attr_align)==L"right" ) {
+            if (node->getAttributeValue(attr_align) == "right") {
                 ldomNode * child = node->getLastChild();
                 if ( child && child->getNodeId()==el_form )  {
                     // LIB.RU form detected: remove it
@@ -7462,14 +7557,14 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar1
 
     //CRLog::trace("OnAttribute(%s, %s)", LCSTR(lString16(attrname)), LCSTR(lString16(attrvalue)));
 
-    if ( !lStr_cmp(attrname, L"align") ) {
-        if ( !lStr_cmp(attrvalue, L"justify") )
+    if ( !lStr_cmp(attrname, "align") ) {
+        if ( !lStr_cmp(attrvalue, "justify") )
             appendStyle( L"text-align: justify" );
-        else if ( !lStr_cmp(attrvalue, L"left") )
+        else if ( !lStr_cmp(attrvalue, "left") )
             appendStyle( L"text-align: left" );
-        else if ( !lStr_cmp(attrvalue, L"right") )
+        else if ( !lStr_cmp(attrvalue, "right") )
             appendStyle( L"text-align: right" );
-        else if ( !lStr_cmp(attrvalue, L"center") )
+        else if ( !lStr_cmp(attrvalue, "center") )
             appendStyle( L"text-align: center" );
        return;
     }
@@ -7482,7 +7577,7 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar1
 }
 
 /// called on closing tag
-void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+void ldomDocumentWriterFilter::OnTagClose( const lChar16 * /*nsname*/, const lChar16 * tagname )
 {
     if ( !_tagBodyCalled ) {
         CRLog::error("OnTagClose w/o parent's OnTagBody : %s", LCSTR(lString16(tagname)));
@@ -7500,13 +7595,13 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16
     }
 
 
-    if ( tagname[0]=='l' && _currNode && !lStr_cmp(tagname, L"link") ) {
+    if (tagname[0] == 'l' && _currNode && !lStr_cmp(tagname, "link")) {
         // link node
-        if ( _currNode && _currNode->getElement() && _currNode->getElement()->getNodeName()==L"link" &&
-             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->getNodeName()==L"head" &&
-             _currNode->getElement()->getAttributeValue(L"rel")==L"stylesheet" &&
-             _currNode->getElement()->getAttributeValue(L"type")==L"text/css" ) {
-            lString16 href = _currNode->getElement()->getAttributeValue(L"href");
+        if ( _currNode && _currNode->getElement() && _currNode->getElement()->isNodeName("link") &&
+             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->isNodeName("head") &&
+             _currNode->getElement()->getAttributeValue("rel") == "stylesheet" &&
+             _currNode->getElement()->getAttributeValue("type") == "text/css" ) {
+            lString16 href = _currNode->getElement()->getAttributeValue("href");
             lString16 stylesheetFile = LVCombinePaths( _document->getCodeBase(), href );
             CRLog::debug("Internal stylesheet file: %s", LCSTR(stylesheetFile));
             _document->setDocStylesheetFileName(stylesheetFile);
@@ -7792,6 +7887,7 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback)
             formatCallback->OnCacheFileFormatDetected((doc_format_t)fmt);
         }
 
+        CRLog::trace("ldomDocument::loadCacheFileContent() - ID data");
         SerialBuf idbuf(0, true);
         if ( !_cacheFile->read( CBT_MAPS_DATA, idbuf ) ) {
             CRLog::error("Error while reading Id data");
@@ -7820,6 +7916,7 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback)
         CRLog::info("%d pages read from cache file", pages.length());
         //_pagesData.setPos( 0 );
 
+        CRLog::trace("ldomDocument::loadCacheFileContent() - embedded font data");
         {
             SerialBuf buf(0, true);
             if ( !_cacheFile->read(CBT_FONT_DATA, buf)) {
@@ -7828,7 +7925,7 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback)
             }
             if (!_fontList.deserialize(buf)) {
                 CRLog::error("Error while parsing font data");
-                return CR_ERROR;
+                return false;
             }
             registerEmbeddedFonts();
         }
@@ -8089,14 +8186,6 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
             CRLog::error("Error while writing style data");
             return CR_ERROR;
         }
-        CRLog::trace("ldomDocument::saveChanges() - flush");
-        {
-            CRTimerUtil infinite;
-            if ( !_cacheFile->flush(true, infinite) ) {
-                CRLog::error("Error while updating index of cache file");
-                return CR_ERROR;
-            }
-        }
         // fall through
     case 11:
         _mapSavingStage = 11;
@@ -8108,10 +8197,23 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
                 CRLog::error("Error while saving embedded font data");
                 return CR_ERROR;
             }
+            CHECK_EXPIRATION("saving embedded fonts")
         }
         // fall through
     case 12:
         _mapSavingStage = 12;
+        CRLog::trace("ldomDocument::saveChanges() - flush");
+        {
+            CRTimerUtil infinite;
+            if ( !_cacheFile->flush(true, infinite) ) {
+                CRLog::error("Error while updating index of cache file");
+                return CR_ERROR;
+            }
+            CHECK_EXPIRATION("flushing")
+        }
+        // fall through
+    case 13:
+        _mapSavingStage = 13;
     }
     CRLog::trace("ldomDocument::saveChanges() - done");
     return CR_DONE;
@@ -8311,7 +8413,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
                         lUInt16 fntIndex = _fontMap.get( style );
                         if ( fntIndex==0 ) {
                             LVFontRef fnt = getFont(s.get(), getFontContextDocIndex());
-                            fntIndex = _fonts.cache( fnt );
+                            fntIndex = (lUInt16)_fonts.cache( fnt );
                             if ( fnt.isNull() ) {
                                 CRLog::error("font not found for style!");
                             } else {
@@ -8367,9 +8469,11 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
 /// swaps to cache file or saves changes, limited by time interval
 ContinuousOperationResult ldomDocument::swapToCache( CRTimerUtil & maxTime )
 {
+    CRLog::trace("ldomDocument::swapToCache entered");
     if ( _maperror )
         return CR_ERROR;
     if ( !_mapped ) {
+        CRLog::trace("ldomDocument::swapToCache creating cache file");
         if ( !createCacheFile() ) {
             CRLog::error("ldomDocument::swapToCache: failed: cannot create cache file");
             _maperror = true;
@@ -8421,6 +8525,8 @@ class ldomDocCacheImpl : public ldomDocCache
 {
     lString16 _cacheDir;
     lvsize_t _maxSize;
+    lUInt32 _oldStreamSize;
+    lUInt32 _oldStreamCRC;
 
     struct FileItem {
         lString16 filename;
@@ -8429,40 +8535,58 @@ class ldomDocCacheImpl : public ldomDocCache
     LVPtrVector<FileItem> _files;
 public:
     ldomDocCacheImpl( lString16 cacheDir, lvsize_t maxSize )
-        : _cacheDir( cacheDir ), _maxSize( maxSize )
+        : _cacheDir( cacheDir ), _maxSize( maxSize ), _oldStreamSize(0), _oldStreamCRC(0)
     {
         LVAppendPathDelimiter( _cacheDir );
     }
 
     bool writeIndex()
     {
-        lString16 filename = _cacheDir + L"cr3cache.inx";
-        LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
-        if ( !stream )
-            return false;
+        lString16 filename = _cacheDir + "cr3cache.inx";
+        if (_oldStreamSize == 0)
+        {
+            LVStreamRef oldStream = LVOpenFileStream(filename.c_str(), LVOM_READ);
+            if (!oldStream.isNull()) {
+                _oldStreamSize = (lUInt32)oldStream->GetSize();
+                _oldStreamCRC = (lUInt32)oldStream->crc32();
+            }
+        }
+
+        // fill buffer
         SerialBuf buf( 16384, true );
         buf.putMagic( doccache_magic );
-
         lUInt32 start = buf.pos();
-        lUInt32 count = _files.length();
-        buf << count;
-        for ( unsigned i=0; i<count && !buf.error(); i++ ) {
+        int count = _files.length();
+        buf << (lUInt32)count;
+        for ( int i=0; i<count && !buf.error(); i++ ) {
             FileItem * item = _files[i];
             buf << item->filename;
             buf << item->size;
         }
         buf.putCRC( buf.pos() - start );
-
         if ( buf.error() )
             return false;
-        if ( stream->Write( buf.buf(), buf.pos(), NULL )!=LVERR_OK )
-            return false;
+        lUInt32 newCRC = buf.getCRC();
+        lUInt32 newSize = buf.pos();
+
+        // check to avoid rewritting of identical file
+        if (newCRC != _oldStreamCRC || newSize != _oldStreamSize) {
+            // changed: need to write
+            CRLog::trace("Writing cache index");
+            LVStreamRef stream = LVOpenFileStream(filename.c_str(), LVOM_WRITE);
+            if ( !stream )
+                return false;
+            if ( stream->Write( buf.buf(), buf.pos(), NULL )!=LVERR_OK )
+                return false;
+            _oldStreamCRC = newCRC;
+            _oldStreamSize = newSize;
+        }
         return true;
     }
 
     bool readIndex(  )
     {
-        lString16 filename = _cacheDir + L"cr3cache.inx";
+        lString16 filename = _cacheDir + "cr3cache.inx";
         // read index
         lUInt32 totalSize = 0;
         LVStreamRef instream = LVOpenFileStream( filename.c_str(), LVOM_READ );
@@ -8479,7 +8603,7 @@ public:
             lUInt32 start = buf.pos();
             lUInt32 count;
             buf >> count;
-            for ( unsigned i=0; i<count && !buf.error(); i++ ) {
+            for (lUInt32 i=0; i < count && !buf.error(); i++) {
                 FileItem * item = new FileItem();
                 _files.add( item );
                 buf >> item->filename;
@@ -8523,7 +8647,7 @@ public:
             const LVContainerItemInfo * item = container->GetObjectInfo( i );
             if ( !item->IsContainer() ) {
                 lString16 fn = item->GetName();
-                if ( !fn.endsWith(L".cr3") )
+                if ( !fn.endsWith(".cr3") )
                     continue;
                 if ( findFileIndex(fn)<0 ) {
                     // delete file
@@ -8624,9 +8748,33 @@ public:
     // dir/filename.{crc32}.cr3
     lString16 makeFileName( lString16 filename, lUInt32 crc, lUInt32 docFlags )
     {
+        lString16 fn;
+        lString8 filename8 = UnicodeToTranslit(filename);
+        bool lastUnderscore = false;
+        int goodCount = 0;
+        int badCount = 0;
+        for (int i = 0; i < filename8.length(); i++) {
+            lChar16 ch = filename8[i];
+
+            if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') || ch == '.' || ch == '-') {
+                fn << ch;
+                lastUnderscore = false;
+                goodCount++;
+            } else {
+                if (!lastUnderscore) {
+                    fn << L"_";
+                    lastUnderscore = true;
+                }
+                badCount++;
+            }
+        }
+        if (goodCount < 2 || badCount > goodCount * 2)
+            fn << "_noname";
+        if (fn.length() > 25)
+            fn = fn.substr(0, 12) + "-" + fn.substr(fn.length()-12, 12);
         char s[16];
         sprintf(s, ".%08x.%d.cr3", (unsigned)crc, (int)docFlags);
-        return filename + lString16( s ); //_cacheDir + 
+        return fn + lString16( s ); //_cacheDir +
     }
 
     /// open existing cache file stream
@@ -8649,7 +8797,7 @@ public:
         res = LVCreateBlockWriteStream( res, WRITE_CACHE_BLOCK_SIZE, WRITE_CACHE_BLOCK_COUNT );
 #if TEST_BLOCK_STREAM
 
-        LVStreamRef stream2 = LVOpenFileStream( (_cacheDir+fn+L"_c").c_str(), LVOM_APPEND );
+        LVStreamRef stream2 = LVOpenFileStream( (_cacheDir + fn + "_c").c_str(), LVOM_APPEND );
         if ( !stream2 ) {
             CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn).c_str() );
             return stream2;
@@ -8938,7 +9086,7 @@ lUInt8 ldomNode::getNodeLevel() const
     int level = 0;
     for ( ; node; node = node->getParentNode() )
         level++;
-    return level;
+    return (lUInt8)level;
 }
 
 void ldomNode::onCollectionDestroy()
@@ -9296,7 +9444,7 @@ ldomNode * ldomNode::getChildNode( lUInt32 index ) const
 }
 
 /// returns element child count
-lUInt32 ldomNode::getChildCount() const
+int ldomNode::getChildCount() const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -9319,12 +9467,11 @@ lUInt32 ldomNode::getChildCount() const
             return me->childCount;
         }
     }
-    return 0; // TODO
 #endif
 }
 
 /// returns element attribute count
-lUInt32 ldomNode::getAttrCount() const
+int ldomNode::getAttrCount() const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -9343,7 +9490,6 @@ lUInt32 ldomNode::getAttrCount() const
             return me->attrCount;
         }
     }
-    return 0;
 #endif
 }
 
@@ -9371,7 +9517,6 @@ const lString16 & ldomNode::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
             return lString16::empty_str;
         return getDocument()->getAttrValue(valueId);
     }
-    return lString16::empty_str;
 #endif
 }
 
@@ -9379,7 +9524,16 @@ const lString16 & ldomNode::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
 const lString16 & ldomNode::getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const
 {
     ASSERT_NODE_NOT_NULL;
-    lUInt16 nsId = (nsName&&nsName[0]) ? getDocument()->getNsNameIndex( nsName ) : LXML_NS_ANY;
+    lUInt16 nsId = (nsName && nsName[0]) ? getDocument()->getNsNameIndex( nsName ) : LXML_NS_ANY;
+    lUInt16 attrId = getDocument()->getAttrNameIndex( attrName );
+    return getAttributeValue( nsId, attrId );
+}
+
+/// returns attribute value by attribute name and namespace
+const lString16 & ldomNode::getAttributeValue( const lChar8 * nsName, const lChar8 * attrName ) const
+{
+    ASSERT_NODE_NOT_NULL;
+    lUInt16 nsId = (nsName && nsName[0]) ? getDocument()->getNsNameIndex( nsName ) : LXML_NS_ANY;
     lUInt16 attrId = getDocument()->getAttrNameIndex( attrName );
     return getAttributeValue( nsId, attrId );
 }
@@ -9443,7 +9597,7 @@ void ldomNode::setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * valu
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return;
-    int valueIndex = getDocument()->getAttrValueIndex(value);
+    lUInt16 valueIndex = getDocument()->getAttrValueIndex(value);
 #if BUILD_LITE!=1
     if ( isPersistent() ) {
         // persistent element
@@ -9574,6 +9728,29 @@ const lString16 & ldomNode::getNodeName() const
 #endif
 }
 
+/// returns element name
+bool ldomNode::isNodeName(const char * s) const
+{
+    ASSERT_NODE_NOT_NULL;
+    if ( !isElement() )
+        return false;
+    lUInt16 index = getDocument()->findElementNameIndex(s);
+    if (!index)
+        return false;
+#if BUILD_LITE!=1
+    if ( !isPersistent() ) {
+        // element
+#endif
+        return index == NPELEM->_id;
+#if BUILD_LITE!=1
+    } else {
+        // persistent element
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
+        return index == me->id;
+    }
+#endif
+}
+
 /// returns element namespace name
 const lString16 & ldomNode::getNodeNsName() const
 {
@@ -9611,9 +9788,9 @@ lString16 ldomNode::getText( lChar16 blockDelimiter, int maxSize ) const
             for ( unsigned i=0; i<cc; i++ ) {
                 ldomNode * child = getChildNode(i);
                 txt += child->getText(blockDelimiter, maxSize);
-                if ( maxSize!=0 && txt.length()>(unsigned)maxSize )
+                if (maxSize != 0 && txt.length() > maxSize)
                     break;
-                if ( i>=cc-1 )
+                if (i >= cc - 1)
                     break;
 #if BUILD_LITE!=1
                 if ( blockDelimiter && child->isElement() ) {
@@ -9645,13 +9822,13 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter, int maxSize ) const
     case NT_PELEMENT:
         {
             lString8 txt;
-            unsigned cc = getChildCount();
-            for ( unsigned i=0; i<cc; i++ ) {
+            int cc = getChildCount();
+            for (int i = 0; i < cc; i++) {
                 ldomNode * child = getChildNode(i);
                 txt += child->getText8(blockDelimiter, maxSize);
-                if ( maxSize!=0 && txt.length()>(unsigned)maxSize )
+                if (maxSize != 0 && txt.length() > maxSize)
                     break;
-                if ( i>=getChildCount()-1 )
+                if (i >= getChildCount() - 1)
                     break;
                 if ( blockDelimiter && child->isElement() ) {
                     if ( child->getStyle()->display == css_d_block )
@@ -9896,7 +10073,7 @@ ldomNode * ldomNode::getFirstTextChild(bool skipEmpty)
             return this;
         lString16 txt = getText();
         bool nonSpaceFound = false;
-        for ( unsigned i=0; i<txt.length(); i++ ) {
+        for ( int i=0; i<txt.length(); i++ ) {
             lChar16 ch = txt[i];
             if ( ch!=' ' && ch!='\t' && ch!='\r' && ch!='\n' ) {
                 nonSpaceFound = true;
@@ -10020,7 +10197,7 @@ void ldomNode::setRendMethod( lvdom_element_render_method method )
         } else {
             ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             if ( me->rendMethod != method ) {
-                me->rendMethod = method;
+                me->rendMethod = (lUInt8)method;
                 modified();
             }
         }
@@ -10080,7 +10257,7 @@ bool ldomNode::initNodeFont()
             s = getDocument()->_styles.get( style );
         }
         LVFontRef fnt = ::getFont(s.get(), getDocument()->getFontContextDocIndex());
-        fntIndex = getDocument()->_fonts.cache( fnt );
+        fntIndex = (lUInt16)getDocument()->_fonts.cache( fnt );
         if ( fnt.isNull() ) {
             CRLog::error("font not found for style!");
             return false;
@@ -10173,10 +10350,10 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
     default:
         // treat default as disc
     case css_lst_disc:
-        marker = L"\x25CF";
+        marker = L"\x2022"; //L"\x25CF"; // 25e6
         break;
     case css_lst_circle:
-        marker = L"\x25CB";
+        marker = L"\x2022"; //L"\x25CB";
         break;
     case css_lst_square:
         marker = L"\x25A0";
@@ -10190,7 +10367,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
             // calculate counter
             ldomNode * parent = getParentNode();
             counterValue = 0;
-            for ( unsigned i=0; i<parent->getChildCount(); i++ ) {
+            for (int i = 0; i < parent->getChildCount(); i++) {
                 ldomNode * child = parent->getChildNode(i);
                 css_style_ref_t cs = child->getStyle();
                 if ( cs.isNull() )
@@ -10216,19 +10393,19 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
         static const char * lower_roman[] = {"i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix",
                                              "x", "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix",
                                          "xx", "xxi", "xxii", "xxiii"};
-        if ( counterValue>0 ) {
+        if (counterValue > 0) {
             switch (st) {
             case css_lst_decimal:
                 marker = lString16::itoa(counterValue);
                 break;
             case css_lst_lower_roman:
-                if ( counterValue-1<sizeof(lower_roman)/sizeof(lower_roman[0]) )
+                if (counterValue - 1 < (int)(sizeof(lower_roman) / sizeof(lower_roman[0])))
                     marker = lString16(lower_roman[counterValue-1]);
                 else
                     marker = lString16::itoa(counterValue); // fallback to simple counter
                 break;
             case css_lst_upper_roman:
-                if ( counterValue-1<sizeof(lower_roman)/sizeof(lower_roman[0]) )
+                if (counterValue - 1 < (int)(sizeof(lower_roman) / sizeof(lower_roman[0])))
                     marker = lString16(lower_roman[counterValue-1]);
                 else
                     marker = lString16::itoa(counterValue); // fallback to simple digital counter
@@ -10236,15 +10413,22 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
                 break;
             case css_lst_lower_alpha:
                 if ( counterValue<=26 )
-                    marker.append(1, 'a' + counterValue-1);
+                    marker.append(1, (lChar16)('a' + counterValue - 1));
                 else
                     marker = lString16::itoa(counterValue); // fallback to simple digital counter
                 break;
             case css_lst_upper_alpha:
                 if ( counterValue<=26 )
-                    marker.append(1, 'A' + counterValue-1);
+                    marker.append(1, (lChar16)('A' + counterValue - 1));
                 else
                     marker = lString16::itoa(counterValue); // fallback to simple digital counter
+                break;
+            case css_lst_disc:
+            case css_lst_circle:
+            case css_lst_square:
+            case css_lst_none:
+            case css_lst_inherit:
+                // do nothing
                 break;
             }
         }
@@ -10254,7 +10438,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
     if ( !marker.empty() ) {
         LVFont * font = getFont().get();
         if ( font ) {
-            markerWidth = font->getTextWidth((marker + L"  ").c_str(), marker.length()+2) + s->font_size.value/8;
+            markerWidth = font->getTextWidth((marker + "  ").c_str(), marker.length()+2) + s->font_size.value/8;
             res = true;
         } else {
             marker.clear();
@@ -10262,7 +10446,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
     }
     return res;
 #else
-    marker = lString16("*");
+    marker = cs16("*");
     return true;
 #endif
 }
@@ -10499,6 +10683,28 @@ ldomNode * ldomNode::insertChildText( const lString16 & value )
     return NULL;
 }
 
+/// inserts child text
+ldomNode * ldomNode::insertChildText(const lString8 & s8)
+{
+    ASSERT_NODE_NOT_NULL;
+    if  ( isElement() ) {
+        if ( isPersistent() )
+            modify();
+        tinyElement * me = NPELEM;
+#if !defined(USE_PERSISTENT_TEXT) || BUILD_LITE==1
+        ldomNode * node = getDocument()->allocTinyNode( NT_TEXT );
+        node->_data._text_ptr = new ldomTextNode(_handle._dataIndex, s8);
+#else
+        ldomNode * node = getDocument()->allocTinyNode( NT_PTEXT );
+        node->_data._ptext_addr = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
+#endif
+        me->_children.insert( me->_children.length(), node->getDataIndex() );
+        return node;
+    }
+    readOnlyError();
+    return NULL;
+}
+
 /// remove child
 ldomNode * ldomNode::removeChild( lUInt32 index )
 {
@@ -10524,7 +10730,7 @@ LVStreamRef ldomNode::createBase64Stream()
 #if DEBUG_BASE64_IMAGE==1
     lString16 fname = getAttributeValue( attr_id );
     lString8 fname8 = UnicodeToUtf8( fname );
-    LVStreamRef ostream = LVOpenFileStream( fname.empty()?L"image.png":fname.c_str(), LVOM_WRITE );
+    LVStreamRef ostream = LVOpenFileStream( fname.empty() ? L"image.png" : fname.c_str(), LVOM_WRITE );
     printf("createBase64Stream(%s)\n", fname8.c_str());
 #endif
     LVStream * stream = new LVBase64NodeStream( this );
@@ -10590,19 +10796,19 @@ public:
 lString16 ldomNode::getObjectImageRefName()
 {
     if ( !this || !isElement() )
-        return lString16();
+        return lString16::empty_str;
     //printf("ldomElement::getObjectImageSource() ... ");
     const css_elem_def_props_t * et = getDocument()->getElementTypePtr(getNodeId());
     if (!et || !et->is_object)
-        return lString16();
-    lUInt16 hrefId = getDocument()->getAttrNameIndex(L"href");
-    lUInt16 srcId = getDocument()->getAttrNameIndex(L"src");
-    lUInt16 recIndexId = getDocument()->getAttrNameIndex(L"recindex");
-    lString16 refName = getAttributeValue( getDocument()->getNsNameIndex(L"xlink"),
+        return lString16::empty_str;
+    lUInt16 hrefId = getDocument()->getAttrNameIndex("href");
+    lUInt16 srcId = getDocument()->getAttrNameIndex("src");
+    lUInt16 recIndexId = getDocument()->getAttrNameIndex("recindex");
+    lString16 refName = getAttributeValue( getDocument()->getNsNameIndex("xlink"),
         hrefId );
 
     if ( refName.empty() )
-        refName = getAttributeValue( getDocument()->getNsNameIndex(L"l"), hrefId );
+        refName = getAttributeValue( getDocument()->getNsNameIndex("l"), hrefId );
     if ( refName.empty() )
         refName = getAttributeValue( LXML_NS_ANY, hrefId ); //LXML_NS_NONE
     if ( refName.empty() )
@@ -10612,7 +10818,7 @@ lString16 ldomNode::getObjectImageRefName()
         if (!recindex.empty()) {
             int n;
             if (recindex.atoi(n)) {
-                refName = lString16(MOBI_IMAGE_NAME_PREFIX) + lString16::itoa(n);
+                refName = lString16(MOBI_IMAGE_NAME_PREFIX) + fmt::decimal(n);
                 //CRLog::debug("get mobi image %s", LCSTR(refName));
             }
         }
@@ -10623,7 +10829,7 @@ lString16 ldomNode::getObjectImageRefName()
 //        }
     }
     if ( refName.length()<2 )
-        return lString16();
+        return lString16::empty_str;
     refName = DecodeHTMLUrlString(refName);
     return refName;
 }
@@ -10688,11 +10894,11 @@ LVStreamRef ldomDocument::getObjectImageStream( lString16 refName )
                 lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "" );
                 fname = LVExtractFilenameWithoutExtension(fname);
                 if ( !fname.empty() ) {
-                    lString16 fn = fname + L"_img";
+                    lString16 fn = fname + "_img";
 //                    if ( getContainer()->GetObjectInfo(fn) ) {
 
 //                    }
-                    lString16 name = fn + L"/" + refName;
+                    lString16 name = fn + "/" + refName;
                     if ( !getCodeBase().empty() )
                         name = getCodeBase() + name;
                     ref = getContainer()->OpenStream(name.c_str(), LVOM_READ);
@@ -10765,7 +10971,7 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
     ::renderFinalBlock( this, f.get(), fmt, flags, 0, 16 );
     int page_h = getDocument()->getPageHeight();
     cache.set( this, f );
-    int h = f->Format( width, page_h );
+    int h = f->Format((lUInt16)width, (lUInt16)page_h);
     frmtext = f;
     //CRLog::trace("Created new formatted object for node #%08X", (lUInt32)this);
     return h;
@@ -11044,7 +11250,7 @@ void testCacheFile()
     // write
     {
         CacheFile f;
-        MYASSERT(f.open(lString16("/tmp/blabla-not-exits-file-name"))==false, "Wrong failed open result");
+        MYASSERT(f.open(cs16("/tmp/blabla-not-exits-file-name"))==false, "Wrong failed open result");
         MYASSERT(f.create( fn )==true, "new file created");
         MYASSERT(f.write(CBT_TEXT_DATA, 1, data1, sizeof(data1), true)==true, "write 1");
         MYASSERT(f.write(CBT_ELEM_DATA, 3, data2, sizeof(data2), false)==true, "write 2");
@@ -11084,7 +11290,7 @@ void runFileCacheTest()
     CRLog::info("====Cache test started =====");
 
     // init and clear cache
-    ldomDocCache::init(lString16("/tmp/cr3cache"), 100);
+    ldomDocCache::init(cs16("/tmp/cr3cache"), 100);
     MYASSERT(ldomDocCache::enabled(), "clear cache");
 
     {
@@ -11235,7 +11441,7 @@ void runBasicTinyDomUnitTests()
         style1->font_family = css_ff_sans_serif;
         style1->font_size.type = css_val_px;
         style1->font_size.value = 24;
-        style1->font_name = lString8("Arial");
+        style1->font_name = cs8("Arial");
         style1->font_weight = css_fw_400;
         style1->font_style = css_fs_normal;
         style1->text_indent.type = css_val_px;
@@ -11262,7 +11468,7 @@ void runBasicTinyDomUnitTests()
         style2->font_family = css_ff_sans_serif;
         style2->font_size.type = css_val_px;
         style2->font_size.value = 24;
-        style2->font_name = lString8("Arial");
+        style2->font_name = cs8("Arial");
         style2->font_weight = css_fw_400;
         style2->font_style = css_fs_normal;
         style2->text_indent.type = css_val_px;
@@ -11289,7 +11495,7 @@ void runBasicTinyDomUnitTests()
         style3->font_family = css_ff_sans_serif;
         style3->font_size.type = css_val_px;
         style3->font_size.value = 24;
-        style3->font_name = lString8("Arial");
+        style3->font_name = cs8("Arial");
         style3->font_weight = css_fw_400;
         style3->font_style = css_fs_normal;
         style3->text_indent.type = css_val_px;
@@ -11310,9 +11516,9 @@ void runBasicTinyDomUnitTests()
 
     CRLog::info("* font cache");
     {
-        font_ref_t font1 = fontMan->GetFont(24, 400, false, css_ff_sans_serif, lString8("DejaVu Sans"));
-        font_ref_t font2 = fontMan->GetFont(24, 400, false, css_ff_sans_serif, lString8("DejaVu Sans"));
-        font_ref_t font3 = fontMan->GetFont(28, 800, false, css_ff_serif, lString8("DejaVu Sans Condensed"));
+        font_ref_t font1 = fontMan->GetFont(24, 400, false, css_ff_sans_serif, cs8("DejaVu Sans"));
+        font_ref_t font2 = fontMan->GetFont(24, 400, false, css_ff_sans_serif, cs8("DejaVu Sans"));
+        font_ref_t font3 = fontMan->GetFont(28, 800, false, css_ff_serif, cs8("DejaVu Sans Condensed"));
         MYASSERT(el1->getFont().isNull(), "font is not set");
         el1->setFont(font1);
         MYASSERT(!el1->getFont().isNull(), "font is set");
@@ -11370,8 +11576,8 @@ void runBasicTinyDomUnitTests()
     MYASSERT(!el21->isPersistent(), "mutable after insertChildElement");
     el211->persist();
     MYASSERT(el211->isPersistent(), "persistent before insertChildText");
-    el211->insertChildText(lString16(L"bla bla bla"));
-    el211->insertChildText(lString16(L"bla bla blaw"));
+    el211->insertChildText(cs16(L"bla bla bla"));
+    el211->insertChildText(cs16(L"bla bla blaw"));
     MYASSERT(!el211->isPersistent(), "modifable after insertChildText");
     //el21->insertChildElement(el_strong);
     MYASSERT(el211->getChildCount()==2, "child count, in mutable");

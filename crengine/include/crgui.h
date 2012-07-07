@@ -34,7 +34,6 @@
 class CRGUIWindowManager;
 
 #define KEY_FLAG_LONG_PRESS 1
-#define KINDLE_TOUCH 1
 
 /// Accelerator table entry: to convert keypress to command
 class CRGUIAccelerator
@@ -481,12 +480,12 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         cr_rotate_angle_t _orientation;
         LVRefVec<LVImageSource> m_batteryIcons;
         bool _stopFlag;
-#ifdef KINDLE_TOUCH
+#if KINDLE_TOUCH==1
 		int _posX;
 		int _posY;
 #endif
 public:
-#ifdef KINDLE_TOUCH
+#if KINDLE_TOUCH==1
 		int getPosX() const {
 			return _posX;
 		}
@@ -634,7 +633,7 @@ public:
         ,_lastProgressPercent(-1)
         ,_orientation(CR_ROTATE_ANGLE_0)
         ,_stopFlag(false)
-#ifdef KINDLE_TOUCH
+#if KINDLE_TOUCH==1
 		,_posX(-1)
 		,_posY(-1)
 #endif

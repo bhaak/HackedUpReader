@@ -18,6 +18,9 @@
 
 class CRScreenKeyboard : public CRGUIWindowBase
 {
+#if KINDLE_TOUCH==1
+    int _rectBottom;
+#endif
 protected:
     lString16 & _buffer;
     lString16 _value;
@@ -29,11 +32,11 @@ protected:
     int _cols;
     lString16Collection _keymap;
     virtual void draw();
-#ifndef KINDLE_TOUCH
+#if KINDLE_TOUCH!=1
     virtual lChar16 digitsToChar( lChar16 digit1, lChar16 digit2 );
     bool digitEntered( lChar16 c );
 #endif
-#ifdef KINDLE_TOUCH
+#if KINDLE_TOUCH==1
     bool onKeyPressed( int key, int flags );
 #endif
 public:

@@ -183,7 +183,7 @@ eoi_get_battery_info(battery_info_t * info)
 
 
 static xcb_connection_t *connection = NULL;
-static xcb_window_t window = NULL;
+static xcb_window_t window;
 static xcb_screen_t *screen = NULL;
 static V3DocViewWin * main_win = NULL;
 
@@ -270,7 +270,7 @@ class CRXCBScreen : public CRGUIScreenBase
             if ( !CRGUIScreenBase::setSize( dx, dy ) )
                 return false;
             createImage();
-            return true;
+			return true;
         }
         void createImage()
         {
@@ -345,7 +345,7 @@ class CRXCBScreen : public CRGUIScreenBase
             }
         }
         virtual void update( const lvRect & a_rc, bool full )
-        {
+        {	
             lvRect rc(a_rc);
             CRLog::debug("update screen, bpp=%d width=%d, height=%d, rect={%d, %d, %d, %d} full=%d", (int)im->bpp,im->width,im->height, (int)rc.left, (int)rc.top, (int)rc.right, (int)rc.bottom, full?1:0 );
             if ( _forceNextUpdate && !_forceUpdateRect.isEmpty() ) {
@@ -821,7 +821,7 @@ public:
             LVStreamRef coverStream = doc_view->getCoverPageImageStream();
             if ( !coverStream.isNull() ) {
                 //LVStreamRef out = LVOpenFileStream(COVER_FILE_NAME, LVOM_WRITE);
-                int size = coverStream->GetSize();
+                lvsize_t size = coverStream->GetSize();
                 if ( size>0 && size<1000000 ) {
                     cover_image_file.addSpace(size);
                     lvsize_t bytesRead = 0;
@@ -1115,7 +1115,7 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
         case XCB_BUTTON_RELEASE:
             {
                 xcb_button_press_event_t *button_event = (xcb_button_press_event_t *)event;
-#ifdef KINDLE_TOUCH
+#if KINDLE_TOUCH==1
                 _posX = button_event->event_x;
                 _posY = button_event->event_y;
 #endif
@@ -1212,7 +1212,7 @@ int CRXCBWindowManager::runEventLoop()
     wm_protocols_atom = reply->atom;
     free(reply);
 
-    static bool alt_pressed = false;
+//    static bool alt_pressed = false;
 
     CRLog::trace("CRXCBWindowManager::runEventLoop()");
     keysyms = xcb_key_symbols_alloc( connection );
@@ -1310,7 +1310,7 @@ int main(int argc, char **argv)
     CRLog::setLogLevel( CRLog::LL_TRACE );
 #else
     //CRLog::setLogLevel( CRLog::LL_ERROR );
-#ifndef KINDLE_TOUCH
+#if KINDLE_TOUCH!=1
     InitCREngineLog("/home/user/.crengine/crlog.ini");
 #else
 	InitCREngineLog("/mnt/us/cr3xcb/crlog.ini");
@@ -1397,9 +1397,9 @@ int main(int argc, char **argv)
     CRLog::info("Filename to open=\"%s\"", LCSTR(fn16) );
     if ( fn8.startsWith( lString8("/media/sd/") ) )
         bmkdir = "/media/sd/bookmarks/";
-#ifdef KINDLE_TOUCH
+#if KINDLE_TOUCH==1
     else
-	bmkdir = "/mnt/us/cr3xcb/bookmarks/";
+        bmkdir = "/mnt/us/cr3xcb/bookmarks/";
 #endif
     //TODO: remove hardcoded
 #ifdef __i386__
@@ -1408,8 +1408,12 @@ int main(int argc, char **argv)
         CRXCBWindowManager winman( 600, 800 );
 
 #endif
+    #if KINDLE_TOUCH!=1
     if ( !ldomDocCache::init( lString16("/media/sd/.cr3/cache"), 0x100000 * 64 ))
         ldomDocCache::init( lString16("/tmp/.cr3/cache"), 0x100000 * 64 ); /*64Mb*/
+	#else
+	ldomDocCache::init( lString16(L"/tmp/.cr3/cache"), 0x100000 * 64 ); /*64Mb*/
+	#endif
     if ( !winman.hasValidConnection() ) {
         CRLog::error("connection has an error! exiting.");
     } else {
@@ -1421,16 +1425,21 @@ int main(int argc, char **argv)
         const char * keymap_locations [] = {
         //    "/etc/cr3",
         //    "/mnt/us/cr3xcb/share/cr3/keymaps",
-            "/mnt/us/cr3xcb/share/cr3/kindle_touch",
+            "/mnt/us/cr3xcb/share/cr3/kindle_touch/keymaps",
         //    home8.c_str(),
         //    "/media/sd/crengine/",
             NULL,
         };
         loadKeymaps( winman, keymap_locations );
 
-        if ( !winman.loadSkin(homecrengine + "skin") )
+			#if KINDLE_TOUCH!=1
+			if ( !winman.loadSkin(  homecrengine + L"skin" ) )
             if ( !winman.loadSkin(  lString16("/media/sd/crengine/skin") ) )
-                winman.loadSkin( lString16("/mnt/us/cr3xcb/share/cr3/kindle_touch/skins/default") );
+                winman.loadSkin( lString16("/usr/share/cr3/skins/default") );
+			#else
+			winman.loadSkin( lString16( L"/mnt/us/cr3xcb/share/cr3/kindle_touch/skins/default" ) );
+			#endif
+
         {
             const lChar16 * imgname =
                 ( winman.getScreenOrientation()&1 ) ? L"cr3_logo_screen_landscape.png" : L"cr3_logo_screen.png";
@@ -1445,13 +1454,15 @@ int main(int argc, char **argv)
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
-        if ( !main_win->loadDefaultCover( lString16( L"/media/sd/crengine/cr3_def_cover.png" ) ) )
-            main_win->loadDefaultCover( lString16( L"/mnt/us/cr3xcb/share/cr3/cr3_def_cover.png" ) );
-        if ( !main_win->loadCSS(  lString16( L"/media/sd/crengine/fb2.css" ) ) )
-            main_win->loadCSS( lString16( L"/mnt/us/cr3xcb/share/cr3/fb2.css" ) );
-
-        if ( !main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) ) )
-            main_win->loadDictConfig( lString16( L"/mnt/us/cr3xcb/share/cr3/dict/dictd.conf" ) );
+        #if KINDLE_TOUCH!=1
+		main_win->loadDefaultCover( lString16( L"/media/sd/crengine/cr3_def_cover.png" ) );
+		main_win->loadCSS(  lString16( L"/media/sd/crengine/fb2.css" ) );
+		main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) );
+		#else
+		main_win->loadDefaultCover( lString16( L"/mnt/us/cr3xcb/share/cr3/cr3_def_cover.png" ) );
+		main_win->loadCSS( lString16( L"/mnt/us/cr3xcb/share/cr3/fb2.css" ) );
+		main_win->loadDictConfig( lString16( L"/mnt/us/cr3xcb/share/cr3/dict/dictd.conf" ) );
+		#endif
 
         if ( bmkdir!=NULL )
             main_win->setBookmarkDir( lString16(bmkdir) );
@@ -1462,7 +1473,7 @@ int main(int argc, char **argv)
         CRLog::trace("choosing init file...");
         const lChar16 * ini_fname = L"cr3.ini";
     #ifdef SEPARATE_INI_FILES
-    #ifndef KINDLE_TOUCH
+    #if KINDLE_TOUCH!=1
         if ( strstr(fname, ".txt")!=NULL || strstr(fname, ".tcr")!=NULL) {
             ini_fname = L"cr3-txt.ini";
         } else if ( strstr(fname, ".rtf")!=NULL ) {
@@ -1477,8 +1488,10 @@ int main(int argc, char **argv)
     #endif
     #endif
         const lChar16 * dirs[] = {
-            L"/media/sd/crengine/",
-            homecrengine.c_str(),
+        #if KINDLE_TOUCH!=1    
+			L"/media/sd/crengine/",
+        #endif
+		    homecrengine.c_str(),
             L"/mnt/us/cr3xcb/.settings/",
             NULL
         };

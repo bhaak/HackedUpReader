@@ -11,7 +11,7 @@
 *******************************************************/
 
 #include <stdlib.h>
-//include <unistd.h>      /* pause() */
+#include <unistd.h>      /* sleep() */
 #include "../include/crgui.h"
 #include "../include/crtrace.h"
 
@@ -521,6 +521,14 @@ void CRGUIScreenBase::flush( bool full )
     if ( full )
         _updateRect = getRect();
     update( _updateRect, full );
+#if KINDLE_TOUCH==1
+    if (checkFullUpdateCounter()) {
+        sleep(1);
+        if (system("eips -f ''") == -1) {
+            CRLog::error("Unable to execute eips -f '' command");
+        }
+    }
+#endif
     _updateRect.clear();
 }
 
@@ -740,6 +748,7 @@ void CRGUIWindowBase::drawStatusBar()
     if ( scroll ) {
         sskin->drawScroll( buf, scrollRc, false, _page-1, _pages, 1 );
     }
+#if KINDLE_TOUCH!=1
     if ( !statusSkin.isNull() && !statusRc.isEmpty() && !getStatusText().empty() ) {
         if ( scroll ) {
             if ( scrollRc.left - statusRc.left > statusRc.right - scrollRc.right )
@@ -756,6 +765,7 @@ void CRGUIWindowBase::drawStatusBar()
         drawStatusText( buf, statusRc, statusSkin );
     }
     drawInputBox();
+#endif
 }
 
 // draws frame, title, status and client
@@ -1694,6 +1704,32 @@ void CRMenu::draw()
 		drawClient();
 		drawStatusBar();
 	}
+#if KINDLE_TOUCH==1	
+    lvRect statusRc;
+    if (getStatusRect(statusRc)) {
+        LVDrawBuf & buf = *_wm->getScreen()->getCanvas();
+
+        lvRect stRc(statusRc);
+        stRc.left = 17;
+        stRc.right = stRc.left + 16;
+        stRc.top += 10;
+        stRc.bottom = stRc.top + 31;
+
+        int btnLeftState = _page <= 1 ? 0 : CRButtonSkin::ENABLED;
+        int btnRightState = _page < _pages ? CRButtonSkin::ENABLED : 0;
+
+        CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+        CRScrollSkinRef sskin = skin->getScrollSkin();
+	
+        CRButtonSkinRef leftBtnSkin = sskin->getLeftButton();
+        leftBtnSkin->drawButton( buf, stRc, btnLeftState );
+
+        stRc.left = statusRc.right -= 37;
+        stRc.right = stRc.left + 16;
+        CRButtonSkinRef rightBtnSkin = sskin->getRightButton();
+        rightBtnSkin->drawButton( buf, stRc, btnRightState );
+    }
+#endif
 }
 
 static bool readNextLine( const LVStreamRef & stream, lString16 & dst )

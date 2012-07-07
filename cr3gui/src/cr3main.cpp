@@ -256,12 +256,12 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     #ifndef LBOOK
         fontDirs.add("/usr/local/share/crengine/fonts");
         fontDirs.add("/usr/local/share/fonts/truetype/freefont");
-        fontDirs.add("/mnt/us/cr3xcb/share/cr3/fonts");
-        fontDirs.add("/mnt/us/cr3xcb/share/fonts/truetype/freefont");
+        fontDirs.add("/usr/share/crengine/fonts");
+        fontDirs.add("/usr/share/fonts/truetype/freefont");
         fontDirs.add("/root/fonts/truetype");
-        //fontDirs.add( lString16(L"/mnt/us/cr3xcb/share/fonts/truetype/msttcorefonts") );
+        //fontDirs.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts") );
         for ( int fi=0; msfonts[fi]; fi++ )
-            fonts.add( lString16("/mnt/us/cr3xcb/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
+            fonts.add( lString16("/usr/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
     #endif
     #endif
         getDirectoryFonts( fontDirs, fontExt, fonts, true );

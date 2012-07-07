@@ -384,7 +384,7 @@ int main(int argc, char **argv)
 
         if (!winman.loadSkin(homecrengine + "skin"))
             if (!winman.loadSkin(lString16("/media/sd/crengine/skin")))
-                winman.loadSkin(lString16("/mnt/us/cr3xcb/share/cr3/skins/default"));
+                winman.loadSkin(lString16("/usr/share/cr3/skins/default"));
         {
             const lChar16 * imgname =
                 ( winman.getScreenOrientation()&1 ) ? L"cr3_logo_screen_landscape.png" : L"cr3_logo_screen.png";
@@ -393,19 +393,19 @@ int main(int argc, char **argv)
                 winman.getScreen()->getCanvas()->Draw(img, 0, 0, winman.getScreen()->getWidth(), winman.getScreen()->getHeight(),  false );
             }
         }
-        HyphMan::initDictionaries(lString16("/mnt/us/cr3xcb/share/cr3/hyph/"));
+        HyphMan::initDictionaries(lString16("/usr/share/cr3/hyph/"));
         //LVExtractPath(LocalToUnicode(lString8(fname)))
         main_win = new QtDocViewWin( &winman, lString16(CRSKIN) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
-        if ( !main_win->loadDefaultCover( lString16("/media/sd/crengine/cr3_def_cover.png" ) ) )
-            main_win->loadDefaultCover( lString16("/mnt/us/cr3xcb/share/cr3/cr3_def_cover.png" ) );
-        if ( !main_win->loadCSS(  lString16("/media/sd/crengine/fb2.css" ) ) )
-            main_win->loadCSS( lString16("/mnt/us/cr3xcb/share/cr3/fb2.css" ) );
+        if ( !main_win->loadDefaultCover( lString16("/media/sd/crengine/cr3_def_cover.png") ) )
+            main_win->loadDefaultCover( lString16("/usr/share/cr3/cr3_def_cover.png") );
+        if ( !main_win->loadCSS(  lString16("/media/sd/crengine/fb2.css") ) )
+            main_win->loadCSS( lString16("/usr/share/cr3/fb2.css") );
 
-        if ( !main_win->loadDictConfig(  lString16("/media/sd/crengine/dict/dictd.conf" ) ) )
-            main_win->loadDictConfig( lString16("/mnt/us/cr3xcb/share/cr3/dict/dictd.conf" ) );
+        if ( !main_win->loadDictConfig(  lString16("/media/sd/crengine/dict/dictd.conf") ) )
+            main_win->loadDictConfig( lString16("/usr/share/cr3/dict/dictd.conf") );
         if ( bmkdir!=NULL )
             main_win->setBookmarkDir( lString16(bmkdir) );
 

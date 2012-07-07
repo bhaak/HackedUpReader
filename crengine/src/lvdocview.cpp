@@ -115,6 +115,8 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 
 static int def_font_sizes[] = { 18, 20, 22, 24, 29, 33, 39, 44 };
 
+
+
 LVDocView::LVDocView(int bitsPerPixel) :
 	m_bitsPerPixel(bitsPerPixel), m_dx(400), m_dy(200), _pos(0), _page(0),
 			_posIsSet(false), m_battery_state(CR_BATTERY_STATE_NO_BATTERY)
@@ -1450,8 +1452,14 @@ int LVDocView::getPosPercent() {
 void LVDocView::getPageRectangle(int pageIndex, lvRect & pageRect) {
 	if ((pageIndex & 1) == 0 || (getVisiblePageCount() < 2))
 		pageRect = m_pageRects[0];
-	else
-		pageRect = m_pageRects[1];
+	else {
+    #if KINDLE_TOUCH!=1
+        pageRect = m_pageRects[1];
+    #else
+        pageRect = m_pageRects[0];
+        pageRect.right = m_pageRects[1].right;
+    #endif	
+	}
 }
 
 void LVDocView::getNavigationBarRectangle(lvRect & navRect) {
@@ -1647,7 +1655,11 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 				//    brc.left = brc.right - brc.height()/2;
 				//else
 				brc.left = brc.right - batteryIconWidth - 2;
+                #if KINDLE_TOUCH!=1
 				brc.bottom -= 5;
+                #else
+				brc.bottom += 6;
+                #endif
 				drawBatteryState(drawbuf, brc, isVertical);
 				info.right = brc.left - info.height() / 2;
 			}
@@ -1691,27 +1703,36 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 					clock.c_str(), clock.length(), L' ', NULL, false);
 			info.right -= w + info.height() / 2;
 		}
+        #if KINDLE_TOUCH!=1
 		int authorsw = 0;
+        #endif
 		lString16 authors;
 		if (phi & PGHDR_AUTHOR)
 			authors = getAuthors();
+        #if KINDLE_TOUCH!=1
 		int titlew = 0;
+		#endif
 		lString16 title;
 		if (phi & PGHDR_TITLE) {
 			title = getTitle();
 			if (title.empty() && authors.empty())
 				title = m_doc_props->getStringDef(DOC_PROP_FILE_NAME);
+			#if KINDLE_TOUCH!=1
 			if (!title.empty())
 				titlew
 						= m_infoFont->getTextWidth(title.c_str(),
 								title.length());
+            #endif
 		}
 		if (phi & PGHDR_AUTHOR && !authors.empty()) {
 			if (!title.empty())
 				authors += L'.';
+			#if KINDLE_TOUCH!=1
 			authorsw = m_infoFont->getTextWidth(authors.c_str(),
 					authors.length());
+            #endif
 		}
+        #if KINDLE_TOUCH!=1
 		int w = info.width() - 10;
 		if (authorsw + titlew + 10 > w) {
 			if ((pageIndex & 1))
@@ -1724,6 +1745,9 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 		} else {
             text = authors + "  " + title;
 		}
+        #else
+		    text = authors + L"  " + title;
+        #endif
 	}
 	lvRect newcr = headerRc;
 	newcr.right = info.right - 10;
@@ -1768,7 +1792,13 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 		if (getVisiblePageCount() == 2) {
 			if (page.index & 1) {
 				// right
-				phi &= ~PGHDR_AUTHOR;
+            #if KINDLE_TOUCH!=1
+			    phi &= ~PGHDR_AUTHOR;
+            #else
+                if (m_pagesVisible == 1) {
+                    phi &= ~PGHDR_AUTHOR;
+                }
+            #endif
             } else {
 				// left
 				phi &= ~PGHDR_TITLE;
@@ -3040,8 +3070,12 @@ void LVDocView::toggleViewMode() {
 }
 
 int LVDocView::getVisiblePageCount() {
+	#if KINDLE_TOUCH!=1
 	return (m_view_mode == DVM_SCROLL || m_dx < m_font_size * MIN_EM_PER_PAGE
 			|| m_dx * 5 < m_dy * 6) ? 1 : m_pagesVisible;
+	#else
+	return (m_view_mode == DVM_SCROLL || m_dx < m_font_size * MIN_EM_PER_PAGE) ? 1 : m_pagesVisible;
+	#endif
 }
 
 /// set window visible page count (1 or 2)
@@ -5445,11 +5479,15 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	if (list.length() > 0 && !list.contains(props->getStringDef(PROP_FONT_FACE,
 			defFontFace.c_str())))
 		props->setString(PROP_FONT_FACE, list[0]);
-	props->setStringDef(PROP_FALLBACK_FONT_FACE, props->getStringDef(PROP_FONT_FACE,
+        props->setStringDef(PROP_FALLBACK_FONT_FACE, props->getStringDef(PROP_FONT_FACE,
                         defFontFace.c_str()));
-
+#if KINDLE_TOUCH==1
+    props->setIntDef(PROP_FONT_SIZE,
+	    m_font_sizes[m_font_sizes.length() * 2 / 8]);
+#else
 	props->setIntDef(PROP_FONT_SIZE,
 			m_font_sizes[m_font_sizes.length() * 2 / 3]);
+#endif
 	props->limitValueList(PROP_FONT_SIZE, m_font_sizes.ptr(),
 			m_font_sizes.length());
 	props->limitValueList(PROP_INTERLINE_SPACE, cr_interline_spaces,

@@ -158,12 +158,12 @@ CRControlsMenuItem::CRControlsMenuItem( CRControlsMenu * menu, int id, int key, 
 
 void CRControlsMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected )
 {
-    lvRect itemBorders = skin->getBorderWidths();
+    //lvRect itemBorders = skin->getBorderWidths();
     skin->draw( buf, rc );
     buf.SetTextColor( skin->getTextColor() );
     buf.SetBackgroundColor( skin->getBackgroundColor() );
     lvRect textRect = rc;
-    lvRect borders = skin->getBorderWidths();
+    //lvRect borders = skin->getBorderWidths();
     //textRect.shrinkBy(borders);
     skin->drawText(buf, textRect, _label);
     lString16 s = getSubmenuValue();
@@ -498,21 +498,21 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 #endif
 		{NULL, NULL},
 	};
-
+#if ENABLE_UPDATE_MODE_SETTING==1
     item_def_t screen_update_options[] = {
-        {_("Always use fast updates"), "0"},
-        {_("Don't use fast updates"), "1"},
-        {_("Full updates every 2 pages"), "2"},
-        {_("Full updates every 3 pages"), "3"},
-        {_("Full updates every 4 pages"), "4"},
-        {_("Full updates every 5 pages"), "5"},
-        {_("Full updates every 6 pages"), "6"},
-        {_("Full updates every 8 pages"), "8"},
-        {_("Full updates every 10 pages"), "10"},
-        {_("Full updates every 14 pages"), "14"},
+        {_("Don't use page refresh"), "0"},
+        {_("Use page refresh always"), "1"},
+        {_("Use page refresh every 2 pages"), "2"},
+        {_("Use page refresh every 3 pages"), "3"},
+        {_("Use page refresh every 4 pages"), "4"},
+        {_("Use page refresh every 5 pages"), "5"},
+        {_("Use page refresh every 6 pages"), "6"},
+        {_("Use page refresh every 8 pages"), "8"},
+        {_("Use page refresh every 10 pages"), "10"},
+        {_("Use page refresh every 14 pages"), "14"},
         {NULL, NULL},
     };
-
+#endif
     item_def_t turbo_update_options[] = {
         {_("Turbo mode disabled"), "0"},
         {_("Turbo mode enabled"), "1"},
@@ -859,6 +859,7 @@ lString16 CRSettingsMenu::getStatusText()
     if ( !_acceleratorTable->findCommandKey( MCMD_OK, 0, applyKey, applyFlags )
         || !_acceleratorTable->findCommandKey( MCMD_CANCEL, 0, cancelKey, cancelFlags ) )
         return _statusText;
+#if KINDLE_TOUCH!=1		
     lString16 pattern(_("Press $1 to change option\n$2 to apply, $3 to cancel"));
 #ifdef CR_POCKETBOOK
 	pattern.replaceParam(1, getCommandKeyName(MCMD_SELECT) );
@@ -867,5 +868,9 @@ lString16 CRSettingsMenu::getStatusText()
 #endif
     pattern.replaceParam(2, getCommandKeyName(MCMD_OK) );
     pattern.replaceParam(3, getCommandKeyName(MCMD_CANCEL) );
+#else
+    lString16 pattern(_("Press $1 to change option"));
+    pattern.replaceParam(1, getItemNumberKeysName());
+#endif
     return pattern;
 }

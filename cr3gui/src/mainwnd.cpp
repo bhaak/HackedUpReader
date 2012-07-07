@@ -711,8 +711,8 @@ void V3DocViewWin::showBooksDialog() {
     //_props->set( _docview->propsGetCurrent() );
     _props = _docview->propsGetCurrent() | _props;
     _newProps = LVClonePropsContainer( _props );
-    lvRect rc = _wm->getScreen()->getRect();
-    CRMenu * mainMenu = new CRBooksDialogMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, getMenuAccelerators(), rc, _docview );
+    CRMenu *mainMenu = createBooksDialogMenu("/mnt/us/documents", _wm, menuFont, _newProps, getMenuAccelerators(), _docview);
+	
     _wm->activateWindow( mainMenu );
 }
 
@@ -917,6 +917,7 @@ VIEWER_MENU_4ABOUT=About...
 
     menu_win->setAccelerators( getMenuAccelerators() );
 
+#if KINDLE_TOUCH!=1
     lString16 s(_("$1 - choose command\n$2, $3 - close"));
 #ifdef CR_POCKETBOOK
 	s.replaceParam(1, menu_win->getCommandKeyName( MCMD_SELECT ));
@@ -925,7 +926,11 @@ VIEWER_MENU_4ABOUT=About...
 #endif
     s.replaceParam(2, menu_win->getCommandKeyName(MCMD_OK));
     s.replaceParam(3, menu_win->getCommandKeyName(MCMD_CANCEL) );
-    menu_win->setStatusText( s );
+#else
+    lString16 s(_("$1 - choose command"));
+    s.replaceParam(1, menu_win->getItemNumberKeysName());
+#endif
+	menu_win->setStatusText( s );
     menu_win->setFullscreen( true );
 
     menu_win->reconfigure(0);
@@ -1161,6 +1166,7 @@ bool V3DocViewWin::onCommand( int command, int params )
         applySettings();
         saveSettings(lString16::empty_str);
         _wm->getSkin()->gc();
+        _wm->postCommand( MCMD_MAIN_MENU, 0 );
         return true;
     case DCMD_SAVE_HISTORY:
         saveHistory(lString16::empty_str);

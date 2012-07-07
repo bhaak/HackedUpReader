@@ -40,6 +40,7 @@ SET (CR3_SOURCES
   src/scrkbd.cpp   
   src/settings.cpp 
   src/viewdlg.cpp
+  src/KTnumedit.cpp
 )
 
 SET (CR3_STYLES

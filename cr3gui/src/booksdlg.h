@@ -7,31 +7,31 @@
 
 #define BOOKS_DIALOG_MENU_COMMANDS_START 900
 
-class CRBookMenuItem : public CRMenu
+class CRBookMenuItem : public CRMenuItem
 {
+protected:
     lString16 _fBookPath;
 public:
-	CRBookMenuItem( CRGUIWindowManager * wm, CRMenu * parentMenu, int id, const char *label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, const lString16 &fBookPath, CRPropRef props = CRPropRef(), const char * propName = NULL, int pageItems = 8 )
-    :CRMenu(wm, parentMenu, id, label, image, defFont, valueFont, props, propName, pageItems),
+	CRBookMenuItem( CRMenu * parentMenu, int id, const char *label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, const lString16 &fBookPath )
+    :CRMenuItem(parentMenu, id, label, image, defFont),
     _fBookPath(fBookPath)
-    {
-	}
+    {}
     lString16 getBookPath() const;
 };
 
-class CRBooksDialogMenu : public CRFullScreenMenu
+class CRBooksMenu : public CRFullScreenMenu
 {
+protected:
 		LVFontRef _valueFont;
-		void walkDirRecursively(const char *dir);
-		void addEbookFiles();
-	protected:
-		CRPropRef props;
         CRGUIAcceleratorTableRef _menuAccelerators;
-        LVDocView * _docview;
+        LVDocView *_docview;
     public:	
-        CRBooksDialogMenu( CRGUIWindowManager * wm, CRPropRef props, int id, LVFontRef font, CRGUIAcceleratorTableRef menuAccelerators, lvRect & rc, LVDocView * docview);
+        CRBooksMenu(CRGUIWindowManager * wm, CRMenu * parentMenu, int id, const char * label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props, CRGUIAcceleratorTableRef menuAccelerators, LVDocView *docview);
         virtual bool onCommand( int command, int params );
-        virtual ~CRBooksDialogMenu()
+		LVDocView *getDocview() const {
+			return _docview;
+		}
+        virtual ~CRBooksMenu()
         {
             CRLog::trace("Calling fontMan->gc() on BooksDialog menu destroy");
             fontMan->gc();
@@ -39,15 +39,6 @@ class CRBooksDialogMenu : public CRFullScreenMenu
         }
 };
 
-static int endsWith(const char *str, const char *suffix) {
-	if (!str || !suffix) {
-		return 0;
-	}
-	size_t lenstr = strlen(str);
-	size_t lensuffix = strlen(suffix);
-	if (lensuffix >  lenstr) {
-		return 0;
-	}
-	return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
-}
+CRMenu *createBooksDialogMenu(const char *path, CRGUIWindowManager * wm, LVFontRef font, CRPropRef props, CRGUIAcceleratorTableRef menuAccelerators, LVDocView *docview);
+
 #endif //CR3_BOOKS_DIALOG_H_INCLUDED

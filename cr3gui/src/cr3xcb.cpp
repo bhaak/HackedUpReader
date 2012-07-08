@@ -1142,17 +1142,33 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                 }
 
                 CRLog::trace("XCB_BUTTON_RELEASE detail %d; root %d; event %d; child %d; event_x %d; event_y %d; time: %d\n", button_event->detail, button_event->root, button_event->event, button_event->child, button_event->event_x, button_event->event_y, button_event->time);
+                int topClick  = button_event->event_y < 400;
+                int leftClick = button_event->event_x < 300;
                 if (button_event->event_y < 60) {
                     // send Return == Ok for the top part of the screen
                     postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
                 } else if (main_win_visible) {
                     // book is being displayed
-                    // send next or previous page if clicked in lower or upper half
-                    postEvent( new CRGUIKeyDownEvent( (button_event->event_y < 400) ? '9' : '0', state ) );
+                    // send next or previous page if clicked in configured area
+                    int pageTurning = main_win->getDocView()->getPageTurning();
+                    int previousPage=0;
+                    switch ( pageTurning ) {
+                    case 0: // top-bottom
+                        previousPage = topClick; break;
+                    case 1: // left-right
+                        previousPage = leftClick; break;
+                    case 2: // bottom-top
+                        previousPage = !topClick; break;
+                    case 3: // right-left
+                        previousPage = !leftClick; break;
+                    }
+                    CRLog::trace("previousPage %d; leftClick %d; topClick %d", previousPage, leftClick, topClick);
+
+                    postEvent( new CRGUIKeyDownEvent( previousPage ? '9' : '0', state ) );
                 } else if (button_event->event_y > 750) {
                     // send next or previous page if clicked in footer on
                     // the left or right side
-                    postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
+                    postEvent( new CRGUIKeyDownEvent( leftClick ? '9' : '0', state ) );
                 } else if (button_event->event_y <= 750) {
                     int key = (button_event->event_y - 50)/(700/8);
                     //CRLog::trace("Sending %d %c\n", key, '1'+1+key);

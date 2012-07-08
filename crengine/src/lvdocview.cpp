@@ -5560,6 +5560,8 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     props->setIntDef(PROP_STATUS_CHAPTER_MARKS, 1);
     props->setIntDef(PROP_FLOATING_PUNCTUATION, 1);
 
+    props->setIntDef(PROP_PAGE_TURNING, 0);
+
 #ifndef ANDROID
     props->setIntDef(PROP_EMBEDDED_STYLES, 1);
     props->setIntDef(PROP_EMBEDDED_FONTS, 1);
@@ -5828,6 +5830,10 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 					props->getIntDef(PROP_PAGE_VIEW_MODE, 1) ? DVM_PAGES
 							: DVM_SCROLL;
 			setViewMode(m);
+		} else if (name == PROP_PAGE_TURNING) {
+			m_props->setString(name.c_str(), value);
+			setPageTurning(props->getIntDef(PROP_PAGE_TURNING, 0));
+			REQUEST_RENDER("propsApply - page turning")
 		} else {
 			// unknown property, adding to list of unknown properties
 			unknown->setString(name.c_str(), value);

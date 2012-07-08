@@ -560,6 +560,14 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         {NULL, NULL}
     };
 
+    item_def_t page_turning_modes[] = {
+        {_("Top-Bottom"), "0"},
+        {_("Left-Right"), "1"},
+        {_("Bottom-Top"), "2"},
+        {_("Right-Left"), "3"},
+        {NULL, NULL}
+    };
+
 	CRLog::trace("showSettingsMenu() - %d property values found", props->getCount() );
 
         setSkinName(lString16("#settings"));
@@ -568,6 +576,12 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 400, true, css_ff_sans_serif, lString8("Arial")) );
         CRMenu * mainMenu = this;
         mainMenu->setAccelerators( _menuAccelerators );
+
+        CRMenu * pageTurningMenu = new CRMenu(_wm, mainMenu, mm_PageSwitchingMode,
+                _("Page turning"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_PAGE_TURNING );
+        addMenuItems( pageTurningMenu, page_turning_modes );
+        mainMenu->addItem( pageTurningMenu );
 
         CRMenu * fontFaceMenu = new CRMenu(_wm, mainMenu, mm_FontFace,
                                             _("Default font face"),

@@ -1655,11 +1655,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 				//    brc.left = brc.right - brc.height()/2;
 				//else
 				brc.left = brc.right - batteryIconWidth - 2;
-                #if KINDLE_TOUCH!=1
 				brc.bottom -= 5;
-                #else
-				brc.bottom += 6;
-                #endif
 				drawBatteryState(drawbuf, brc, isVertical);
 				info.right = brc.left - info.height() / 2;
 			}

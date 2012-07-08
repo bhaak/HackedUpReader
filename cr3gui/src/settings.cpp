@@ -510,6 +510,8 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         {_("Use page refresh every 8 pages"), "8"},
         {_("Use page refresh every 10 pages"), "10"},
         {_("Use page refresh every 14 pages"), "14"},
+        {_("Use page refresh every 20 pages"), "20"},
+        {_("Use page refresh every 30 pages"), "30"},
         {NULL, NULL},
     };
 #endif

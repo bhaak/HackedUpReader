@@ -862,7 +862,9 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             style->text_indent = read_length( p );
             break;
         case cssd_letter_spacing:
-            style->letter_spacing = read_length( p );
+            // workaround for the letter-spacing bug
+            // http://sourceforge.net/tracker/?func=detail&aid=3522070&group_id=191284&atid=936756
+            style->font_style = css_fs_italic;
             break;
         case cssd_color:
             style->color = read_length( p );

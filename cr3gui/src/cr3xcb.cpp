@@ -1329,7 +1329,7 @@ int main(int argc, char **argv)
 #if KINDLE_TOUCH!=1
     InitCREngineLog("/home/user/.crengine/crlog.ini");
 #else
-	InitCREngineLog("/mnt/us/cr3xcb/crlog.ini");
+	InitCREngineLog("/mnt/us/hackedupreader/crlog.ini");
 #endif
 #endif
 
@@ -1337,7 +1337,7 @@ int main(int argc, char **argv)
     // gettext initialization
     setlocale (LC_ALL, "");
     #undef LOCALEDIR
-    #define LOCALEDIR "/mnt/us/cr3xcb/share/locale"
+    #define LOCALEDIR "/mnt/us/hackedupreader/share/locale"
     #ifndef PACKAGE
     #define PACKAGE "cr3"
     #endif
@@ -1383,10 +1383,11 @@ int main(int argc, char **argv)
     //fontDirs.add( lString16(L"/usr/local/share/cr3/fonts") );
     //fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
     //fontDirs.add( lString16(L"/mnt/fonts") );
-    //fontDirs.add( lString16(L"/mnt/us/cr3xcb/share/fonts/truetype") );
-    //fontDirs.add( lString16(L"/mnt/us/cr3xcb/share/fonts/truetype/liberation") );
-    //fontDirs.add( lString16(L"/mnt/us/cr3xcb/share/fonts/truetype/freefont") );
+    //fontDirs.add( lString16(L"/mnt/us/hackedupreader/share/fonts/truetype") );
+    //fontDirs.add( lString16(L"/mnt/us/hackedupreader/share/fonts/truetype/liberation") );
+    //fontDirs.add( lString16(L"/mnt/us/hackedupreader/share/fonts/truetype/freefont") );
     //fontDirs.add( lString16(L"/root/fonts/truetype") );
+    fontDirs.add( lString16(L"/mnt/us/hackedupreader/share/fonts/croscorefonts") );
     if ( !InitCREngine( argv[0], fontDirs ) ) {
         printf("Cannot init CREngine - exiting\n");
         return 2;
@@ -1415,7 +1416,7 @@ int main(int argc, char **argv)
         bmkdir = "/media/sd/bookmarks/";
 #if KINDLE_TOUCH==1
     else
-        bmkdir = "/mnt/us/cr3xcb/bookmarks/";
+        bmkdir = "/mnt/us/hackedupreader/bookmarks/";
 #endif
     //TODO: remove hardcoded
 #ifdef __i386__
@@ -1440,8 +1441,8 @@ int main(int argc, char **argv)
         lString8 home8 = UnicodeToUtf8( homecrengine );
         const char * keymap_locations [] = {
         //    "/etc/cr3",
-        //    "/mnt/us/cr3xcb/share/cr3/keymaps",
-            "/mnt/us/cr3xcb/share/cr3/kindle_touch/keymaps",
+        //    "/mnt/us/hackedupreader/share/cr3/keymaps",
+            "/mnt/us/hackedupreader/share/cr3/kindle_touch/keymaps",
         //    home8.c_str(),
         //    "/media/sd/crengine/",
             NULL,
@@ -1453,7 +1454,7 @@ int main(int argc, char **argv)
             if ( !winman.loadSkin(  lString16("/media/sd/crengine/skin") ) )
                 winman.loadSkin( lString16("/usr/share/cr3/skins/default") );
 			#else
-			winman.loadSkin( lString16( L"/mnt/us/cr3xcb/share/cr3/kindle_touch/skins/default" ) );
+			winman.loadSkin( lString16( L"/mnt/us/hackedupreader/share/cr3/kindle_touch/skins/default" ) );
 			#endif
 
         {
@@ -1464,7 +1465,7 @@ int main(int argc, char **argv)
                 winman.getScreen()->getCanvas()->Draw(img, 0, 0, winman.getScreen()->getWidth(), winman.getScreen()->getHeight(),  false );
             }
         }
-        HyphMan::initDictionaries( lString16("/mnt/us/cr3xcb/share/cr3/hyph/") );
+        HyphMan::initDictionaries( lString16("/mnt/us/hackedupreader/share/cr3/hyph/") );
         //LVExtractPath(LocalToUnicode(lString8(fname)))
         main_win = new XCBDocViewWin( &winman, lString16(CRSKIN) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
@@ -1475,9 +1476,9 @@ int main(int argc, char **argv)
 		main_win->loadCSS(  lString16( L"/media/sd/crengine/fb2.css" ) );
 		main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) );
 		#else
-		main_win->loadDefaultCover( lString16( L"/mnt/us/cr3xcb/share/cr3/cr3_def_cover.png" ) );
-		main_win->loadCSS( lString16( L"/mnt/us/cr3xcb/share/cr3/fb2.css" ) );
-		main_win->loadDictConfig( lString16( L"/mnt/us/cr3xcb/share/cr3/dict/dictd.conf" ) );
+		main_win->loadDefaultCover( lString16( L"/mnt/us/hackedupreader/share/cr3/cr3_def_cover.png" ) );
+		main_win->loadCSS( lString16( L"/mnt/us/hackedupreader/share/cr3/fb2.css" ) );
+		main_win->loadDictConfig( lString16( L"/mnt/us/hackedupreader/share/cr3/dict/dictd.conf" ) );
 		#endif
 
         if ( bmkdir!=NULL )
@@ -1508,7 +1509,7 @@ int main(int argc, char **argv)
 			L"/media/sd/crengine/",
         #endif
 		    homecrengine.c_str(),
-            L"/mnt/us/cr3xcb/.settings/",
+            L"/mnt/us/hackedupreader/.settings/",
             NULL
         };
         int i;

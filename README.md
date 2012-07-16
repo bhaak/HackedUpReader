@@ -29,10 +29,10 @@ Extract the archive into your Kindle Touch user data directory.
 
 ssh into your Kindle Touch and start it with:
 
-    /mnt/us/cr3xcb/bin/cr3 /mnt/us/path/to/your/ebook.epub &
+    /mnt/us/hackedupreader/bin/cr3 /mnt/us/path/to/your/ebook.epub &
 
 Because of some hard coded paths HackedUpReader must be in
-the /mnt/us/cr3xcb directory.
+the /mnt/us/hackedupreader directory.
 
 Controls
 --------
@@ -63,7 +63,7 @@ directory as CMAKE_FIND_ROOT_PATH.
     $ env PKG_CONFIG_LIBDIR=/kindle_development_dir/lib/pkgconfig \
        cmake \
         -DCMAKE_PREFIX_PATH=/kindle_development_dir \
-        -DCMAKE_INSTALL_PREFIX=/mnt/us/cr3xcb -DCMAKE_BUILD_TYPE=Release -DGUI=CRGUI_XCB \
+        -DCMAKE_INSTALL_PREFIX=/mnt/us/hackedupreader -DCMAKE_BUILD_TYPE=Release -DGUI=CRGUI_XCB \
         -DCMAKE_TOOLCHAIN_FILE=`pwd`/../tools/toolchain-arm-linux-gnueabi.cmake ..
     $ make && make install
 

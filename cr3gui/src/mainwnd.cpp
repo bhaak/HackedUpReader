@@ -1018,11 +1018,17 @@ void V3DocViewWin::showAboutDialog()
 {
 	_docview->savePosition();
 	CRFileHistRecord * hist = _docview->getCurrentFileHistRecord();
+#ifdef KINDLE_TOUCH
+    lString16 title("HackedUpReader");
+#else
     lString16 title("Cool Reader ");
+#endif
 #ifndef PACKAGE_VERSION
 #define PACKAGE_VERSION CR_ENGINE_VERSION
 #endif
+#ifndef KINDLE_TOUCH
     title << Utf8ToUnicode(lString8(PACKAGE_VERSION));
+#endif
 
     lString8 txt;
     //=========================================================
@@ -1093,6 +1099,9 @@ void V3DocViewWin::showAboutDialog()
     addInfoSection( txt, progInfo, _("About program") );
 #else
     lString8 progInfo;
+# ifdef KINDLE_TOUCH
+    addPropLine( progInfo, _("Version"), Utf8ToUnicode(lString8("0.1.1")));
+# endif
     addPropLine( progInfo, _("Cool Reader"), Utf8ToUnicode(lString8(CR_ENGINE_VERSION)));
     addPropLine( progInfo, _("Build date"), Utf8ToUnicode(lString8(CR_ENGINE_BUILD_DATE)));
     addInfoSection( txt, progInfo, _("About program") );

@@ -14,3 +14,7 @@ zip:
 	mkdir hackedupreader_${VERSION}
 	mv hackedupreader_${VERSION}_install.bin hackedupreader_${VERSION}_uninstall.bin hackedupreader_${VERSION}
 	zip -r0 hackedupreader_${VERSION}.zip hackedupreader_${VERSION}/
+
+install/hackedupreader.tar.gz:
+	cp ../../README.md /mnt/us/hackedupreader/
+	tar -czf "install/hackedupreader_${VERSION}.tar.gz" -C "/mnt/us/" hackedupreader 

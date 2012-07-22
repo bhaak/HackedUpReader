@@ -1,7 +1,8 @@
 #!/bin/sh
 
-rm -rf /mnt/us/cr3xcb/bin /mnt/us/cr3xcb/share
+rm -rf /mnt/us/hackedupreader/bin /mnt/us/hackedupreader/share
 rm -rf /mnt/us/extensions/hackedupreader
 rm -rf /usr/local/ebook/lib/HackedUpReaderExtension.jar
+rm -rf /opt/amazon/ebook/lib/HackedUpReaderExtension.jar
 
 exit 0

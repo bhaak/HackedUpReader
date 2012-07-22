@@ -2,11 +2,11 @@
 <extension>
 <information>
 	<name>HackedUpReader Plugin</name>
-	<version>1.1</version>
+	<version>1.2</version>
 	<author>Patric Mueller</author>
 	<id>hackedupreaderplugin</id>
 </information>
 <menus>
-	<menu type="java" jar="/usr/local/ebook/lib/HackedUpReaderExtension.jar">com.github.bhaak.HackedUpReaderExtension</menu>
+	<menu type="java" jar="/opt/amazon/ebook/lib/HackedUpReaderExtension.jar">com.github.bhaak.HackedUpReaderExtension</menu>
 </menus>
 </extension>

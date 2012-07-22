@@ -1,4 +1,4 @@
-VERSION=0.1.1
+VERSION=0.2.0
 
 all: hackedupreader_${VERSION}_install.bin hackedupreader_${VERSION}_uninstall.bin zip
 hackedupreader_${VERSION}_install.bin:
@@ -12,9 +12,11 @@ clean:
 
 zip:
 	mkdir hackedupreader_${VERSION}
+	cp ../../README.txt hackedupreader_${VERSION}/README.txt
 	mv hackedupreader_${VERSION}_install.bin hackedupreader_${VERSION}_uninstall.bin hackedupreader_${VERSION}
 	zip -r0 hackedupreader_${VERSION}.zip hackedupreader_${VERSION}/
 
-install/hackedupreader.tar.gz:
-	cp ../../README.md /mnt/us/hackedupreader/
-	tar -czf "install/hackedupreader_${VERSION}.tar.gz" -C "/mnt/us/" hackedupreader 
+hackedupreader.tar.gz:
+	cp ../../README.txt /mnt/us/hackedupreader/
+	rm -f install/hackedupreader-*.tar.gz
+	tar -czf "install/hackedupreader-${VERSION}.tar.gz" -C "/mnt/us/" hackedupreader 

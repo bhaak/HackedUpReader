@@ -72,7 +72,11 @@ void CRBookmarkMenu::setMode( bool goToMode )
     bool hasModeSwitch = !modeKeyName.empty();
     _goToMode = goToMode;
     if ( _goToMode ) {
+#ifdef KINDLE_TOUCH
+        _caption = lString16(_("Bookmarks"));
+#else
         _caption = lString16(_("Go to bookmark"));
+#endif
         _label = _caption;
         _statusText = lString16(
                 hasModeSwitch

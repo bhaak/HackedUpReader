@@ -577,7 +577,11 @@ static const char * getCommandName( int command )
 #endif	
 	case MCMD_BOOKMARK_LIST: return _("Bookmark list");
         case MCMD_CITES_LIST: return _("Citations list");
+#ifdef KINDLE_TOUCH
+    case MCMD_BOOKMARK_LIST_GO_MODE: return _("Bookmarks");
+#else
     case MCMD_BOOKMARK_LIST_GO_MODE: return _("Go to bookmark...");
+#endif
 	case MCMD_RECENT_BOOK_LIST: return _("Recent books list");
 	case MCMD_OPEN_RECENT_BOOK: return _("Open recent book by number");
     case MCMD_SWITCH_TO_RECENT_BOOK: return _("Switch to recent book");

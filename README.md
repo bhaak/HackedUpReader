@@ -13,19 +13,32 @@ programs from the command line to use it.
 
 What works:
  - reading e-books
+ - opening other e-books
  - setting options
  - battery display
+ - searching
+ - bookmarking
+ - screen refresh for removing e-ink artifacts
+   * automatic after a configurable amount of pages
 
 What doesn't work:
- - a lot that needs keyboard input
- - selecting other e-books
- - advanced features like bookmarking because of missing keyboard
- - some fonts lead to a crash (none of the default fonts on the Touch)
- - no automatic screen refresh for removing e-ink artifacts
+ - dictionary support
+
 
 Installation and running
 ------------------------
-Extract the archive into your Kindle Touch user data directory.
+You can download either download the zip or tar.gz file. The only
+difference is that the zip file also contains a GUI launcher
+extension.
+
+The zip file contains standard Kindle update files. Put the
+hackedupreader_x.x.x_install.bin into your user data directory,
+select Menu -> Settings -> Menu -> Update Your Kindle for installing
+it.
+
+
+The tar.gz only contains HackedUpReader. Extract the tar.gz file into
+your Kindle Touch user data directory.
 
 ssh into your Kindle Touch and start it with:
 
@@ -34,11 +47,21 @@ ssh into your Kindle Touch and start it with:
 Because of some hard coded paths HackedUpReader must be in
 the /mnt/us/hackedupreader directory.
 
+
+For display quality and preventing crashes when using non-standard fonts install this version of the freetype library: http://www.mobileread.com/forums/showthread.php?p=1998991#post1998991
+
+
+There are 2 different GUI launcher extensions:
+ - https://github.com/bhaak/HackedUpReaderExtension (builds a Launcher sub menu out of your documents folder for starting HackedUpReader)
+ - https://github.com/varnie/HackedUpReaderLauncher (directly start HackedUpReader) (not yet compatible with HackedUpReader 0.2.0, replace "/mnt/us/cr3xcb/bin/cr3" in menu.json with "/mnt/us/hackedupreader/bin/cr3")
+
+
 Controls
 --------
 When in the main screen, touching in the lower half of the screen
 opens the next page, touching in the upper half opens the previous
-page. Touching the top bar will open the menu.
+page (customizable as of 0.2.0 in the settings "Page turning").
+Touching the top bar will open the menu.
 
 When in the menu, touching the top bar acts as 'Ok', touching the
 bottom bar on the left side will open the previous menu page,
@@ -46,6 +69,14 @@ touching the right side will open the next menu page if there are any.
 
 Touching numbered sections in the menu will select them or open any
 existing sub menu.
+
+
+Known Bugs
+----------
+Pressing the home button when a document is being shown in the standard
+Kindle reader, the home screen will be shown without any possibility to
+return to HackedUpReader. Current workaround is to restart the kindle.
+
 
 Compilation
 ------------

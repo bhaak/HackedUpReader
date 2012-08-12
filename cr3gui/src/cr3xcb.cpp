@@ -698,6 +698,8 @@ class CRXCBScreen : public CRGUIScreenBase
         }
 };
 
+static CRXCBScreen *_crxcbscreen = NULL;
+
 static struct atom {
     const char *name;
     xcb_atom_t atom;
@@ -902,6 +904,9 @@ public:
     {
         CRXCBScreen * s = new CRXCBScreen( dx, dy );
         _screen = s;
+#ifdef KINDLE_TOUCH
+        _crxcbscreen = s;
+#endif
         init_properties();
         //_connection = s->getXcbConnection();
         _ownScreen = true;
@@ -1123,6 +1128,9 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                 // workaround for determining if the main window is being displayed
                 // because main_win->isVisible() doesn't work as expected
                 bool main_win_visible = (main_win==main_win->getWindowManager()->getTopVisibleWindow());
+
+                // don't refresh screen when we're in a menu
+                _crxcbscreen->setIgnoreUpdateCounter(!main_win_visible);
 
                 // The Kindle Touch sends two additional button press/release
                 // events when pressing for 1/2 second with a mouse button 9.

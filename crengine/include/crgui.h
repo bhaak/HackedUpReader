@@ -767,6 +767,7 @@ class CRGUIScreenBase : public CRGUIScreen
         LVRef<LVDrawBuf> _front;
         int _fullUpdateInterval;
         int _fullUpdateCounter;
+        bool _ignoreUpdateCounter;
         /// override in ancessor to transfer image to device
         virtual void update( const lvRect & rc, bool full ) = 0;
     public:
@@ -779,6 +780,8 @@ class CRGUIScreenBase : public CRGUIScreen
         }
         virtual bool checkFullUpdateCounter()
         {
+            if ( _ignoreUpdateCounter )
+                return false; // temporarily disabled
             if ( _fullUpdateInterval<=0 )
                 return false; // always partial update
             if ( _fullUpdateInterval==1 )
@@ -789,6 +792,10 @@ class CRGUIScreenBase : public CRGUIScreen
                 return true; // full update
             }
             return false; // partial update
+        }
+        virtual void setIgnoreUpdateCounter( bool mode )
+        {
+            _ignoreUpdateCounter = mode;
         }
 
         /// creates compatible canvas of specified size
@@ -837,6 +844,7 @@ class CRGUIScreenBase : public CRGUIScreen
         : _width( width ), _height( height ), _canvas(NULL), _front(NULL)
         , _fullUpdateInterval(1)
         , _fullUpdateCounter(1)
+        , _ignoreUpdateCounter(false)
         {
             if ( width && height ) {
                 _canvas = LVRef<LVDrawBuf>( createCanvas( width, height ) );

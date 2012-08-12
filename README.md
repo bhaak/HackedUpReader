@@ -1,5 +1,5 @@
-Hacked Up Reader for Kindle Touch
-=================================
+HackedUpReader for Kindle Touch
+===============================
 
 HackedUpReader is a CoolReader 3 port for the Kindle Touch using the X11
 gui of the CoolReader project, minimally adapted for the touch interface.

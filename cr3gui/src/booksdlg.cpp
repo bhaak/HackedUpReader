@@ -40,24 +40,26 @@ lString16 CRBookMenuItem::getBookPath() const {
 
 static void walkDirRecursively(const char *dirname, CRBooksMenu* pParentMenu) {
     static size_t totalFound = 0;
-    DIR* dir = opendir(dirname);
-    if (!dir) {
-        CRLog::error("unable to open %s using opendir", dirname);
-    } else {
-        char fn[FILENAME_MAX];
-        int len = strlen(dirname);
-        strcpy(fn, dirname);
-        fn[len++] = '/';
 
-        struct dirent *entry;
-        while ((entry = readdir(dir)) != NULL) {
-            const char *fname = entry->d_name;
+    char fn[FILENAME_MAX];
+    int len = strlen(dirname);
+    strcpy(fn, dirname);
+    fn[len++] = '/';
+
+    struct dirent **entriesList;
+    int n = scandir(dirname, &entriesList, 0, alphasort);
+    if (n < 0) {
+        CRLog::error("unable to perform scandir %s", dirname);
+    } else {
+        for (int i = 0; i < n; ++i) {	
+            const char *fname = entriesList[i]->d_name;
             if (strcmp(fname, ".") == 0 || strcmp(fname, "..") == 0) {
+                free(entriesList[i]);
                 continue;
             } 
 
             strncpy(fn + len, fname, FILENAME_MAX - len);
-            if ((entry->d_type) == DT_REG) {
+            if ((entriesList[i]->d_type) == DT_REG) {
                 if (endsWith(fname, ".epub") 
                     || endsWith(fname, ".fb2") 
                     || (endsWith(fname, ".txt") && !endsWith(fname, ".bmk.txt")) //skip bookmarks generated files 
@@ -78,7 +80,7 @@ static void walkDirRecursively(const char *dirname, CRBooksMenu* pParentMenu) {
 
                         pParentMenu->addItem(fNameItem);
                 }
-            } else if((entry->d_type) == DT_DIR) {
+            } else if((entriesList[i]->d_type) == DT_DIR) {
                 if (strcmp(fname, "dictionary") != 0 && strcmp(fname, "dictionaries") != 0 && !endsWith(fname, ".sdr")) { //skip kindle generated dummy folders and dictionaries folders as well
                     ++totalFound;
 
@@ -93,14 +95,14 @@ static void walkDirRecursively(const char *dirname, CRBooksMenu* pParentMenu) {
                     pParentMenu->addItem(pSubmenu);
                 }
             }
+
+            free(entriesList[i]);
         }
 
-        if (closedir(dir) == -1) {
-            CRLog::error("unable to close %s using closedir", dirname);
-        }
-
-        pParentMenu->reconfigure(0);
+        free(entriesList);
     }
+
+    pParentMenu->reconfigure(0);
 }
 
 CRBooksMenu::CRBooksMenu(CRGUIWindowManager * wm, CRMenu * parentMenu, int id, const char * label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props, CRGUIAcceleratorTableRef menuAccelerators, LVDocView *docview)

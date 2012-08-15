@@ -270,7 +270,7 @@ class CRXCBScreen : public CRGUIScreenBase
             if ( !CRGUIScreenBase::setSize( dx, dy ) )
                 return false;
             createImage();
-			return true;
+            return true;
         }
         void createImage()
         {
@@ -345,7 +345,7 @@ class CRXCBScreen : public CRGUIScreenBase
             }
         }
         virtual void update( const lvRect & a_rc, bool full )
-        {	
+        {
             lvRect rc(a_rc);
             CRLog::debug("update screen, bpp=%d width=%d, height=%d, rect={%d, %d, %d, %d} full=%d", (int)im->bpp,im->width,im->height, (int)rc.left, (int)rc.top, (int)rc.right, (int)rc.bottom, full?1:0 );
             if ( _forceNextUpdate && !_forceUpdateRect.isEmpty() ) {
@@ -966,19 +966,19 @@ class XCBDocViewWin : public V3DocViewWin
 
 bool CRXCBWindowManager::getBatteryStatus( int & percent, bool & charging )
 {
-	/* hard coded battery info for the Kindle Touch */
+    /* hard coded battery info for the Kindle Touch */
 #ifndef __arm__
-	// debug
-	charging = false;
-	percent = 100;
+    // debug
+    charging = false;
+    percent = 100;
 #else
-	// File configured in /etc/kdb.src/yoshi/system/daemon/powerd/SYS_CHARGING_FILE
-	charging = _read_int_file("/sys/devices/platform/fsl-usb2-udc/charging");
-	// File configured in /etc/kdb.src/yoshi/system/daemon/powerd/sys_battery_capacity
-	percent = _read_int_file("/sys/devices/system/yoshi_battery/yoshi_battery0/battery_capacity");
+    // File configured in /etc/kdb.src/yoshi/system/daemon/powerd/SYS_CHARGING_FILE
+    charging = _read_int_file("/sys/devices/platform/fsl-usb2-udc/charging");
+    // File configured in /etc/kdb.src/yoshi/system/daemon/powerd/sys_battery_capacity
+    percent = _read_int_file("/sys/devices/system/yoshi_battery/yoshi_battery0/battery_capacity");
 #endif
-	CRLog::trace("getBatteryStatus: percent %d; charging %d", percent, charging);
-	return true;
+    CRLog::trace("getBatteryStatus: percent %d; charging %d", percent, charging);
+    return true;
 }
 
 void sigint_handler(int)
@@ -1141,13 +1141,80 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                         state = KEY_FLAG_LONG_PRESS;
                 }
 
-                CRLog::trace("XCB_BUTTON_RELEASE detail %d; root %d; event %d; child %d; event_x %d; event_y %d; time: %d\n", button_event->detail, button_event->root, button_event->event, button_event->child, button_event->event_x, button_event->event_y, button_event->time);
+                //CRLog::trace("XCB_BUTTON_RELEASE detail %d; root %d; event %d; child %d; event_x %d; event_y %d; time: %d\n", button_event->detail, button_event->root, button_event->event, button_event->child, button_event->event_x, button_event->event_y, button_event->time);
+                #if CR_INTERNAL_PAGE_ORIENTATION==1
+                    cr_rotate_angle_t curRotation = main_win->getDocView()->GetRotateAngle();
+                    //CRLog::trace("mode: %d\n", curRotation);
+
+                    switch(curRotation) {
+                        case CR_ROTATE_ANGLE_90:
+                            if ((main_win_visible && button_event->event_x > 540) || (!main_win_visible && button_event->event_y < 60)) {
+                                // send Return == Ok for the top part of the screen
+                                postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
+                            } else if (main_win_visible) {
+                                postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
+                            } else if (button_event->event_y > 630) {
+                                // send next or previous page if clicked in footer on
+                                // the left or right side
+                                postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
+                            } else if (button_event->event_y <= 630) {
+                                int key = (button_event->event_y - 50)/(700/8);
+                                postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
+                            }
+                            break;
+                        case CR_ROTATE_ANGLE_180:
+                            if ((main_win_visible && button_event->event_y > 640) || (!main_win_visible && button_event->event_y < 60)) {
+                                // send Return == Ok for the top part of the screen
+                                postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
+                            } else if (main_win_visible) {
+                                postEvent( new CRGUIKeyDownEvent( (button_event->event_y < 350) ? '9' : '0', state ) );
+                            } else if (button_event->event_y > 630) {
+                                // send next or previous page if clicked in footer on
+                                // the left or right side
+                                postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
+                            } else if (button_event->event_y <= 630) {
+                                int key = (button_event->event_y - 50)/(700/8);
+                                postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
+                            }
+                            break;
+                        case CR_ROTATE_ANGLE_270:
+                            if ((main_win_visible && button_event->event_x < 60) || (!main_win_visible && button_event->event_y < 60)) {
+                                // send Return == Ok for the top part of the screen
+                                postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
+                            } else if (main_win_visible) {
+                                postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
+                            } else if (button_event->event_y > 630) {
+                                // send next or previous page if clicked in footer on
+                                // the left or right side
+                                postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
+                            } else if (button_event->event_y <= 630) {
+                                int key = (button_event->event_y - 50)/(700/8);
+                                postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
+                            }
+                            break;
+                        case CR_ROTATE_ANGLE_0:
+                            //fall through
+                        default:
+                            if (button_event->event_y < 60) {
+                                // send Return == Ok for the top part of the screen
+                                postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
+                            } else if (main_win_visible) {
+                                postEvent( new CRGUIKeyDownEvent( (button_event->event_y < 350) ? '9' : '0', state ) );
+                            } else if (button_event->event_y > 630) {
+                                // send next or previous page if clicked in footer on
+                                // the left or right side
+                                postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
+                            } else if (button_event->event_y <= 630) {
+                                int key = (button_event->event_y - 50)/(700/8);
+                                postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
+                            }
+                            break;
+                    }
+                #else
                 if (button_event->event_y < 60) {
                     // send Return == Ok for the top part of the screen
                     postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
                 } else if (main_win_visible) {
-                    // book is being displayed
-                    // send next or previous page if clicked in lower or upper half
                     postEvent( new CRGUIKeyDownEvent( (button_event->event_y < 400) ? '9' : '0', state ) );
                 } else if (button_event->event_y > 750) {
                     // send next or previous page if clicked in footer on
@@ -1155,9 +1222,9 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                     postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
                 } else if (button_event->event_y <= 750) {
                     int key = (button_event->event_y - 50)/(700/8);
-                    //CRLog::trace("Sending %d %c\n", key, '1'+1+key);
                     postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
                 }
+                #endif
             }
             break;
         default:
@@ -1411,9 +1478,9 @@ int main(int argc, char **argv)
     #if KINDLE_TOUCH!=1
     if ( !ldomDocCache::init( lString16("/media/sd/.cr3/cache"), 0x100000 * 64 ))
         ldomDocCache::init( lString16("/tmp/.cr3/cache"), 0x100000 * 64 ); /*64Mb*/
-	#else
-	ldomDocCache::init( lString16(L"/tmp/.cr3/cache"), 0x100000 * 64 ); /*64Mb*/
-	#endif
+    #else
+    ldomDocCache::init( lString16(L"/tmp/.cr3/cache"), 0x100000 * 64 ); /*64Mb*/
+    #endif
     if ( !winman.hasValidConnection() ) {
         CRLog::error("connection has an error! exiting.");
     } else {
@@ -1432,13 +1499,13 @@ int main(int argc, char **argv)
         };
         loadKeymaps( winman, keymap_locations );
 
-			#if KINDLE_TOUCH!=1
-			if ( !winman.loadSkin(  homecrengine + L"skin" ) )
+            #if KINDLE_TOUCH!=1
+            if ( !winman.loadSkin(  homecrengine + L"skin" ) )
             if ( !winman.loadSkin(  lString16("/media/sd/crengine/skin") ) )
                 winman.loadSkin( lString16("/usr/share/cr3/skins/default") );
-			#else
-			winman.loadSkin( lString16( L"/mnt/us/cr3xcb/share/cr3/kindle_touch/skins/default" ) );
-			#endif
+            #else
+            winman.loadSkin( lString16( L"/mnt/us/cr3xcb/share/cr3/kindle_touch/skins/default" ) );
+            #endif
 
         {
             const lChar16 * imgname =
@@ -1455,14 +1522,14 @@ int main(int argc, char **argv)
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
         #if KINDLE_TOUCH!=1
-		main_win->loadDefaultCover( lString16( L"/media/sd/crengine/cr3_def_cover.png" ) );
-		main_win->loadCSS(  lString16( L"/media/sd/crengine/fb2.css" ) );
-		main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) );
-		#else
-		main_win->loadDefaultCover( lString16( L"/mnt/us/cr3xcb/share/cr3/cr3_def_cover.png" ) );
-		main_win->loadCSS( lString16( L"/mnt/us/cr3xcb/share/cr3/fb2.css" ) );
-		main_win->loadDictConfig( lString16( L"/mnt/us/cr3xcb/share/cr3/dict/dictd.conf" ) );
-		#endif
+        main_win->loadDefaultCover( lString16( L"/media/sd/crengine/cr3_def_cover.png" ) );
+        main_win->loadCSS(  lString16( L"/media/sd/crengine/fb2.css" ) );
+        main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) );
+        #else
+        main_win->loadDefaultCover( lString16( L"/mnt/us/cr3xcb/share/cr3/cr3_def_cover.png" ) );
+        main_win->loadCSS( lString16( L"/mnt/us/cr3xcb/share/cr3/fb2.css" ) );
+        main_win->loadDictConfig( lString16( L"/mnt/us/cr3xcb/share/cr3/dict/dictd.conf" ) );
+        #endif
 
         if ( bmkdir!=NULL )
             main_win->setBookmarkDir( lString16(bmkdir) );
@@ -1489,9 +1556,9 @@ int main(int argc, char **argv)
     #endif
         const lChar16 * dirs[] = {
         #if KINDLE_TOUCH!=1    
-			L"/media/sd/crengine/",
+            L"/media/sd/crengine/",
         #endif
-		    homecrengine.c_str(),
+            homecrengine.c_str(),
             L"/mnt/us/cr3xcb/.settings/",
             NULL
         };

@@ -1153,11 +1153,11 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                                 postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
                             } else if (main_win_visible) {
                                 postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
-                            } else if (button_event->event_y > 630) {
+                            } else if (button_event->event_y > 750) {
                                 // send next or previous page if clicked in footer on
                                 // the left or right side
                                 postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
-                            } else if (button_event->event_y <= 630) {
+                            } else if (button_event->event_y <= 750) {
                                 int key = (button_event->event_y - 50)/(700/8);
                                 postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
                             }
@@ -1168,11 +1168,11 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                                 postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
                             } else if (main_win_visible) {
                                 postEvent( new CRGUIKeyDownEvent( (button_event->event_y < 350) ? '9' : '0', state ) );
-                            } else if (button_event->event_y > 630) {
+                            } else if (button_event->event_y > 750) {
                                 // send next or previous page if clicked in footer on
                                 // the left or right side
                                 postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
-                            } else if (button_event->event_y <= 630) {
+                            } else if (button_event->event_y <= 750) {
                                 int key = (button_event->event_y - 50)/(700/8);
                                 postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
                             }
@@ -1183,11 +1183,11 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                                 postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
                             } else if (main_win_visible) {
                                 postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
-                            } else if (button_event->event_y > 630) {
+                            } else if (button_event->event_y > 750) {
                                 // send next or previous page if clicked in footer on
                                 // the left or right side
                                 postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
-                            } else if (button_event->event_y <= 630) {
+                            } else if (button_event->event_y <= 750) {
                                 int key = (button_event->event_y - 50)/(700/8);
                                 postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
                             }
@@ -1200,11 +1200,11 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                                 postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
                             } else if (main_win_visible) {
                                 postEvent( new CRGUIKeyDownEvent( (button_event->event_y < 350) ? '9' : '0', state ) );
-                            } else if (button_event->event_y > 630) {
+                            } else if (button_event->event_y > 750) {
                                 // send next or previous page if clicked in footer on
                                 // the left or right side
                                 postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
-                            } else if (button_event->event_y <= 630) {
+                            } else if (button_event->event_y <= 750) {
                                 int key = (button_event->event_y - 50)/(700/8);
                                 postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
                             }

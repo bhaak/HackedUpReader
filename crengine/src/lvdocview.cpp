@@ -1655,11 +1655,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 				//    brc.left = brc.right - brc.height()/2;
 				//else
 				brc.left = brc.right - batteryIconWidth - 2;
-                #if KINDLE_TOUCH!=1
 				brc.bottom -= 5;
-                #else
-				brc.bottom += 6;
-                #endif
 				drawBatteryState(drawbuf, brc, isVertical);
 				info.right = brc.left - info.height() / 2;
 			}
@@ -5458,8 +5454,10 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->setHexDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
 //	props->setIntDef(PROP_TXT_OPTION_PREFORMATTED, 0);
 	props->setIntDef(PROP_AUTOSAVE_BOOKMARKS, 1);
-	props->setIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1);
+	props->setIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 6);
 	props->setIntDef(PROP_DISPLAY_TURBO_UPDATE_MODE, 0);
+	// Only show one page by default
+	props->setIntDef(PROP_LANDSCAPE_PAGES, 1);
 
 	lString8 defFontFace;
 	static const char * goodFonts[] = { "DejaVu Sans", "FreeSans",
@@ -5529,8 +5527,8 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_PAGE_MARGIN_BOTTOM, def_margin, sizeof(def_margin)/sizeof(int));
 	props->limitValueList(PROP_PAGE_MARGIN_LEFT, def_margin, sizeof(def_margin)/sizeof(int));
 	props->limitValueList(PROP_PAGE_MARGIN_RIGHT, def_margin, sizeof(def_margin)/sizeof(int));
-	static int def_updates[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8, 10, 14 };
-	props->limitValueList(PROP_DISPLAY_FULL_UPDATE_INTERVAL, def_updates, 11);
+	static int def_updates[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8, 10, 14, 20, 30 };
+	props->limitValueList(PROP_DISPLAY_FULL_UPDATE_INTERVAL, def_updates, 13);
 	int fs = props->getIntDef(PROP_STATUS_FONT_SIZE, INFO_FONT_SIZE);
     if (fs < 8)
         fs = 8;
@@ -5559,6 +5557,8 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     props->setIntDef(PROP_SHOW_POS_PERCENT, 0);
     props->setIntDef(PROP_STATUS_CHAPTER_MARKS, 1);
     props->setIntDef(PROP_FLOATING_PUNCTUATION, 1);
+
+    props->setIntDef(PROP_PAGE_TURNING, 0);
 
 #ifndef ANDROID
     props->setIntDef(PROP_EMBEDDED_STYLES, 1);
@@ -5658,7 +5658,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         } else if (name == PROP_HIGHLIGHT_SELECTION_COLOR || name == PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT || name == PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT) {
             REQUEST_RENDER("propsApply - highlight")
         } else if (name == PROP_LANDSCAPE_PAGES) {
-            int pages = props->getIntDef(PROP_LANDSCAPE_PAGES, 2);
+            int pages = props->getIntDef(PROP_LANDSCAPE_PAGES, 1);
 			setVisiblePageCount(pages);
 		} else if (name == PROP_FONT_KERNING_ENABLED) {
 			bool kerning = props->getBoolDef(PROP_FONT_KERNING_ENABLED, false);
@@ -5828,6 +5828,10 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 					props->getIntDef(PROP_PAGE_VIEW_MODE, 1) ? DVM_PAGES
 							: DVM_SCROLL;
 			setViewMode(m);
+		} else if (name == PROP_PAGE_TURNING) {
+			m_props->setString(name.c_str(), value);
+			setPageTurning(props->getIntDef(PROP_PAGE_TURNING, 0));
+			REQUEST_RENDER("propsApply - page turning")
 		} else {
 			// unknown property, adding to list of unknown properties
 			unknown->setString(name.c_str(), value);

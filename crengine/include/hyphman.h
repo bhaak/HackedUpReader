@@ -75,7 +75,7 @@ public:
 	bool activate( lString16 id );
 };
 
-#define DEF_HYPHENATION_DICT "Russian_EnUS_hyphen_(Alan).pdb"
+#define DEF_HYPHENATION_DICT "English_US_hyphen_(Alan).pdb"
 #define DEF_HYPHENATION_DICT2 "ru.pattern"
 
 class HyphDictionary;

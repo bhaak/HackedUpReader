@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension>
+<information>
+	<name>HackedUpReader Plugin</name>
+	<version>1.2</version>
+	<author>Patric Mueller</author>
+	<id>hackedupreaderplugin</id>
+</information>
+<menus>
+	<menu type="java" jar="/opt/amazon/ebook/lib/HackedUpReaderExtension.jar">com.github.bhaak.HackedUpReaderExtension</menu>
+</menus>
+</extension>

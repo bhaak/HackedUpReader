@@ -1925,11 +1925,7 @@ void LVDrawBatteryIcon( LVDrawBuf * drawbuf, const lvRect & batteryRc, int perce
                 iconIndex = 1;
             }
         }
-#if KINDLE_TOUCH!=1
         lvPoint sz( icons[0]->GetWidth(), icons[0]->GetHeight() );
-#else
-        lvPoint sz( icons[0]->GetWidth(), icons[0]->GetHeight() - 4);
-#endif 
         rc.left += (rc.width() - sz.x)/2;
         rc.top += (rc.height() - sz.y)/2;
         rc.right = rc.left + sz.x;

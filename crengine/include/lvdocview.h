@@ -44,6 +44,7 @@
 #define PROP_PAGE_MARGIN_LEFT        "crengine.page.margin.left"
 #define PROP_PAGE_MARGIN_RIGHT       "crengine.page.margin.right"
 #define PROP_PAGE_VIEW_MODE          "crengine.page.view.mode" // pages/scroll
+#define PROP_PAGE_TURNING            "crengine.page.turning"
 #define PROP_INTERLINE_SPACE         "crengine.interline.space"
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 #define PROP_ROTATE_ANGLE            "window.rotate.angle"
@@ -454,6 +455,8 @@ private:
 #if CR_INTERNAL_PAGE_ORIENTATION==1
     cr_rotate_angle_t m_rotateAngle;
 #endif
+
+    int m_pageTurning;
 
     CRFileHist m_hist;
 
@@ -991,6 +994,12 @@ public:
         m_props->setInt(PROP_MIN_FILE_SIZE_TO_CACHE, size);
     }
 #endif
+    void setPageTurning( int pageTurning ) {
+        m_pageTurning = pageTurning;
+    }
+    int getPageTurning() {
+        return m_pageTurning;
+    }
 
     /// render (format) document
     void Render( int dx=0, int dy=0, LVRendPageList * pages=NULL );

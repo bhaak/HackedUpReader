@@ -1151,79 +1151,54 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
 
                 //CRLog::trace("XCB_BUTTON_RELEASE detail %d; root %d; event %d; child %d; event_x %d; event_y %d; time: %d\n", button_event->detail, button_event->root, button_event->event, button_event->child, button_event->event_x, button_event->event_y, button_event->time);
 
-                int topClick  = button_event->event_y < 400;
-                int leftClick = button_event->event_x < 300;
+                int topClick, leftClick, headerClick, footerClick;
+                int x = button_event->event_x;
+                int y = button_event->event_y;
 
-                #if CR_INTERNAL_PAGE_ORIENTATION==1
-                    cr_rotate_angle_t curRotation = main_win->getDocView()->GetRotateAngle();
-                    //CRLog::trace("mode: %d\n", curRotation);
-
-                    switch(curRotation) {
+#if CR_INTERNAL_PAGE_ORIENTATION==1
+                cr_rotate_angle_t curRotation = main_win->getDocView()->GetRotateAngle();
+#else
+                cr_rotate_angle_t curRotation = CR_ROTATE_ANGLE_0;
+#endif
+                if (main_win_visible) {
+                    switch (curRotation) {
                         case CR_ROTATE_ANGLE_90:
-                            if ((main_win_visible && button_event->event_x > 540) || (!main_win_visible && button_event->event_y < 60)) {
-                                // send Return == Ok for the top part of the screen
-                                postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
-                            } else if (main_win_visible) {
-                                postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
-                            } else if (button_event->event_y > 750) {
-                                // send next or previous page if clicked in footer on
-                                // the left or right side
-                                postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
-                            } else if (button_event->event_y <= 750) {
-                                int key = (button_event->event_y - 50)/(700/8);
-                                postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
-                            }
-                            break;
-                        case CR_ROTATE_ANGLE_180:
-                            if ((main_win_visible && button_event->event_y > 640) || (!main_win_visible && button_event->event_y < 60)) {
-                                // send Return == Ok for the top part of the screen
-                                postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
-                            } else if (main_win_visible) {
-                                postEvent( new CRGUIKeyDownEvent( (button_event->event_y < 350) ? '9' : '0', state ) );
-                            } else if (button_event->event_y > 750) {
-                                // send next or previous page if clicked in footer on
-                                // the left or right side
-                                postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
-                            } else if (button_event->event_y <= 750) {
-                                int key = (button_event->event_y - 50)/(700/8);
-                                postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
-                            }
+                            headerClick  = x > 540;
+                            topClick     = x > 300;
+                            leftClick    = y < 400;
+                            footerClick  = x <  50;
                             break;
                         case CR_ROTATE_ANGLE_270:
-                            if ((main_win_visible && button_event->event_x < 60) || (!main_win_visible && button_event->event_y < 60)) {
-                                // send Return == Ok for the top part of the screen
-                                postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
-                            } else if (main_win_visible) {
-                                postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
-                            } else if (button_event->event_y > 750) {
-                                // send next or previous page if clicked in footer on
-                                // the left or right side
-                                postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
-                            } else if (button_event->event_y <= 750) {
-                                int key = (button_event->event_y - 50)/(700/8);
-                                postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
-                            }
+                            headerClick  = x <  60;
+                            topClick     = x < 300;
+                            leftClick    = y > 400;
+                            footerClick  = x > 550;
+                            break;
+                        case CR_ROTATE_ANGLE_180:
+                            headerClick  = y > 740;
+                            topClick     = y > 400;
+                            leftClick    = x > 300;
+                            footerClick  = y <  50;
                             break;
                         case CR_ROTATE_ANGLE_0:
-                            //fall through
                         default:
-                            if (button_event->event_y < 60) {
-                                // send Return == Ok for the top part of the screen
-                                postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
-                            } else if (main_win_visible) {
-                                postEvent( new CRGUIKeyDownEvent( (button_event->event_y < 350) ? '9' : '0', state ) );
-                            } else if (button_event->event_y > 750) {
-                                // send next or previous page if clicked in footer on
-                                // the left or right side
-                                postEvent( new CRGUIKeyDownEvent( (button_event->event_x < 300) ? '9' : '0', state ) );
-                            } else if (button_event->event_y <= 750) {
-                                int key = (button_event->event_y - 50)/(700/8);
-                                postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
-                            }
+                            headerClick  = y <  60;
+                            topClick     = y < 400;
+                            leftClick    = x < 300;
+                            footerClick  = y > 750;
                             break;
                     }
-                #else
-                if (button_event->event_y < 60) {
+                } else {
+                    // same as CR_ROTATE_ANGLE_0
+                    headerClick  = y <  60;
+                    topClick     = y < 400;
+                    leftClick    = x < 300;
+                    footerClick  = y > 750;
+                }
+
+                //CRLog::trace("headerClick: %d; topClick: %d; leftClick %d; footerClick %d", headerClick, topClick, leftClick, footerClick);
+
+                if (headerClick) {
                     // send Return == Ok for the top part of the screen
                     postEvent( new CRGUIKeyDownEvent( XK_Return, state ) );
                 } else if (main_win_visible) {
@@ -1244,15 +1219,15 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                     CRLog::trace("previousPage %d; leftClick %d; topClick %d", previousPage, leftClick, topClick);
 
                     postEvent( new CRGUIKeyDownEvent( previousPage ? '9' : '0', state ) );
-                } else if (button_event->event_y > 750) {
+                } else if (footerClick) {
                     // send next or previous page if clicked in footer on
                     // the left or right side
                     postEvent( new CRGUIKeyDownEvent( leftClick ? '9' : '0', state ) );
-                } else if (button_event->event_y <= 750) {
+                } else if (!footerClick) {
+                    // no rotation translation, menu isn't rotated
                     int key = (button_event->event_y - 50)/(700/8);
                     postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
                 }
-                #endif
             }
             break;
         default:

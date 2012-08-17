@@ -3,7 +3,7 @@
 {
 set -x
 
-tar -x -f "hackedupreader-0.2.0.tar.gz" -C "/mnt/us/"
+tar -x -f "hackedupreader-0.2.1.tar.gz" -C "/mnt/us/"
 
 mkdir -p /mnt/us/extensions/hackedupreader
 cp -a config.xml /mnt/us/extensions/hackedupreader/

@@ -1,4 +1,4 @@
-VERSION=0.2.0
+VERSION=0.2.1
 
 all: hackedupreader_${VERSION}_install.bin hackedupreader_${VERSION}_uninstall.bin zip
 hackedupreader_${VERSION}_install.bin:

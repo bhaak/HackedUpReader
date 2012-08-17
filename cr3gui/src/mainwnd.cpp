@@ -1100,7 +1100,7 @@ void V3DocViewWin::showAboutDialog()
 #else
     lString8 progInfo;
 # ifdef KINDLE_TOUCH
-    addPropLine( progInfo, _("Version"), Utf8ToUnicode(lString8("0.2.0")));
+    addPropLine( progInfo, _("Version"), Utf8ToUnicode(lString8("0.2.1")));
 # endif
     addPropLine( progInfo, _("Cool Reader"), Utf8ToUnicode(lString8(CR_ENGINE_VERSION)));
     addPropLine( progInfo, _("Build date"), Utf8ToUnicode(lString8(CR_ENGINE_BUILD_DATE)));

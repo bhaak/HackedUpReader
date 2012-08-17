@@ -53,7 +53,7 @@ For display quality and preventing crashes when using non-standard fonts install
 
 There are 2 different GUI launcher extensions:
  - https://github.com/bhaak/HackedUpReaderExtension (builds a Launcher sub menu out of your documents folder for starting HackedUpReader)
- - https://github.com/varnie/HackedUpReaderLauncher (directly start HackedUpReader) (not yet compatible with HackedUpReader 0.2.0, replace "/mnt/us/cr3xcb/bin/cr3" in menu.json with "/mnt/us/hackedupreader/bin/cr3")
+ - https://github.com/varnie/HackedUpReaderLauncher (directly start HackedUpReader) (not yet compatible with HackedUpReader 0.2.x, replace "/mnt/us/cr3xcb/bin/cr3" in menu.json with "/mnt/us/hackedupreader/bin/cr3")
 
 
 Controls

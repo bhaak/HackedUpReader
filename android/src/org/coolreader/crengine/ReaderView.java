@@ -2921,7 +2921,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	 * @return true if opened successfully
 	 */
 	public boolean showManual() {
-		return loadDocument(getManualFileName(), null);
+		return loadDocument(getManualFileName(), new Runnable() {
+			@Override
+			public void run() {
+				mActivity.showToast("Error while opening manual");
+			}
+		});
 	}
 	
 	private boolean hiliteTapZoneOnTap = false;
@@ -2997,7 +3002,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         } else if ( key.equals(PROP_APP_FLICK_BACKLIGHT_CONTROL) ) {
         	isBacklightControlFlick = "1".equals(value) ? 1 : ("2".equals(value) ? 2 : 0);
         } else if (PROP_APP_HIGHLIGHT_BOOKMARKS.equals(key)) {
-        	flgHighlightBookmarks = flg;
+        	flgHighlightBookmarks = !"0".equals(value);
         	clearSelection();
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
         	int orientation = 0;
@@ -4031,7 +4036,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					boolean animate = false;
 					synchronized (AnimationUpdate.class) {
 						
-						if (/*currentAnimation == myAnimation && */currentAnimationUpdate == AnimationUpdate.this) {
+						if (currentAnimation != null && currentAnimationUpdate == AnimationUpdate.this) {
 							currentAnimationUpdate = null;
 							currentAnimation.update(x, y);
 							animate = true;
@@ -4111,7 +4116,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (x>x1)
 			x = x1;
 		int intervals = accelerationShape.length - 1;
-		int pos = 100 * intervals * (x - x0) / (x1-x0);
+		int pos = x1 > x0 ? 100 * intervals * (x - x0) / (x1-x0) : x1;
 		int interval = pos / 100;
 		int part = pos % 100;
 		if ( interval<0 )

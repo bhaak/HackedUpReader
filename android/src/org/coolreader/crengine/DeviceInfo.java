@@ -75,6 +75,10 @@ public class DeviceInfo {
 		return sdkInt;
 	}
 	
+	public static boolean supportsActionBar() {
+		return getSDKLevel() >= HONEYCOMB;
+	}
+	
 	static {
 		MANUFACTURER = getBuildField("MANUFACTURER");
 		MODEL = getBuildField("MODEL");
@@ -99,13 +103,13 @@ public class DeviceInfo {
 		NAVIGATE_LEFTRIGHT = POCKETBOOK && DEVICE.startsWith("EP10");
 		REVERT_LANDSCAPE_VOLUME_KEYS = POCKETBOOK && DEVICE.startsWith("EP5A");
 		MIN_SCREEN_BRIGHTNESS_PERCENT = getMinBrightness(AMOLED_SCREEN ? 2 : 16);
-		BUFFER_COLOR_FORMAT = getSDKLevel() >= HONEYCOMB ? android.graphics.Bitmap.Config.ARGB_8888 : android.graphics.Bitmap.Config.RGB_565;
+		//BUFFER_COLOR_FORMAT = getSDKLevel() >= HONEYCOMB ? android.graphics.Bitmap.Config.ARGB_8888 : android.graphics.Bitmap.Config.RGB_565;
 		//BUFFER_COLOR_FORMAT = android.graphics.Bitmap.Config.ARGB_8888;
-		//BUFFER_COLOR_FORMAT = android.graphics.Bitmap.Config.RGB_565;
+		BUFFER_COLOR_FORMAT = android.graphics.Bitmap.Config.RGB_565;
 		
 		DEF_FONT_FACE = getSDKLevel() >= ICE_CREAM_SANDWICH ? "Roboto" : "Droid Sans";
 		
-		USE_BITMAP_MEMORY_HACK = getSDKLevel() < HONEYCOMB;
+		USE_BITMAP_MEMORY_HACK = getSDKLevel() < ICE_CREAM_SANDWICH;
 	}
 	
 	private static String getBuildField(String fieldName) {

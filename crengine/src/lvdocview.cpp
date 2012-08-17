@@ -5454,8 +5454,10 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->setHexDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
 //	props->setIntDef(PROP_TXT_OPTION_PREFORMATTED, 0);
 	props->setIntDef(PROP_AUTOSAVE_BOOKMARKS, 1);
-	props->setIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1);
+	props->setIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 6);
 	props->setIntDef(PROP_DISPLAY_TURBO_UPDATE_MODE, 0);
+	// Only show one page by default
+	props->setIntDef(PROP_LANDSCAPE_PAGES, 1);
 
 	lString8 defFontFace;
 	static const char * goodFonts[] = { "DejaVu Sans", "FreeSans",
@@ -5656,7 +5658,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         } else if (name == PROP_HIGHLIGHT_SELECTION_COLOR || name == PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT || name == PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT) {
             REQUEST_RENDER("propsApply - highlight")
         } else if (name == PROP_LANDSCAPE_PAGES) {
-            int pages = props->getIntDef(PROP_LANDSCAPE_PAGES, 2);
+            int pages = props->getIntDef(PROP_LANDSCAPE_PAGES, 1);
 			setVisiblePageCount(pages);
 		} else if (name == PROP_FONT_KERNING_ENABLED) {
 			bool kerning = props->getBoolDef(PROP_FONT_KERNING_ENABLED, false);

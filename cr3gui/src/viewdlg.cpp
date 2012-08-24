@@ -41,6 +41,9 @@
 #ifdef CR_USE_JINKE
 #define DICTD_CONF "/root/abook/dict"
 #define DICTD_CONF_ALT "/root/crengine/dict"
+#elif KINDLE_TOUCH==1
+#define DICTD_CONF "/mnt/us/hackedupreader/share/cr3/dict"
+#define DICTD_CONF_ALT "/mnt/us/hackedupreader/share/cr3/dict"
 #else
 #define DICTD_CONF "/media/sd/dict"
 #define DICTD_CONF_ALT "/mnt/us/cr3xcb/share/cr3/dict"
@@ -371,6 +374,7 @@ int CRViewDialog::findPagesText( lString16 pattern, int origin, int direction )
 void CRViewDialog::showDictWithVKeyboard()
 {
     lvRect rc = _wm->getScreen()->getRect();
+    _wm->getScreen()->invalidateRect(lvRect(0, 0, rc.width(), rc.height()));
     int h_margin = rc.width() / 12;
     int v_margin = rc.height() / 12;
     rc.left += h_margin;

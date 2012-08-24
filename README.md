@@ -105,3 +105,5 @@ I'm Patric Mueller <bhaak@gmx.net> and I'm doing this because - contrary
 to Amazon who's manufacturing a great piece of hardware but is equipping
 it with inferior software - I like my e-books kerned, hyphenated and
 justified.
+
+Contributing author: Sergey Alekseyev <varnie29a@mail.ru>

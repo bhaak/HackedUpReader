@@ -273,6 +273,7 @@ bool CRViewDialog::findInDictionary( lString16 pattern )
 	lString8 body = _dict->translate( UnicodeToUtf8( pattern ) );
     lString8 txt = CRViewDialog::makeFb2Xml( body );
     CRViewDialog * dlg = new CRViewDialog( _wm, pattern, txt, lvRect(), true, true );
+	dlg->setDictionaryDialog(true);
     _wm->activateWindow( dlg );
 	return true;
 #endif
@@ -418,8 +419,12 @@ bool CRViewDialog::onCommand( int command, int params )
 			return true;
         case MCMD_CANCEL:
         case MCMD_OK:
-            //show main menu
-            _wm->postCommand( MCMD_MAIN_MENU, 0 );
+#ifdef KINDLE_TOUCH
+            if (!this->isDictionaryDialog()) {
+                //show main menu
+                _wm->postCommand( MCMD_MAIN_MENU, 0 );
+            }
+#endif
             _wm->closeWindow( this );
             return true;
         case MCMD_GO_PAGE:

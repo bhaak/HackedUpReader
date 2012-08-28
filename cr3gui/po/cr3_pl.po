@@ -1019,7 +1019,7 @@ msgid "Scroll back"
 msgstr "Wycofaj"
 
 #: ../src/viewdlg.cpp:541
-msgid "Close book"
+msgid "Close application"
 msgstr "Zamknij książkę"
 
 #: ../src/viewdlg.cpp:542

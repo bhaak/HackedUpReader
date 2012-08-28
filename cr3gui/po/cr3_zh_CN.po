@@ -1006,7 +1006,7 @@ msgid "Scroll back"
 msgstr "后滚"
 
 #: ../src/viewdlg.cpp:541
-msgid "Close book"
+msgid "Close application"
 msgstr "关闭书籍"
 
 #: ../src/viewdlg.cpp:542

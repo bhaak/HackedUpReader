@@ -1010,7 +1010,7 @@ msgid "Scroll back"
 msgstr "Projíždět zpět"
 
 #: ../src/viewdlg.cpp:541
-msgid "Close book"
+msgid "Close application"
 msgstr "Zavřít knihu"
 
 #: ../src/viewdlg.cpp:542

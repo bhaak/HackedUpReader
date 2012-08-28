@@ -1024,7 +1024,7 @@ msgid "Scroll back"
 msgstr ""
 
 #: ../src/viewdlg.cpp:541
-msgid "Close book"
+msgid "Close application"
 msgstr ""
 
 #: ../src/viewdlg.cpp:542

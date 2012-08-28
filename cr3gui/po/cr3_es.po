@@ -1022,7 +1022,7 @@ msgid "Scroll back"
 msgstr "Retroceder"
 
 #: ../src/viewdlg.cpp:541
-msgid "Close book"
+msgid "Close application"
 msgstr "Cerrar libro"
 
 #: ../src/viewdlg.cpp:542

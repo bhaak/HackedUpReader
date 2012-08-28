@@ -10309,8 +10309,7 @@ void ldomNode::initNodeStyle()
             //lvdomElementFormatRec * parent_fmt = node->getParentNode()->getRenderData();
             css_style_ref_t style = parent->getStyle();
             LVFontRef font = parent->getFont();
-#if DEBUG_DOM_STORAGE==1
-            if ( style.isNull() ) {
+            while ( style.isNull() ) {
                 // for debugging
                 CRLog::error("NULL style is returned for node <%s> %d level=%d  "
                              "parent <%s> %d level=%d children %d childIndex=%d",
@@ -10320,17 +10319,14 @@ void ldomNode::initNodeStyle()
 
                 style = parent->getStyle();
             }
-#endif
             setNodeStyle( this,
                 style,
                 font
                 );
-#if DEBUG_DOM_STORAGE==1
             if ( this->getStyle().isNull() ) {
                 CRLog::error("NULL style is set for <%s>", LCSTR(getNodeName()) );
                 style = this->getStyle();
             }
-#endif
         }
     }
 }

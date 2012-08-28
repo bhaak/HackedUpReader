@@ -149,7 +149,7 @@ bool CRBooksMenu::onCommand( int command, int params ) {
 }
 
 CRMenu *createBooksDialogMenu(const char *path, CRGUIWindowManager * wm, LVFontRef font, CRPropRef props, CRGUIAcceleratorTableRef menuAccelerators, LVDocView *docview) {
-    CRBooksMenu *pResultMenu = new CRBooksMenu(wm, NULL, MCMD_MAIN_MENU, "Select book", LVImageSourceRef(), LVFontRef(), font, props, menuAccelerators, docview);
+    CRBooksMenu *pResultMenu = new CRBooksMenu(wm, NULL, MCMD_MAIN_MENU, _("Select book"), LVImageSourceRef(), LVFontRef(), font, props, menuAccelerators, docview);
     walkDirRecursively(path, pResultMenu);
     return pResultMenu;
 }

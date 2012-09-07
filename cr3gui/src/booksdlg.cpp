@@ -1,18 +1,5 @@
-//
-// C++ Implementation: settings
-//
-// Description:
-//
-//
-// Author: Vadim Lopatin <vadim.lopatin@coolreader.org>, (C) 2008
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
-
 #include "booksdlg.h"
 #include <crgui.h>
-//#include "fsmenu.h"
 #ifdef CR_POCKETBOOK
 #include "cr3pocketbook.h"
 #endif
@@ -75,10 +62,9 @@ static void walkDirRecursively(const char *dirname, CRBooksMenu* pParentMenu) {
 
                         CRLog::info("adding ebook file: %s", fn);
                         ++totalFound;
-                        CRMenuItem *fNameItem = new CRBookMenuItem( pParentMenu, BOOKS_DIALOG_MENU_COMMANDS_START + totalFound, 
-                            _(fname), LVImageSourceRef(), LVFontRef(), pParentMenu->getFont(), lString16(fn)); 
 
-                        pParentMenu->addItem(fNameItem);
+						pParentMenu->addItem(new CRBookMenuItem( pParentMenu, BOOKS_DIALOG_MENU_COMMANDS_START + totalFound, 
+                            _(fname), LVImageSourceRef(), LVFontRef(), pParentMenu->getFont(), lString16(fn)));
                 }
             } else if((entriesList[i]->d_type) == DT_DIR) {
                 if (strcmp(fname, "dictionary") != 0 && strcmp(fname, "dictionaries") != 0 && !endsWith(fname, ".sdr")) { //skip kindle generated dummy folders and dictionaries folders as well

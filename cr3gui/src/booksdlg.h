@@ -22,21 +22,20 @@ public:
 class CRBooksMenu : public CRFullScreenMenu
 {
 protected:
-		LVFontRef _valueFont;
-        CRGUIAcceleratorTableRef _menuAccelerators;
-        LVDocView *_docview;
-    public:	
-        CRBooksMenu(CRGUIWindowManager * wm, CRMenu * parentMenu, int id, const char * label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props, CRGUIAcceleratorTableRef menuAccelerators, LVDocView *docview);
-        virtual bool onCommand( int command, int params );
-		LVDocView *getDocview() const {
-			return _docview;
-		}
-        virtual ~CRBooksMenu()
-        {
-            CRLog::trace("Calling fontMan->gc() on BooksDialog menu destroy");
-            fontMan->gc();
-            CRLog::trace("Done fontMan->gc() on BooksDialog menu destroy");
-        }
+    LVFontRef _valueFont;
+    CRGUIAcceleratorTableRef _menuAccelerators;
+    LVDocView *_docview;
+public:	
+    CRBooksMenu(CRGUIWindowManager * wm, CRMenu * parentMenu, int id, const char * label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props, CRGUIAcceleratorTableRef menuAccelerators, LVDocView *docview);
+    virtual bool onCommand( int command, int params );
+	LVDocView *getDocview() const {
+        return _docview;
+	}
+    virtual ~CRBooksMenu() {
+        CRLog::trace("Calling fontMan->gc() on BooksDialog menu destroy");
+        fontMan->gc();
+        CRLog::trace("Done fontMan->gc() on BooksDialog menu destroy");
+	}
 };
 
 CRMenu *createBooksDialogMenu(const char *path, CRGUIWindowManager * wm, LVFontRef font, CRPropRef props, CRGUIAcceleratorTableRef menuAccelerators, LVDocView *docview);

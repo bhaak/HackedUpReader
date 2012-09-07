@@ -30,9 +30,15 @@ protected:
 	static LVRef<CRDictionary> _dict;
     virtual void draw( int pageOffset );
     virtual void draw();
+#ifdef KINDLE_TOUCH
+    bool _isDictionaryDialog;
+#endif
 public:
-
-    int getLastNavigationDirection() { return _lastNavigationDirection; }
+#ifdef KINDLE_TOUCH
+	void setDictionaryDialog(bool flag) { _isDictionaryDialog = flag; }
+	bool isDictionaryDialog() const { return _isDictionaryDialog; }
+#endif
+	int getLastNavigationDirection() { return _lastNavigationDirection; }
     void unsetLastNavigationDirection() { _lastNavigationDirection=0; }
 
     void prepareNextPageImage( int offset );

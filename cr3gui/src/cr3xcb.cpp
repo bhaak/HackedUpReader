@@ -1218,7 +1218,11 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                     }
                     CRLog::trace("previousPage %d; leftClick %d; topClick %d", previousPage, leftClick, topClick);
 
-                    postEvent( new CRGUIKeyDownEvent( previousPage ? '9' : '0', state ) );
+                    if (curRotation == CR_ROTATE_ANGLE_90 || curRotation == CR_ROTATE_ANGLE_180) {
+                        postEvent( new CRGUIKeyDownEvent( !previousPage ? '9' : '0', state ) );
+                    } else {
+                        postEvent( new CRGUIKeyDownEvent( previousPage ? '9' : '0', state ) );
+                    }                  
                 } else if (footerClick) {
                     // send next or previous page if clicked in footer on
                     // the left or right side

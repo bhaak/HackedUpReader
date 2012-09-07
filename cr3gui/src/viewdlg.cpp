@@ -41,6 +41,9 @@
 #ifdef CR_USE_JINKE
 #define DICTD_CONF "/root/abook/dict"
 #define DICTD_CONF_ALT "/root/crengine/dict"
+#elif KINDLE_TOUCH==1
+#define DICTD_CONF "/mnt/us/hackedupreader/share/cr3/dict"
+#define DICTD_CONF_ALT "/mnt/us/hackedupreader/share/cr3/dict"
 #else
 #define DICTD_CONF "/media/sd/dict"
 #define DICTD_CONF_ALT "/mnt/us/cr3xcb/share/cr3/dict"
@@ -270,6 +273,7 @@ bool CRViewDialog::findInDictionary( lString16 pattern )
 	lString8 body = _dict->translate( UnicodeToUtf8( pattern ) );
     lString8 txt = CRViewDialog::makeFb2Xml( body );
     CRViewDialog * dlg = new CRViewDialog( _wm, pattern, txt, lvRect(), true, true );
+	dlg->setDictionaryDialog(true);
     _wm->activateWindow( dlg );
 	return true;
 #endif
@@ -371,6 +375,7 @@ int CRViewDialog::findPagesText( lString16 pattern, int origin, int direction )
 void CRViewDialog::showDictWithVKeyboard()
 {
     lvRect rc = _wm->getScreen()->getRect();
+    _wm->getScreen()->invalidateRect(lvRect(0, 0, rc.width(), rc.height()));
     int h_margin = rc.width() / 12;
     int v_margin = rc.height() / 12;
     rc.left += h_margin;
@@ -414,8 +419,12 @@ bool CRViewDialog::onCommand( int command, int params )
 			return true;
         case MCMD_CANCEL:
         case MCMD_OK:
-            //show main menu
-            _wm->postCommand( MCMD_MAIN_MENU, 0 );
+#ifdef KINDLE_TOUCH
+            if (!this->isDictionaryDialog()) {
+                //show main menu
+                _wm->postCommand( MCMD_MAIN_MENU, 0 );
+            }
+#endif
             _wm->closeWindow( this );
             return true;
         case MCMD_GO_PAGE:

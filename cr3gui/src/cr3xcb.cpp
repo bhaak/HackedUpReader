@@ -1124,6 +1124,10 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                 _posX = button_event->event_x;
                 _posY = button_event->event_y;
 #endif
+                int height = _screen->getHeight();
+                int width  = _screen->getWidth();
+                int half_width  = width / 2;
+                int half_height = height / 2;
 
                 // workaround for determining if the main window is being displayed
                 // because main_win->isVisible() doesn't work as expected
@@ -1163,37 +1167,37 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                 if (main_win_visible) {
                     switch (curRotation) {
                         case CR_ROTATE_ANGLE_90:
-                            headerClick  = x > 540;
-                            topClick     = x > 300;
-                            leftClick    = y < 400;
+                            headerClick  = x > width-60;
+                            topClick     = x > half_width;
+                            leftClick    = y < half_height;
                             footerClick  = x <  50;
                             break;
                         case CR_ROTATE_ANGLE_270:
                             headerClick  = x <  60;
-                            topClick     = x < 300;
-                            leftClick    = y > 400;
-                            footerClick  = x > 550;
+                            topClick     = x < half_width;
+                            leftClick    = y > half_height;
+                            footerClick  = x > width-50;
                             break;
                         case CR_ROTATE_ANGLE_180:
-                            headerClick  = y > 740;
-                            topClick     = y > 400;
-                            leftClick    = x > 300;
+                            headerClick  = y > height-60;
+                            topClick     = y > half_height;
+                            leftClick    = x > half_width;
                             footerClick  = y <  50;
                             break;
                         case CR_ROTATE_ANGLE_0:
                         default:
                             headerClick  = y <  60;
-                            topClick     = y < 400;
-                            leftClick    = x < 300;
-                            footerClick  = y > 750;
+                            topClick     = y < half_height;
+                            leftClick    = x < half_width;
+                            footerClick  = y > height-50;
                             break;
                     }
                 } else {
                     // same as CR_ROTATE_ANGLE_0
                     headerClick  = y <  60;
-                    topClick     = y < 400;
-                    leftClick    = x < 300;
-                    footerClick  = y > 750;
+                    topClick     = y < half_height;
+                    leftClick    = x < half_width;
+                    footerClick  = y > height-50;
                 }
 
                 //CRLog::trace("headerClick: %d; topClick: %d; leftClick %d; footerClick %d", headerClick, topClick, leftClick, footerClick);
@@ -1229,7 +1233,7 @@ void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
                     postEvent( new CRGUIKeyDownEvent( leftClick ? '9' : '0', state ) );
                 } else if (!footerClick) {
                     // no rotation translation, menu isn't rotated
-                    int key = (button_event->event_y - 50)/(700/8);
+                    int key = (button_event->event_y - 50)/((height-100)/8);
                     postEvent( new CRGUIKeyDownEvent( '1'+key, state ) );
                 }
             }
@@ -1480,8 +1484,8 @@ int main(int argc, char **argv)
 #ifdef __i386__
         CRXCBWindowManager winman( 600, 680 );
 #else
-        CRXCBWindowManager winman( 600, 800 );
-
+        // don't specify dimensions, calculate it automatically
+        CRXCBWindowManager winman( 0, 0 );
 #endif
     #if KINDLE_TOUCH!=1
     if ( !ldomDocCache::init( lString16("/media/sd/.cr3/cache"), 0x100000 * 64 ))

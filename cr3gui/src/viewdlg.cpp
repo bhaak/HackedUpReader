@@ -42,7 +42,7 @@
 #define DICTD_CONF "/root/abook/dict"
 #define DICTD_CONF_ALT "/root/crengine/dict"
 #elif KINDLE_TOUCH==1
-#define DICTD_CONF "/mnt/us/hackedupreader/share/cr3/dict"
+#define DICTD_CONF "/mnt/us/hackedupreader/dictionaries"
 #define DICTD_CONF_ALT "/mnt/us/hackedupreader/share/cr3/dict"
 #else
 #define DICTD_CONF "/media/sd/dict"

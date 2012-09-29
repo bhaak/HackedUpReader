@@ -826,7 +826,7 @@ msgid "No dictionaries found"
 msgstr "Nenalezeny žádné slovníky"
 
 #: ../src/viewdlg.cpp:161
-msgid "Place dictionaries to directory 'dict' of SD card."
+msgid "Place dictionaries into the directory hackedupreader/dictionaries."
 msgstr "Slovníky umístěte do adresáře 'dict' na kartě SD."
 
 #: ../src/viewdlg.cpp:162

@@ -822,7 +822,7 @@ msgid "No dictionaries found"
 msgstr "找不到词典"
 
 #: ../src/viewdlg.cpp:161
-msgid "Place dictionaries to directory 'dict' of SD card."
+msgid "Place dictionaries into the directory hackedupreader/dictionaries."
 msgstr "请放置词典到SD卡dict目录下"
 
 #: ../src/viewdlg.cpp:162

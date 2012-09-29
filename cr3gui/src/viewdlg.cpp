@@ -165,7 +165,7 @@ bool CRViewDialog::hasDictionaries()
 	// show warning
 	lString8 body;
 	body << "<title><p>" << _("No dictionaries found") << "</p></title>";
-	body << "<p>" << _("Place dictionaries to directory 'dict' of SD card.") << "</p>";
+	body << "<p>" << _("Place dictionaries into the directory hackedupreader/dictionaries.") << "</p>";
 	body << "<p>" << _("Dictionaries in standard unix .dict format are supported.") << "</p>";
 	body << "<p>" << _("For each dictionary, pair of files should be provided: data file (with .dict or .dict.dz extension, and index file with .index extension") << "</p>";
 	lString8 xml = CRViewDialog::makeFb2Xml( body );

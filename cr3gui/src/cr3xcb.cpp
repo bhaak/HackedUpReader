@@ -975,6 +975,11 @@ class XCBDocViewWin : public V3DocViewWin
         }
 };
 
+// The files that contain the charging information.
+// Could theoretically be read from /etc/kdb.src/yoshi/system/daemon/powerd/SYS_CHARGING_FILE
+static const char *kindle_touch_charging = "/sys/devices/platform/fsl-usb2-udc/charging";
+static const char *kindle_pw_charging =    "/sys/devices/platform/aplite_charger.0/charging";
+
 bool CRXCBWindowManager::getBatteryStatus( int & percent, bool & charging )
 {
 	/* hard coded battery info for the Kindle Touch */
@@ -983,8 +988,14 @@ bool CRXCBWindowManager::getBatteryStatus( int & percent, bool & charging )
 	charging = false;
 	percent = 100;
 #else
-	// File configured in /etc/kdb.src/yoshi/system/daemon/powerd/SYS_CHARGING_FILE
-	charging = _read_int_file("/sys/devices/platform/fsl-usb2-udc/charging");
+	if (LVFileExists(lString16(kindle_touch_charging))) {
+		charging = _read_int_file(kindle_touch_charging);
+	} else if (LVFileExists(lString16(kindle_pw_charging))) {
+		charging = _read_int_file(kindle_pw_charging);
+	} else {
+		// can't find any known charging file
+		charging = false;
+	}
 	// File configured in /etc/kdb.src/yoshi/system/daemon/powerd/sys_battery_capacity
 	percent = _read_int_file("/sys/devices/system/yoshi_battery/yoshi_battery0/battery_capacity");
 #endif

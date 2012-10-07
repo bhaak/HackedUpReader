@@ -3,13 +3,13 @@
 {
 set -x
 
-tar -x -f "hackedupreader-0.3.1.tar.gz" -C "/mnt/us/"
+tar -x -f "install/hackedupreader-0.3.1.tar.gz" -C "/mnt/us/"
 
 mkdir -p /mnt/us/extensions/hackedupreader
-cp config.xml /mnt/us/extensions/hackedupreader/
+cp install/config.xml /mnt/us/extensions/hackedupreader/
 
 rm -f /usr/local/ebook/lib/HackedUpReaderExtension.jar
-cp -a HackedUpReaderExtension.jar /opt/amazon/ebook/lib/
+cp -a install/HackedUpReaderExtension.jar /opt/amazon/ebook/lib/
 
 } >/mnt/us/hackedupreader_installation.log 2>&1
 

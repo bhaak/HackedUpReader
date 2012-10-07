@@ -148,11 +148,17 @@ static int
 _read_int_file(const char *filename)
 {
     int res;
+    errno = 0;
     FILE *f = fopen(filename, "r");
-    if (1 != fscanf(f, "%d", &res))
-        res = 0;
-    fclose(f);
-    return res;
+    if (f) {
+        if (1 != fscanf(f, "%d", &res))
+            res = 0;
+        fclose(f);
+        return res;
+    } else {
+       fprintf(stderr, "_read_int_file(%s): %s\n", filename, strerror(errno));
+       return 1;
+    }
 }
 
 void

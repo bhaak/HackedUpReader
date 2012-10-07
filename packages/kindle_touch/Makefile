@@ -1,11 +1,13 @@
 VERSION=0.3.0
 
+SUPPORTED_DEVICES=-d k5w -d k5g -d k5gb -d k5u -d kpw -d kpwg
+
 all: hackedupreader_${VERSION}_install.bin hackedupreader_${VERSION}_uninstall.bin zip
 hackedupreader_${VERSION}_install.bin:
-	kindletool create ota2 -d k5w -d k5g install $@
+	kindletool create ota2 ${SUPPORTED_DEVICES} install $@
 
 hackedupreader_${VERSION}_uninstall.bin:
-	kindletool create ota2 -d k5w -d k5g uninstall $@
+	kindletool create ota2 ${SUPPORTED_DEVICES} uninstall $@
 
 clean:
 	rm -rf *.bin *.zip hackedupreader_${VERSION}

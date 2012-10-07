@@ -1,4 +1,4 @@
-VERSION=0.3.0
+VERSION=0.3.1
 
 SUPPORTED_DEVICES=-d k5w -d k5g -d k5gb -d k5u -d kpw -d kpwg
 

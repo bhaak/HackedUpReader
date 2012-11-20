@@ -1,15 +1,18 @@
-HackedUpReader for Kindle Touch
-===============================
+HackedUpReader for Kindle Touch and Kindle Paperwhite
+=====================================================
 
-HackedUpReader is a CoolReader 3 port for the Kindle Touch using the X11
-gui of the CoolReader project, minimally adapted for the touch interface.
+HackedUpReader is a CoolReader 3 port for the Kindle Touch and Kindle
+Paperwhite using the X11 gui of the CoolReader project, minimally adapted
+for the touch interface.
 
 It is only meant to act as a temporary solution to get a ePub reader for
-the Kindle Touch.
+those devices.
 
-HackedUpReader is by no means thought for general usage. Currently you
-need to be familiar with accessing your Kindle Touch and starting
-programs from the command line to use it.
+HackedUpReader is working overall but there are still rough edges.
+
+For the Kindle Paperwhite you need currently to be familiar with accessing and
+starting programs from the command line to use it.
+
 
 What works:
  - reading e-books
@@ -20,9 +23,7 @@ What works:
  - bookmarking
  - screen refresh for removing e-ink artifacts
    * automatic after a configurable amount of pages
-
-What doesn't work:
- - dictionary support
+ - limited dictionary support
 
 
 Installation and running

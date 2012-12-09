@@ -1003,6 +1003,16 @@ bool CRXCBWindowManager::getBatteryStatus( int & percent, bool & charging )
 	return true;
 }
 
+void sigquit_handler(int)
+{
+    if (main_win) {
+        ((CRXCBWindowManager*)main_win->getWindowManager())->handleEvent(new CRGUICommandEvent(MCMD_QUIT, 0));
+    }
+    CRLog::info("sigquit_handler\n");
+
+    exit(0);
+}
+
 void sigint_handler(int)
 {
     exit(1);
@@ -1290,6 +1300,11 @@ int CRXCBWindowManager::runEventLoop()
     sigemptyset(&act.sa_mask);
     act.sa_flags = 0;
     sigaction(SIGUSR1, &act, NULL);
+
+    act.sa_handler = sigquit_handler;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    sigaction(SIGQUIT, &act, NULL);
     
 
     

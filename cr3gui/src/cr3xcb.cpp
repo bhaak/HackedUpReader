@@ -52,8 +52,8 @@ extern "C" {
 
 #define XCB_ALL_PLANES ~0
 
-#define PIDFILE "/tmp/cr3.pid"
-#define CR3_FIFO "/tmp/.cr3-fifo"
+#define PIDFILE "/tmp/.hackedupreader.pid"
+#define CR3_FIFO "/tmp/.hackedupreader-fifo"
 #ifndef NAME_MAX
 #define NAME_MAX 4096
 #endif

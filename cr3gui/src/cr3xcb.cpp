@@ -1364,6 +1364,20 @@ int main(int argc, char **argv)
         if(pid <= 0 || pid == getpid() || kill(pid, 0))
             break;
 
+#if KINDLE_TOUCH==1
+        /* On Kindle Touch/Paperwhite we want to restart
+         * HackedUpReader because there should only be one
+         * instance running. */
+        kill(pid, SIGQUIT);
+        sleep(1);
+        if (kill(pid, 0) == 0) {
+           /* process still alive */
+           kill(pid, SIGKILL);
+           sleep(1);
+        }
+        break;
+#endif
+
         struct sigaction act;
         act.sa_handler = sigalrm_handler;
         sigemptyset(&act.sa_mask);

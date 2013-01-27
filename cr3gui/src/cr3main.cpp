@@ -264,6 +264,15 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
             fonts.add( lString16("/usr/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
     #endif
     #endif
+
+    #if KINDLE_TOUCH==1
+        fontDirs.add("/usr/share/fonts");
+        fontDirs.add("/usr/java/lib/fonts");
+        fontDirs.add("/mnt/us/fonts");
+        fontDirs.add("/mnt/us/.fonts");
+        fontDirs.add("/mnt/us/hackedupreader/fonts");
+    #endif
+
         getDirectoryFonts( fontDirs, fontExt, fonts, true );
 
         // load fonts from file

@@ -3,6 +3,8 @@
 {
 set -x
 
+date
+
 tar -x -f "install/hackedupreader-0.3.1.tar.gz" -C "/mnt/us/"
 
 mkdir -p /mnt/us/extensions/hackedupreader

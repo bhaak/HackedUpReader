@@ -1,0 +1,5 @@
+{
+	"items": [
+		{"name": "Launch HackedUpReader", "priority": 1, "action": "/mnt/us/hackedupreader/bin/cr3"}
+	]
+}

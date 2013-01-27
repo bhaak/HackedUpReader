@@ -7,11 +7,15 @@ date
 
 tar -x -f "install/hackedupreader-0.3.1.tar.gz" -C "/mnt/us/"
 
+# HackedUpReaderExtension
 mkdir -p /mnt/us/extensions/hackedupreader
-cp install/config.xml /mnt/us/extensions/hackedupreader/
+cp -f install/config.xml /mnt/us/extensions/hackedupreader/
 
 rm -f /usr/local/ebook/lib/HackedUpReaderExtension.jar
 cp -a install/HackedUpReaderExtension.jar /opt/amazon/ebook/lib/
+
+# HackedUpReaderLauncher
+cp -rf install/hackedupreaderlauncher /mnt/us/extensions/
 
 } >/mnt/us/hackedupreader_installation.log 2>&1
 

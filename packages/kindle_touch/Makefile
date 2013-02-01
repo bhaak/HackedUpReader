@@ -19,6 +19,6 @@ zip:
 	zip -r0 hackedupreader_${VERSION}.zip hackedupreader_${VERSION}/
 
 hackedupreader.tar.gz:
-	cp ../../README.md /mnt/us/hackedupreader/README.txt
+	cp ../../README.md $(DESTDIR)/mnt/us/hackedupreader/README.txt
 	rm -f install/hackedupreader-*.tar.gz
-	tar -czf "install/hackedupreader-${VERSION}.tar.gz" -C "/mnt/us/" hackedupreader 
+	tar -czf "install/hackedupreader-${VERSION}.tar.gz" -C $(DESTDIR)"/mnt/us/" hackedupreader 

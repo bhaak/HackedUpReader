@@ -4,7 +4,7 @@ rm -rf /mnt/us/hackedupreader/bin /mnt/us/hackedupreader/share
 rm -rf /mnt/us/extensions/hackedupreader
 rm -rf /usr/local/ebook/lib/HackedUpReaderExtension.jar
 rm -rf /opt/amazon/ebook/lib/HackedUpReaderExtension.jar
-rm -rf /mnt/us/hackedupreader/README.md
+rm -rf /mnt/us/hackedupreader/README.txt
 rm -rf /mnt/us/extensions/hackedupreaderlauncher
 rm -rf /mnt/us/documents/HackedUpReaderKindlet.azw2
 

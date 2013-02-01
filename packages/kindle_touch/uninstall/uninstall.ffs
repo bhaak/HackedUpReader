@@ -5,5 +5,13 @@ rm -rf /mnt/us/extensions/hackedupreader
 rm -rf /usr/local/ebook/lib/HackedUpReaderExtension.jar
 rm -rf /opt/amazon/ebook/lib/HackedUpReaderExtension.jar
 rm -rf /mnt/us/hackedupreader/README.md
+rm -rf /mnt/us/extensions/hackedupreaderlauncher
+rm -rf /mnt/us/documents/HackedUpReaderKindlet.azw2
+
+POLICY_FILE=/opt/amazon/ebook/security/external.policy
+# delete old Permission block
+mntroot rw
+sed -i '/^.. needed Permissions to start and stop HackedUpReader$/,/^.. needed Permissions to start and stop HackedUpReader end$/d' $POLICY_FILE
+mntroot ro
 
 exit 0

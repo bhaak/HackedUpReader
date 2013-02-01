@@ -1,5 +1,33 @@
 #!/bin/bash
 
+POLICY_FILE=/opt/amazon/ebook/security/external.policy
+
+# give the HackedUpReaderKindlet the necessary permissions
+modify_policy_file() {
+  mntroot rw
+
+  # backup old policy file
+  cp -a $POLICY_FILE $POLICY_FILE.hackedupreader_`date -Iseconds -u`.bak
+
+  # delete old Permission block
+  sed -i '/^.. needed Permissions to start and stop HackedUpReader$/,/^.. needed Permissions to start and stop HackedUpReader end$/d' $POLICY_FILE
+
+  # add permissions to policy file
+  cat >> $POLICY_FILE << EOF
+// needed Permissions to start and stop HackedUpReader
+grant signedBy "Kindlet", codeBase "file:/mnt/us/documents/HackedUpReaderKindlet.azw2" {
+  permission java.io.FilePermission "/mnt/us/hackedupreader/bin/cr3", "execute";
+  permission java.io.FilePermission "/bin/kill", "execute";
+  permission java.io.FilePermission "/usr/bin/lipc-set-prop", "execute";
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+};
+// needed Permissions to start and stop HackedUpReader end
+EOF
+
+  mntroot ro
+}
+
 {
 set -x
 
@@ -16,6 +44,10 @@ cp -a install/HackedUpReaderExtension.jar /opt/amazon/ebook/lib/
 
 # HackedUpReaderLauncher
 cp -rf install/hackedupreaderlauncher /mnt/us/extensions/
+
+# HackedUpReaderKindlet
+cp -f install/HackedUpReaderKindlet.azw2 /mnt/us/documents/
+modify_policy_file
 
 } >/mnt/us/hackedupreader_installation.log 2>&1
 

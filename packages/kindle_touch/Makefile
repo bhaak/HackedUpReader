@@ -1,12 +1,12 @@
 VERSION=0.4.0
 
-SUPPORTED_DEVICES=-d touch -d paperwhite
+SUPPORTED_DEVICES=-d touch -d paperwhite -d paperwhite2
 
-all: hackedupreader_${VERSION}_install.bin hackedupreader_${VERSION}_uninstall.bin zip
-hackedupreader_${VERSION}_install.bin:
+all: update_hackedupreader_${VERSION}_install.bin update_hackedupreader_${VERSION}_uninstall.bin zip
+update_hackedupreader_${VERSION}_install.bin:
 	kindletool create ota2 ${SUPPORTED_DEVICES} install $@
 
-hackedupreader_${VERSION}_uninstall.bin:
+update_hackedupreader_${VERSION}_uninstall.bin:
 	kindletool create ota2 ${SUPPORTED_DEVICES} uninstall $@
 
 clean:
@@ -15,7 +15,7 @@ clean:
 zip:
 	mkdir hackedupreader_${VERSION}
 	cp ../../README.md hackedupreader_${VERSION}/README.txt
-	mv hackedupreader_${VERSION}_install.bin hackedupreader_${VERSION}_uninstall.bin hackedupreader_${VERSION}
+	mv update_hackedupreader_${VERSION}_install.bin update_hackedupreader_${VERSION}_uninstall.bin hackedupreader_${VERSION}
 	zip -r0 hackedupreader_${VERSION}.zip hackedupreader_${VERSION}/
 
 hackedupreader.tar.gz:

@@ -1,4 +1,4 @@
-VERSION=0.4.0
+VERSION=0.4.1
 
 SUPPORTED_DEVICES=-d touch -d paperwhite -d paperwhite2
 

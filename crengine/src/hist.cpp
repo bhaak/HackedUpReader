@@ -752,3 +752,13 @@ bool ChangeInfo::findNextRecordBounds(lChar8 * buf, int start, int end, int & re
     recordEnd = endTagPos + lStr_len(END_TAG_BYTES);
     return true;
 }
+
+/** Removes records whose files are no longer available and returns the records. */
+LVPtrVector<CRFileHistRecord> & CRFileHist::getCurrentRecords() {
+    for (int i=_records.length()-1; i>0; i--) {
+        if (!LVFileExists(_records[i]->getFilePathName())) {
+            _records.erase(i, 1);
+        }
+    }
+    return _records;
+}

@@ -219,6 +219,7 @@ public:
             _records.erase( i, 1 );
         }
     }
+    LVPtrVector<CRFileHistRecord> & getCurrentRecords();
     LVPtrVector<CRFileHistRecord> & getRecords() { return _records; }
     bool loadFromStream( LVStreamRef stream );
     bool saveToStream( LVStream * stream );

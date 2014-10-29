@@ -121,7 +121,7 @@ CRRecentBooksMenu::CRRecentBooksMenu(CRGUIWindowManager * wm, LVDocView * docvie
     : CRFullScreenMenu( wm, MCMD_MAIN_MENU, lString16(_("Open recent book")), numItems, rc )
 {
     docview->savePosition(); // to move current file to top
-    LVPtrVector<CRFileHistRecord> & files = docview->getHistory()->getRecords();
+    LVPtrVector<CRFileHistRecord> & files = docview->getHistory()->getCurrentRecords();
     _files = &files;
     // skip Null
     for ( int i=1; i<files.length(); i++ ) {

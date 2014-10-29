@@ -4321,7 +4321,7 @@ public:
         "TRACE",
         };
         fwrite( utf8sign, 3, 1, f);
-        info( "Started logging. Level=%s", log_level_names[getLogLevel()] );
+        info( "Started logging. Level=%s file=%s", log_level_names[getLogLevel()], fname );
     }
 
     virtual ~CRFileLogger() {

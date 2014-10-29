@@ -9,3 +9,10 @@ qtcreator-build
 /cr3qt-kindle/src/cr3-kindle.pro.user
 *~
 *.swp
+TODO
+
+packages/kindle_touch/hackedupreader_?.?.?
+packages/kindle_touch/hackedupreader-?.?.?.tar.gz
+packages/kindle_touch/hackedupreader_?.?.?.zip
+packages/kindle_touch/hackedupreader_0.4.0-pw2
+packages/kindle_touch/hackedupreader_0.4.0-pw2.zip
